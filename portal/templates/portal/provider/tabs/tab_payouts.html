@@ -1,0 +1,63 @@
+<div id="tab-content-payouts" class="space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-[#121829] border border-white/10 rounded-2xl p-5">
+            <span class="text-xs font-semibold text-gray-400">Month-to-Date Remitted</span>
+            <p class="text-2xl font-black text-emerald-400 mt-1">{{ stats.mtd_payout }}</p>
+            <span class="text-[11px] text-gray-400">Completed & Settled Trips</span>
+        </div>
+        <div class="bg-[#121829] border border-white/10 rounded-2xl p-5">
+            <span class="text-xs font-semibold text-gray-400">Pending Broker Settlement</span>
+            <p class="text-2xl font-black text-amber-400 mt-1">{{ stats.pending_broker }}</p>
+            <span class="text-[11px] text-gray-400">Net 14 settlement cycle</span>
+        </div>
+        <div class="bg-[#121829] border border-white/10 rounded-2xl p-5">
+            <span class="text-xs font-semibold text-gray-400">Total Fulfilled Trips</span>
+            <p class="text-2xl font-black text-white mt-1">{{ stats.completed_count }} Trips</p>
+            <span class="text-[11px] text-blue-400 font-semibold">100% On-Time SLA</span>
+        </div>
+    </div>
+
+    <!-- Completed Trip Settlement Table -->
+    <div class="bg-[#121829] border border-white/10 rounded-2xl p-6">
+        <h3 class="text-base font-bold text-white mb-4 flex items-center justify-between">
+            <span>Recent Completed Bookings & Payout Vouchers</span>
+            <button onclick="window.showFlexyToast('Exporting Provider Settlement Statement (PDF)...', 'info')" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download PDF Statement
+            </button>
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b border-white/10 text-gray-400 font-bold uppercase text-[10px]">
+                        <th class="py-3 px-4">Trip Reference</th>
+                        <th class="py-3 px-4">Client</th>
+                        <th class="py-3 px-4">Vehicle & Driver</th>
+                        <th class="py-3 px-4">Completion Date</th>
+                        <th class="py-3 px-4 text-right">Wholesale Payout</th>
+                        <th class="py-3 px-4 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5 text-gray-300">
+                    {% for trip in completed_trips %}
+                    <tr class="hover:bg-white/5">
+                        <td class="py-3 px-4 font-mono font-bold text-white">#{{ trip.request.request_number }}</td>
+                        <td class="py-3 px-4">{{ trip.request.customer.company_name|default:"Corporate Client" }}</td>
+                        <td class="py-3 px-4">{{ trip.vehicle.registration_number }} • {{ trip.driver.full_name }}</td>
+                        <td class="py-3 px-4">{{ trip.assigned_at|date:"M d, Y @ h:i A" }}</td>
+                        <td class="py-3 px-4 text-right font-mono font-bold text-emerald-400">
+                            {% with pq=trip.request.provider_quote_requests.first.quotes.first %}
+                            GHS {{ pq.offered_cost|floatformat:0|default:"--" }}
+                            {% endwith %}
+                        </td>
+                        <td class="py-3 px-4 text-center"><span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-bold text-[10px]">Settled</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-gray-500">No completed trips recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,300 @@
+<script>
+    // State management for search, category, sort and pagination
+    let currentPage = 1;
+    let pageSize = 10;
+    let activeCategory = 'ALL';
+    let currentSort = 'date-desc';
+    let visibleRows = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        applyFilters();
+        if (window.lucide) lucide.createIcons();
+    });
+
+    function handleSearchInput() {
+        const query = (document.getElementById('tripSearch')?.value || '').trim();
+        const clearBtn = document.getElementById('clearSearchBtn');
+        if (clearBtn) {
+            if (query.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function clearSearch() {
+        const searchInput = document.getElementById('tripSearch');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+        document.getElementById('clearSearchBtn')?.classList.add('hidden');
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function setCategoryFilter(category) {
+        activeCategory = category;
+        // Update button visual styles
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.classList.remove('bg-[#8CC63F]', 'text-[#080D18]', 'shadow-sm');
+            btn.classList.add('text-slate-400');
+        });
+        const activeBtn = document.getElementById(`cat-${category}`);
+        if (activeBtn) {
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('bg-[#8CC63F]', 'text-[#080D18]', 'shadow-sm');
+        }
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function changeSortOrder() {
+        const sortSelect = document.getElementById('sortBy');
+        currentSort = sortSelect ? sortSelect.value : 'date-desc';
+        applyFilters();
+    }
+
+    function changePageSize() {
+        const select = document.getElementById('pageSize');
+        pageSize = parseInt(select.value, 10) || 10;
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const query = (document.getElementById('tripSearch')?.value || '').toLowerCase().trim();
+        const allRows = Array.from(document.querySelectorAll('.trip-row'));
+
+        // 1. Filter rows by search and category
+        visibleRows = allRows.filter(row => {
+            const searchData = (row.dataset.search || '').toLowerCase();
+            const category = (row.dataset.category || '').toUpperCase();
+            const matchesQuery = !query || searchData.includes(query);
+            const matchesCat = (activeCategory === 'ALL') || 
+                               (activeCategory === 'SUV' && (category === 'SUV' || category.includes('SUV'))) ||
+                               (activeCategory === 'EXECUTIVE' && (category === 'EXECUTIVE' || category === 'LUXURY' || category === 'SEDAN')) ||
+                               (activeCategory === 'COASTER_BUS' && (category === 'COASTER_BUS' || category === 'VAN' || category === 'MINIBUS'));
+            return matchesQuery && matchesCat;
+        });
+
+        // 2. Sort rows
+        visibleRows.sort((a, b) => {
+            if (currentSort === 'date-desc') {
+                return (parseInt(b.dataset.timestamp, 10) || 0) - (parseInt(a.dataset.timestamp, 10) || 0);
+            } else if (currentSort === 'date-asc') {
+                return (parseInt(a.dataset.timestamp, 10) || 0) - (parseInt(b.dataset.timestamp, 10) || 0);
+            } else if (currentSort === 'amount-desc') {
+                return (parseFloat(b.dataset.amount) || 0) - (parseFloat(a.dataset.amount) || 0);
+            } else if (currentSort === 'amount-asc') {
+                return (parseFloat(a.dataset.amount) || 0) - (parseFloat(b.dataset.amount) || 0);
+            }
+            return 0;
+        });
+
+        // Hide all rows in DOM first
+        allRows.forEach(row => row.classList.add('hidden'));
+
+        // Re-order tbody children according to sorted order
+        const tbody = document.getElementById('tripsTbody');
+        visibleRows.forEach(row => tbody.appendChild(row));
+
+        // 3. Render page slice
+        const total = visibleRows.length;
+        const totalPages = Math.ceil(total / pageSize) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIdx = (currentPage - 1) * pageSize;
+        const endIdx = Math.min(startIdx + pageSize, total);
+
+        for (let i = startIdx; i < endIdx; i++) {
+            visibleRows[i].classList.remove('hidden');
+        }
+
+        // Calculate sum for filtered view
+        let filteredSpend = 0;
+        visibleRows.forEach(row => {
+            filteredSpend += parseFloat(row.dataset.amount) || 0;
+        });
+        const spendBadge = document.getElementById('filteredSpendBadge');
+        if (spendBadge) {
+            spendBadge.textContent = `GHS ${Math.round(filteredSpend).toLocaleString()} total`;
+        }
+
+        // Update range display indicators
+        document.getElementById('startRange').textContent = total > 0 ? (startIdx + 1) : 0;
+        document.getElementById('endRange').textContent = endIdx;
+        document.getElementById('totalRows').textContent = total;
+        document.getElementById('pageIndicator').textContent = `Page ${currentPage} of ${totalPages}`;
+
+        // Update pagination buttons
+        document.getElementById('prevBtn').disabled = (currentPage <= 1);
+        document.getElementById('nextBtn').disabled = (currentPage >= totalPages);
+
+        // Show/hide empty state
+        const emptyRow = document.getElementById('emptyRow');
+        if (emptyRow) {
+            if (total === 0 && allRows.length > 0) {
+                emptyRow.classList.remove('hidden');
+                emptyRow.querySelector('p.font-bold').textContent = 'No matching journeys found';
+                emptyRow.querySelector('p.text-xs').textContent = 'Try refining or clearing your search term or category filters.';
+            } else if (allRows.length === 0) {
+                emptyRow.classList.remove('hidden');
+            } else {
+                emptyRow.classList.add('hidden');
+            }
+        }
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            applyFilters();
+        }
+    }
+
+    function nextPage() {
+        const totalPages = Math.ceil(visibleRows.length / pageSize) || 1;
+        if (currentPage < totalPages) {
+            currentPage++;
+            applyFilters();
+        }
+    }
+
+    // Receipt Modal Handling
+    function openReceiptModal(btnOrRef, date, pickup, dest, amountStr, vehicle, driver, journeyType, distance) {
+        let ref = btnOrRef;
+        if (btnOrRef && btnOrRef.dataset) {
+            const d = btnOrRef.dataset;
+            ref = d.ref;
+            date = d.date;
+            pickup = d.pickup;
+            dest = d.dest;
+            amountStr = d.amount;
+            vehicle = d.vehicle;
+            driver = d.driver;
+            journeyType = d.journeyType;
+            distance = d.distance;
+        }
+
+        document.getElementById('modalReceiptRef').textContent = `RCT-${ref}`;
+        document.getElementById('modalReceiptDate').textContent = date;
+        document.getElementById('modalPickup').textContent = pickup;
+        document.getElementById('modalDestination').textContent = dest;
+        document.getElementById('modalVehicle').textContent = vehicle || 'Assigned Chauffeur Vehicle';
+        document.getElementById('modalDriver').textContent = driver || 'FlexyRide Professional Chauffeur';
+        document.getElementById('modalReceiptType').textContent = journeyType || 'Corporate Journey';
+        document.getElementById('modalDistance').textContent = distance && distance !== '--' ? `${distance} km logged` : 'GPS Verified';
+
+        const rawAmount = typeof amountStr === 'number' ? amountStr : (parseFloat(String(amountStr || '0').replace(/,/g, '')) || 0);
+        // Standard Ghana Tax Breakdown: 15% VAT, 2.5% NHIL, 2.5% GETFund, 1% COVID-19 HRL = ~21% total tax component
+        const totalTaxRatio = 0.21 / 1.21;
+        const totalTax = Math.round(rawAmount * totalTaxRatio);
+        const subtotal = rawAmount - totalTax;
+        const vatOnly = Math.round(totalTax * (0.15 / 0.21));
+        const levies = totalTax - vatOnly;
+
+        document.getElementById('modalSubtotal').textContent = `GHS ${subtotal.toLocaleString()}`;
+        document.getElementById('modalLevies').textContent = `GHS ${levies.toLocaleString()}`;
+        document.getElementById('modalVat').textContent = `GHS ${vatOnly.toLocaleString()}`;
+        document.getElementById('modalTotal').textContent = `GHS ${rawAmount.toLocaleString()}`;
+
+        const modal = document.getElementById('receiptModal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function closeReceiptModal() {
+        const modal = document.getElementById('receiptModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function handleBackdropClick(e) {
+        if (e.target === document.getElementById('receiptModal')) {
+            closeReceiptModal();
+        }
+    }
+
+    // Copy to clipboard helper
+    function copyToClipboard(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('copyToast');
+            const msg = document.getElementById('copyToastMsg');
+            if (msg) msg.textContent = `Copied ${text} to clipboard`;
+            if (toast) {
+                toast.classList.remove('translate-y-16', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-16', 'opacity-0');
+                }, 2500);
+            }
+        }).catch(err => {
+            console.error('Clipboard copy failed:', err);
+        });
+    }
+
+    // Journey Rating Modal Controllers
+    let selectedRating = 5;
+
+    function openRatingModal(ref) {
+        document.getElementById('ratingRequestNumber').value = ref;
+        document.getElementById('ratingModalTripRef').textContent = ref;
+        setStarRating(5);
+        document.getElementById('ratingModal').classList.remove('hidden');
+    }
+
+    function closeRatingModal() {
+        document.getElementById('ratingModal').classList.add('hidden');
+    }
+
+    function setStarRating(num) {
+        selectedRating = num;
+        document.getElementById('ratingValueInput').value = num;
+        const stars = document.querySelectorAll('.star-btn');
+        stars.forEach((btn, idx) => {
+            const icon = btn.querySelector('svg');
+            if (idx < num) {
+                btn.className = "star-btn p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer";
+                if (icon) icon.setAttribute('fill', 'currentColor');
+            } else {
+                btn.className = "star-btn p-1 text-slate-600 hover:scale-110 transition-transform cursor-pointer";
+                if (icon) icon.setAttribute('fill', 'none');
+            }
+        });
+    }
+
+    // Export Table Data to CSV
+    function exportToCSV() {
+        const rows = [];
+        rows.push(['Booking Reference', 'Date', 'Pickup Address', 'Destination Address', 'Vehicle & Plate', 'Chauffeur', 'Amount (GHS)', 'Status']);
+
+        visibleRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const date = cells[0].querySelector('.text-white')?.textContent.trim() || '';
+            const ref = cells[1].querySelector('a')?.textContent.trim() || '';
+            const pickup = cells[2].querySelector('.route-connector p:first-of-type')?.textContent.trim() || '';
+            const destination = cells[2].querySelector('.route-connector p:last-of-type')?.textContent.trim() || '';
+            const vehicle = cells[3].querySelector('.font-bold')?.textContent.trim() || '';
+            const driver = cells[3].querySelector('.text-slate-400')?.textContent.trim() || '';
+            const rawAmount = cells[4].querySelector('.font-mono')?.textContent.replace(/GHS|,/g, '').trim() || '0';
+            const amount = `GHS ${rawAmount}`;
+            rows.push([`"${ref}"`, `"${date}"`, `"${pickup}"`, `"${destination}"`, `"${vehicle}"`, `"${driver}"`, `"${amount}"`, '"COMPLETED"']);
+        });
+
+        const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.join(',')).join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `flexyride_corporate_trips_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>

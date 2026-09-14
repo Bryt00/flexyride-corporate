@@ -1,0 +1,138 @@
+<script>
+    // Independent page navigation mapping
+    const providerUrls = {
+        'overview': "{% url 'portal_provider_overview' %}",
+        'dispatches': "{% url 'portal_provider_dispatches' %}",
+        'rfqs': "{% url 'portal_provider_rfqs' %}",
+        'fleet': "{% url 'portal_provider_fleet' %}",
+        'drivers': "{% url 'portal_provider_drivers' %}",
+        'compliance': "{% url 'portal_provider_compliance' %}",
+        'payouts': "{% url 'portal_provider_payouts' %}",
+        'company': "{% url 'portal_provider_company' %}"
+    };
+
+    function switchTab(tabKey) {
+        if (providerUrls[tabKey]) {
+            window.location.href = providerUrls[tabKey];
+        }
+    }
+
+    window.switchTab = switchTab;
+    window.switchProviderTab = switchTab;
+
+    // Modal helpers
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+            if (window.lucide) window.lucide.createIcons();
+        }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.add('hidden');
+    }
+
+    // Prefill and open quote modal
+    function openQuoteModal(reqId, rfqNum, category, existingCost = '', existingVeh = '', existingNotes = '') {
+        document.getElementById('modalQuoteReqId').value = reqId;
+        document.getElementById('modalRfqSub').textContent = `RFQ #${rfqNum} • ${category}`;
+        if (existingCost) document.getElementById('modalOfferedCost').value = existingCost;
+        if (existingVeh) document.getElementById('modalVehicleSelect').value = existingVeh;
+        if (existingNotes) document.getElementById('modalNotes').value = existingNotes;
+        openModal('quoteModal');
+    }
+
+    // Prefill and open Edit Vehicle modal
+    function openEditVehicleModal(btnOrId, make, model, year, category, seats, wifi, water, color, luggage, access, child) {
+        if (typeof btnOrId === 'object' && btnOrId !== null && btnOrId.dataset) {
+            const d = btnOrId.dataset;
+            document.getElementById('editVehicleId').value = d.id || '';
+            document.getElementById('editVehicleMake').value = d.make || '';
+            document.getElementById('editVehicleModel').value = d.model || '';
+            document.getElementById('editVehicleYear').value = d.year || '2024';
+            document.getElementById('editVehicleCategory').value = d.category || 'SUV';
+            document.getElementById('editVehicleSeats').value = d.seats || '5';
+            document.getElementById('editVehicleColor').value = d.color || '';
+            document.getElementById('editVehicleLuggage').value = d.luggage || '';
+            document.getElementById('editVehicleWifi').checked = d.wifi === '1' || d.wifi === 'true';
+            document.getElementById('editVehicleWater').checked = d.water === '1' || d.water === 'true';
+            document.getElementById('editVehicleAccess').checked = d.access === '1' || d.access === 'true';
+            document.getElementById('editVehicleChild').checked = d.child === '1' || d.child === 'true';
+        } else {
+            document.getElementById('editVehicleId').value = btnOrId || '';
+            document.getElementById('editVehicleMake').value = make || '';
+            document.getElementById('editVehicleModel').value = model || '';
+            document.getElementById('editVehicleYear').value = year || '2024';
+            document.getElementById('editVehicleCategory').value = category || 'SUV';
+            document.getElementById('editVehicleSeats').value = seats || '5';
+            document.getElementById('editVehicleColor').value = color || '';
+            document.getElementById('editVehicleLuggage').value = luggage || '';
+            document.getElementById('editVehicleWifi').checked = Boolean(wifi);
+            document.getElementById('editVehicleWater').checked = Boolean(water);
+            document.getElementById('editVehicleAccess').checked = Boolean(access);
+            document.getElementById('editVehicleChild').checked = Boolean(child);
+        }
+        openModal('editVehicleModal');
+    }
+
+    // Prefill and open Edit Driver modal
+    function openEditDriverModal(btnOrId, name, phone, license, languages, expiry) {
+        if (typeof btnOrId === 'object' && btnOrId !== null && btnOrId.dataset) {
+            const d = btnOrId.dataset;
+            document.getElementById('editDriverId').value = d.id || '';
+            document.getElementById('editDriverName').value = d.name || '';
+            document.getElementById('editDriverPhone').value = d.phone || '';
+            document.getElementById('editDriverLicense').value = d.license || '';
+            document.getElementById('editDriverLanguages').value = d.languages || '';
+            document.getElementById('editDriverExpiry').value = d.expiry || '';
+        } else {
+            document.getElementById('editDriverId').value = btnOrId || '';
+            document.getElementById('editDriverName').value = name || '';
+            document.getElementById('editDriverPhone').value = phone || '';
+            document.getElementById('editDriverLicense').value = license || '';
+            document.getElementById('editDriverLanguages').value = languages || '';
+            document.getElementById('editDriverExpiry').value = expiry || '';
+        }
+        openModal('editDriverModal');
+    }
+
+    // Filter RFQ cards
+    function filterRfqs(filter) {
+        document.querySelectorAll('.rfq-filter-btn').forEach(btn => {
+            btn.classList.remove('bg-blue-600', 'text-white');
+            btn.classList.add('bg-white/5', 'text-gray-400');
+        });
+        const activeBtn = document.getElementById(`rfq-filter-${filter}`);
+        if (activeBtn) {
+            activeBtn.classList.remove('bg-white/5', 'text-gray-400');
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+        }
+
+        document.querySelectorAll('.rfq-card').forEach(card => {
+            if (filter === 'all') {
+                card.classList.remove('hidden');
+            } else if (filter === 'pending') {
+                if (card.classList.contains('rfq-status-pending')) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            } else if (filter === 'quoted') {
+                if (card.classList.contains('rfq-status-quoted')) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    // Escape key closes modals
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('[id$="Modal"]').forEach(m => m.classList.add('hidden'));
+        }
+    });
+</script>

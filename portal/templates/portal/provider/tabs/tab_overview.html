@@ -1,0 +1,207 @@
+<!-- ==================== TAB 1: OPERATIONS OVERVIEW ==================== -->
+<div id="tab-content-overview" class="tab-pane space-y-6">
+    <!-- 4 Key Metrics with Ambient Lighting & Lift -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Fleet Inventory -->
+        <a href="{% url 'portal_provider_fleet' %}" class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6 group block transition-all hover:-translate-y-0.5">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-[#8CC63F]/10 rounded-full blur-2xl pointer-events-none group-hover:bg-[#8CC63F]/20 transition-all"></div>
+            <div class="flex items-center justify-between text-slate-400 mb-3 relative z-10">
+                <span class="text-[11px] font-black uppercase tracking-wider">Fleet Inventory</span>
+                <div class="w-9 h-9 rounded-xl bg-[#8CC63F]/15 border border-[#8CC63F]/30 text-[#8CC63F] flex items-center justify-center shadow-md shadow-[#8CC63F]/10">
+                    <i data-lucide="car" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-black text-white relative z-10 tracking-tight">{{ stats.total_fleet }} <span class="text-sm font-semibold text-slate-400">Vehicles</span></p>
+            <div class="flex items-center gap-2 mt-3 text-[11px] relative z-10">
+                <span class="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">{{ stats.available_fleet }} Available</span>
+                <span class="text-slate-600">•</span>
+                <span class="text-blue-400 font-semibold">{{ stats.compliant_fleet }} Compliant</span>
+            </div>
+        </a>
+
+        <!-- Drivers Roster -->
+        <a href="{% url 'portal_provider_drivers' %}" class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6 group block transition-all hover:-translate-y-0.5">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-purple-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-purple-500/20 transition-all"></div>
+            <div class="flex items-center justify-between text-slate-400 mb-3 relative z-10">
+                <span class="text-[11px] font-black uppercase tracking-wider">Chauffeurs Roster</span>
+                <div class="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center shadow-md shadow-purple-500/10">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-black text-white relative z-10 tracking-tight">{{ stats.total_drivers }} <span class="text-sm font-semibold text-slate-400">Drivers</span></p>
+            <div class="flex items-center gap-2 mt-3 text-[11px] relative z-10">
+                <span class="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">{{ stats.available_drivers }} On Duty Ready</span>
+                <span class="text-slate-600">•</span>
+                <span class="text-amber-400 font-semibold">★ 4.90 Rating</span>
+            </div>
+        </a>
+
+        <!-- Incoming RFQs -->
+        <a href="{% url 'portal_provider_rfqs' %}" class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6 group border-amber-500/40 hover:border-amber-400/70 block transition-all hover:-translate-y-0.5">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-amber-500/15 rounded-full blur-2xl pointer-events-none group-hover:bg-amber-500/25 transition-all"></div>
+            <div class="flex items-center justify-between text-slate-400 mb-3 relative z-10">
+                <span class="text-[11px] font-black text-amber-400 uppercase tracking-wider">Incoming Broker RFQs</span>
+                <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-md shadow-amber-500/15">
+                    <i data-lucide="inbox" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-black text-amber-400 relative z-10 tracking-tight">{{ stats.pending_rfqs }} <span class="text-sm font-semibold text-amber-300/80">Pending Bids</span></p>
+            <div class="flex items-center gap-2 mt-3 text-[11px] relative z-10">
+                <span class="text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/30">Action Required</span>
+            </div>
+        </a>
+
+        <!-- MTD Gross Payout -->
+        <a href="{% url 'portal_provider_payouts' %}" class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6 group block transition-all hover:-translate-y-0.5">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/20 transition-all"></div>
+            <div class="flex items-center justify-between text-slate-400 mb-3 relative z-10">
+                <span class="text-[11px] font-black uppercase tracking-wider">MTD Gross Earnings</span>
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shadow-md shadow-emerald-500/10">
+                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-black text-emerald-400 relative z-10 tracking-tight glow-brand">{{ stats.mtd_payout }}</p>
+            <div class="flex items-center gap-2 mt-3 text-[11px] relative z-10">
+                <span class="text-slate-400">Escrow Pending: <b class="text-white">{{ stats.pending_broker }}</b></span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Live In-Transit Mission Control Banner -->
+    {% for dispatch in active_dispatches %}
+    {% if dispatch.status == 'TRIP_IN_PROGRESS' or dispatch.status == 'EN_ROUTE' or dispatch.status == 'ARRIVED' %}
+    <div class="relative overflow-hidden card-elevated rounded-2xl p-6 sm:p-7 shadow-xl">
+        <div class="absolute -top-12 -left-12 w-64 h-64 bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div class="space-y-3">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="text-xs font-mono font-bold text-slate-300 bg-white/5 px-2.5 py-1 rounded-lg">#{{ dispatch.request.request_number }}</span>
+                    <span class="text-xs text-slate-400 font-medium">{{ dispatch.request.customer.company_name }}</span>
+                </div>
+                <h3 class="text-lg sm:text-xl font-black text-white tracking-tight">{{ dispatch.request.pickup_address }} → {{ dispatch.request.destination_address }}</h3>
+                <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                    <span class="flex items-center gap-1.5 surface-well px-3 py-1.5 rounded-xl border border-white/5 text-white font-bold">
+                        <i data-lucide="car" class="w-3.5 h-3.5 text-[#8CC63F]"></i>
+                        {{ dispatch.vehicle.make }} {{ dispatch.vehicle.model }} ({{ dispatch.vehicle.registration_number }})
+                    </span>
+                    <span class="flex items-center gap-1.5 surface-well px-3 py-1.5 rounded-xl border border-white/5 text-purple-300 font-bold">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                        Chauffeur: {{ dispatch.driver.full_name }} ({{ dispatch.driver.phone_number }})
+                    </span>
+                    <span class="flex items-center gap-1.5 surface-well px-3 py-1.5 rounded-xl border border-white/5 text-slate-400">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-500"></i>
+                        Departed: {{ dispatch.request.departure_datetime|date:"h:i A" }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Live Status Updater Buttons -->
+            <div class="flex items-center gap-2 shrink-0">
+                <form method="POST" action="{% url 'portal_provider_workspace' %}" class="flex items-center gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_trip_status">
+                    <input type="hidden" name="assignment_id" value="{{ dispatch.id }}">
+                    
+                    {% if dispatch.status == 'ASSIGNED' %}
+                    <button type="submit" name="status" value="EN_ROUTE" class="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-600/25">
+                        <i data-lucide="navigation" class="w-4 h-4"></i> Driver En Route
+                    </button>
+                    {% elif dispatch.status == 'EN_ROUTE' %}
+                    <button type="submit" name="status" value="ARRIVED" class="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A0F1D] text-xs font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-amber-500/25">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i> Arrived at Pickup
+                    </button>
+                    {% elif dispatch.status == 'ARRIVED' %}
+                    <button type="submit" name="status" value="TRIP_IN_PROGRESS" class="px-5 py-3 bg-purple-600 hover:bg-purple-500 text-white text-xs font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-purple-600/25">
+                        <i data-lucide="play" class="w-4 h-4"></i> Start Passenger Trip
+                    </button>
+                    {% elif dispatch.status == 'TRIP_IN_PROGRESS' %}
+                    <button type="submit" name="status" value="COMPLETED" class="btn-brand px-5 py-3 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-[#8CC63F]/25">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 stroke-[3]"></i> Complete Trip
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <!-- Two Column Overview Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent RFQs Widget -->
+        <div class="card-elevated rounded-2xl p-6 sm:p-7 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <h2 class="text-base font-black text-white flex items-center gap-2.5">
+                    <i data-lucide="inbox" class="w-5 h-5 text-amber-400"></i>
+                    Pending Broker RFQs (Bidding)
+                </h2>
+                <a href="{% url 'portal_provider_rfqs' %}" class="text-xs font-bold text-[#8CC63F] hover:underline flex items-center gap-1">
+                    <span>View All</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+            <div class="space-y-3">
+                {% for quote_req in quote_requests|slice:":3" %}
+                <div class="surface-well rounded-2xl p-4 flex items-center justify-between gap-4 border border-white/5 hover:border-amber-400/40 transition-colors">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-black bg-amber-500/15 text-amber-400 border border-amber-500/30">#{{ quote_req.request.request_number }}</span>
+                            <span class="text-xs text-slate-400 font-semibold">{{ quote_req.request.get_requested_vehicle_category_display }}</span>
+                        </div>
+                        <p class="text-xs font-bold text-white truncate max-w-xs">{{ quote_req.request.pickup_address|truncatechars:30 }} → {{ quote_req.request.destination_address|truncatechars:30 }}</p>
+                        <span class="text-[11px] text-slate-400 mt-1 block">{{ quote_req.request.departure_datetime|date:"M d, Y @ h:i A" }}</span>
+                    </div>
+                    <div class="shrink-0">
+                        {% if quote_req.status == 'SENT' %}
+                        <button onclick="openQuoteModal('{{ quote_req.id }}', '{{ quote_req.request.request_number }}', '{{ quote_req.request.get_requested_vehicle_category_display }}')" class="btn-brand px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap shadow-md">
+                            Quote Now
+                        </button>
+                        {% else %}
+                        <span class="px-3 py-1 bg-emerald-500/15 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/30">Quoted</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="py-8 text-center text-slate-500">
+                    <p class="text-xs font-bold text-slate-400">No pending quote requests right now.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Ready Fleet & Driver Widget -->
+        <div class="card-elevated rounded-2xl p-6 sm:p-7 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <h2 class="text-base font-black text-white flex items-center gap-2.5">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-emerald-400"></i>
+                    Available Fleet Roster
+                </h2>
+                <a href="{% url 'portal_provider_fleet' %}" class="text-xs font-bold text-[#8CC63F] hover:underline flex items-center gap-1">
+                    <span>Manage Fleet</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+            <div class="space-y-3">
+                {% for v in vehicles|slice:":3" %}
+                <div class="surface-well rounded-2xl p-4 flex items-center justify-between border border-white/5 hover:border-emerald-500/40 transition-colors">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-14 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-200 font-mono text-xs font-black shadow-inner shrink-0">
+                            {{ v.registration_number }}
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-white">{{ v.make }} {{ v.model }} ({{ v.year }})</p>
+                            <div class="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                                <span class="text-blue-400 font-semibold">{{ v.get_category_display }}</span> •
+                                <span>{{ v.seating_capacity }} Seats</span>
+                                {% if v.wifi_available %}<span class="text-[#8CC63F]">• WiFi</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 {% if v.status == 'AVAILABLE' %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/30{% else %}bg-amber-500/15 text-amber-400 border border-amber-500/30{% endif %} text-[10px] font-black rounded-full">
+                        {{ v.get_status_display }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

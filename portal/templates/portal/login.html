@@ -1,0 +1,172 @@
+{% extends 'portal/base_portal.html' %}
+{% load static %}
+
+{% block title %}Sign In | FlexyRide Corporate{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Smooth, seamless transition feather between light form panel and dark hero image */
+    .login-seam-feather {
+        background: linear-gradient(to right,
+                #F8FAFC 0%,
+                rgba(248, 250, 252, 0.96) 18%,
+                rgba(248, 250, 252, 0.78) 38%,
+                rgba(248, 250, 252, 0.48) 58%,
+                rgba(248, 250, 252, 0.20) 78%,
+                rgba(248, 250, 252, 0.05) 90%,
+                transparent 100%);
+    }
+
+    .theme-dark .login-seam-feather {
+        background: linear-gradient(to right,
+                #0A0F1D 0%,
+                rgba(10, 15, 29, 0.96) 18%,
+                rgba(10, 15, 29, 0.78) 38%,
+                rgba(10, 15, 29, 0.48) 58%,
+                rgba(10, 15, 29, 0.20) 78%,
+                rgba(10, 15, 29, 0.05) 90%,
+                transparent 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fixed inset-0 bg-[#070B14] flex min-h-screen overflow-hidden">
+    <!-- Left Form Section -->
+    <div class="w-full lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 z-10 bg-[#0A0F1D] relative">
+        <!-- Logo -->
+        <div>
+            <a href="{% url 'landing_page' %}" class="inline-block group transition-transform hover:scale-[1.02]">
+                <img src="{% static 'portal/img/logo_full.png' %}" alt="FlexyRide Corporate"
+                    class="h-20 w-auto object-contain rounded-2xl shadow-xl shadow-black/50">
+            </a>
+        </div>
+
+        <!-- Form Container -->
+        <div class="max-w-md w-full mx-auto my-auto py-8">
+            <h1 class="text-3xl font-black text-white mb-2 tracking-tight">Welcome Back</h1>
+            <p class="text-sm text-slate-400 mb-8 font-medium">Log in to your FlexyRide Corporate account to manage
+                company transport.</p>
+
+            <form action="{% url 'portal_login' %}" method="post" class="space-y-6">
+                {% csrf_token %}
+                {% if form.errors %}
+                <div class="p-3.5 text-sm text-rose-400 bg-rose-500/10 rounded-xl font-medium">
+                    Invalid username or password. Please try again.
+                </div>
+                {% endif %}
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Username</label>
+                    <div class="relative">
+                        <input type="text" name="username"
+                            class="w-full px-4 py-3.5 surface-well rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 transition-all text-sm"
+                            placeholder="Your username" required autofocus>
+                        <i data-lucide="user" class="w-5 h-5 text-slate-500 absolute right-4 top-4"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Password</label>
+                        <a href="#" class="text-xs font-semibold text-[#8CC63F] hover:underline">Forgot password?</a>
+                    </div>
+                    <div class="relative">
+                        <input type="password" name="password"
+                            class="w-full px-4 py-3.5 surface-well rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 transition-all text-sm"
+                            placeholder="••••••••" required>
+                        <i data-lucide="lock" class="w-5 h-5 text-slate-500 absolute right-4 top-4"></i>
+                    </div>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="remember" checked
+                        class="w-4 h-4 rounded surface-well text-[#8CC63F] focus:ring-0">
+                    <label for="remember" class="text-xs text-slate-300 font-medium cursor-pointer">Remember me for 30
+                        days</label>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-4 bg-[#8CC63F] text-[#0A0F1D] font-extrabold rounded-xl text-sm shadow-xl shadow-[#8CC63F]/25 hover:bg-[#73A233] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                    <span>Log In</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 stroke-[3]"></i>
+                </button>
+            </form>
+
+            <!-- Customer Sign Up & Provider Onboarding Notice -->
+            <div class="mt-6 pt-6 border-t border-white/10 space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-medium">New corporate client?</span>
+                    <a href="{% url 'portal_signup' %}" class="text-[#8CC63F] font-black hover:underline flex items-center gap-1">
+                        <span>Open Corporate Account</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+                <div class="p-3 rounded-xl bg-white/[0.03] border border-white/5 text-[11px] text-slate-400 flex items-start gap-2">
+                    <i data-lucide="truck" class="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5"></i>
+                    <span><b>Transport Providers:</b> Onboarding & fleet verification is managed by our Broker Desk. Contact <a href="mailto:broker@flexyride.com" class="text-blue-400 hover:underline">broker@flexyride.com</a>.</span>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center text-xs text-slate-500">
+                <span>Protected by FlexyRide Commercial Security. </span>
+                <a href="#" class="text-slate-400 hover:text-white">Privacy Policy</a>
+            </div>
+        </div>
+
+        <!-- Footer Notice -->
+        <div class="text-xs text-slate-500 flex justify-between items-center">
+            <span>&copy; {% now "Y" %} FlexyRide Corporate.</span>
+            <span>Support: +233 30 200 0000</span>
+        </div>
+    </div>
+
+    <!-- Right Hero Section -->
+    <div
+        class="hidden lg:flex w-1/2 relative bg-gradient-to-br from-[#10172A] to-[#070B14] items-end p-12 lg:p-16 pl-20 xl:pl-28 overflow-hidden">
+        <!-- Background Overlay Image -->
+        <div class="absolute inset-0 bg-cover bg-center opacity-35 mix-blend-luminosity"
+            style="background-image: url('https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=1200&auto=format&fit=crop');">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#070B14] via-[#070B14]/70 to-transparent"></div>
+
+        <!-- Seamless Light-to-Dark Atmospheric Seam Transition -->
+        <div
+            class="login-seam-feather absolute left-0 top-0 bottom-0 w-44 md:w-60 lg:w-80 xl:w-96 pointer-events-none z-10">
+        </div>
+
+        <div class="relative z-20 max-w-lg">
+            <div
+                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold mb-6 shadow-sm shadow-[#8CC63F]/20">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                <span>Enterprise Mobility Solutions</span>
+            </div>
+
+            <h2 class="text-4xl font-black text-white mb-4 leading-tight tracking-tight">
+                Reliable. Professional. <br><span class="text-[#8CC63F]">Safe Transport</span> for Your Business.
+            </h2>
+            <p class="text-slate-300 text-base leading-relaxed mb-6 font-medium">
+                Streamline corporate travel, manage employee journeys, and maintain complete cost control with FlexyRide
+                Corporate.
+            </p>
+
+            <div class="pt-6 flex items-center gap-8 text-xs text-slate-400">
+                <div>
+                    <span class="block text-2xl font-extrabold text-white font-mono">500+</span>
+                    <span>Corporate Clients</span>
+                </div>
+                <div class="w-1 h-8 bg-white/10 rounded-full"></div>
+                <div>
+                    <span class="block text-2xl font-extrabold text-white font-mono">99.8%</span>
+                    <span>On-Time Arrival</span>
+                </div>
+                <div class="w-1 h-8 bg-white/10 rounded-full"></div>
+                <div>
+                    <span class="block text-2xl font-extrabold text-white font-mono">24/7</span>
+                    <span>FlexyRide Support</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'portal/base_portal.html' %}
+
+{% block title %}Confirmed Booking - {{ req.request_number }} | FlexyRide Corporate{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+
+    <!-- Success Banner -->
+    <div class="card-elevated p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-[#8CC63F]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-center gap-4 relative z-10">
+            <div class="w-12 h-12 rounded-2xl bg-[#8CC63F] text-[#0A0F1D] flex items-center justify-center font-black shadow-lg shadow-[#8CC63F]/25">
+                <i data-lucide="check" class="w-6 h-6 stroke-[3]"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black text-white tracking-tight">Your Journey is Confirmed!</h1>
+                <p class="text-xs text-[#8CC63F] font-bold font-mono">Booking Ref: {{ req.request_number }}</p>
+            </div>
+        </div>
+
+        <a href="{% url 'portal_live_journey' booking_id=req.request_number %}" class="relative z-10 btn-brand py-3 px-6 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-[#8CC63F]/25 active:scale-95">
+            <i data-lucide="map" class="w-4 h-4"></i> Track Live Journey
+        </a>
+    </div>
+
+    <!-- Main Grid: Vehicle & Driver -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+        <!-- Vehicle Details -->
+        <div class="md:col-span-7 card-elevated p-6 rounded-2xl space-y-6">
+            <h3 class="text-base font-black text-white pb-3 flex items-center justify-between">
+                <span>Assigned Vehicle</span>
+                <span class="text-xs font-bold text-[#8CC63F]">
+                    {% if assignment and assignment.vehicle %}
+                        {{ assignment.vehicle.get_category_display }}
+                    {% else %}
+                        {{ req.get_requested_vehicle_category_display }}
+                    {% endif %}
+                </span>
+            </h3>
+
+            <div class="flex flex-col sm:flex-row gap-5 items-center">
+                <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=400&auto=format&fit=crop" alt="Assigned Vehicle" class="w-full sm:w-48 h-32 object-cover rounded-2xl shadow-lg">
+                <div class="space-y-2 text-xs">
+                    {% if assignment and assignment.vehicle %}
+                    <h4 class="text-base font-black text-white">{{ assignment.vehicle.make }} {{ assignment.vehicle.model }} ({{ assignment.vehicle.year|default:"2024" }})</h4>
+                    <p class="text-slate-400 font-semibold">Color: <span class="text-white">{{ assignment.vehicle.color|default:"Executive Black" }}</span></p>
+                    <p class="text-slate-400 font-semibold">Reg Plate: <span class="text-[#8CC63F] font-mono font-bold">{{ assignment.vehicle.registration_number }}</span></p>
+                    <p class="text-slate-400 font-semibold">Status: <span class="text-emerald-400 font-bold">{{ assignment.vehicle.get_status_display }}</span></p>
+                    {% else %}
+                    <h4 class="text-base font-black text-white">Dedicated {{ req.get_requested_vehicle_category_display }}</h4>
+                    <p class="text-slate-400">FlexyRide is dispatching the optimal verified vehicle from our compliant partner fleet.</p>
+                    <span class="px-3 py-1 rounded-full bg-amber-400/15 text-amber-400 font-bold text-[10px] inline-block mt-2">Fleet Assignment in Progress</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Route Summary -->
+            <div class="surface-well p-4 rounded-2xl space-y-2.5 text-xs">
+                <div class="flex items-center gap-2 text-slate-300">
+                    <i data-lucide="map-pin" class="w-4 h-4 text-[#8CC63F]"></i>
+                    <span class="font-medium">{{ req.pickup_address }} → {{ req.destination_address }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-400">
+                    <i data-lucide="calendar" class="w-4 h-4 text-blue-400"></i>
+                    <span>{{ req.departure_datetime|date:"d F Y \a\\t H:i" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Driver Details -->
+        <div class="md:col-span-5 card-elevated p-6 rounded-2xl space-y-6 flex flex-col justify-between">
+            <div>
+                <h3 class="text-base font-black text-white pb-3 flex items-center justify-between">
+                    <span>Assigned Chauffeur</span>
+                    <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">Verified Chauffeur</span>
+                </h3>
+
+                {% if assignment and assignment.driver %}
+                <div class="flex items-center gap-4 my-6">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#8CC63F] to-emerald-400 flex items-center justify-center text-[#0A0F1D] font-black text-2xl shadow-lg shadow-[#8CC63F]/20">
+                        {{ assignment.driver.full_name|slice:":2"|upper }}
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-black text-white">{{ assignment.driver.full_name }}</h4>
+                        <p class="text-xs text-slate-400 font-medium">Rating: ★ {{ assignment.driver.rating|default:"4.95" }} (Certified)</p>
+                        <p class="text-xs text-[#8CC63F] font-mono font-bold pt-1">{{ assignment.driver.phone_number }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="my-6 p-6 rounded-2xl surface-well text-center">
+                    <i data-lucide="user-check" class="w-8 h-8 text-blue-400 mx-auto mb-2"></i>
+                    <h4 class="text-sm font-bold text-white">Chauffeur Allocation in Progress</h4>
+                    <p class="text-xs text-slate-400 mt-1">Driver contact information will appear here once dispatched.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="space-y-3">
+                <a href="{% url 'portal_live_journey' booking_id=req.request_number %}" class="btn-brand py-3 px-4 rounded-xl text-xs font-extrabold w-full flex items-center justify-center gap-2 shadow-lg shadow-[#8CC63F]/25 active:scale-95">
+                    <i data-lucide="navigation" class="w-4 h-4"></i> Track Journey
+                </a>
+
+                <a href="{% url 'portal_request_details' request_id=req.request_number %}" class="btn-secondary py-2.5 px-4 rounded-xl text-xs font-bold text-slate-300 hover:text-white w-full text-center block active:scale-95 transition-all">
+                    View Complete Request Record
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

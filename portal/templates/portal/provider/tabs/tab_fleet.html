@@ -1,0 +1,505 @@
+<div id="tab-content-fleet" class="space-y-5">
+
+    <!-- Header Bar -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-lg font-black text-white tracking-tight">Vehicle Fleet Inventory</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Search, filter, and manage your entire registered fleet.</p>
+        </div>
+        <button onclick="openModal('addVehicleModal')" class="px-4 py-2.5 bg-[#8CC63F] text-[#0A0F1D] rounded-xl text-xs font-black hover:bg-[#73A233] transition-all flex items-center gap-2 shadow-lg shadow-[#8CC63F]/20 active:scale-95">
+            <i data-lucide="plus" class="w-4 h-4 stroke-[3]"></i>
+            Register Vehicle
+        </button>
+    </div>
+
+    <!-- Broker Category Rate Schedule Reference Banner -->
+    <div class="card-elevated rounded-2xl p-5 border border-white/5 space-y-3 bg-gradient-to-r from-[#12192e] to-[#0d1424]">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center font-bold">
+                    <i data-lucide="tag" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-xs font-black text-white uppercase tracking-wider">Broker Approved Fleet Categories & Wholesale Rates</h3>
+                    <p class="text-[11px] text-slate-400">FlexyRide Broker establishes these category specifications and wholesale payout benchmarks for dispatched corporate missions.</p>
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('brokerRateCardTable').classList.toggle('hidden')" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-bold border border-white/5 transition-all flex items-center gap-1.5 self-start sm:self-auto">
+                <i data-lucide="list" class="w-3.5 h-3.5 text-[#8CC63F]"></i>
+                <span>Toggle Category Rate Card</span>
+            </button>
+        </div>
+
+        <div id="brokerRateCardTable" class="hidden pt-3 border-t border-white/5 overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-white/5">
+                        <th class="py-2.5 px-3">Category Class</th>
+                        <th class="py-2.5 px-3">Base Wholesale Payout</th>
+                        <th class="py-2.5 px-3">Per-KM Rate</th>
+                        <th class="py-2.5 px-3">Daily Charter</th>
+                        <th class="py-2.5 px-3">Min Seating</th>
+                        <th class="py-2.5 px-3">Approved Models</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.04] text-slate-300">
+                    {% if category_rates %}
+                        {% for cr in category_rates %}
+                        <tr class="hover:bg-white/[0.02]">
+                            <td class="py-2.5 px-3 font-bold text-white">{{ cr.display_name }}</td>
+                            <td class="py-2.5 px-3 font-mono font-bold text-[#8CC63F]">GHS {{ cr.base_wholesale_rate|floatformat:0 }}</td>
+                            <td class="py-2.5 px-3 font-mono text-slate-300">GHS {{ cr.per_km_rate|floatformat:2 }}/km</td>
+                            <td class="py-2.5 px-3 font-mono text-slate-300">GHS {{ cr.daily_charter_rate|floatformat:0 }}</td>
+                            <td class="py-2.5 px-3">{{ cr.min_seating_capacity }} Passengers</td>
+                            <td class="py-2.5 px-3 text-slate-400 font-medium">{{ cr.recommended_models|default:"Standard" }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td class="py-2 px-3 font-bold text-white">SUV / 4x4</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 450</td><td class="py-2 px-3 font-mono">GHS 12.00/km</td><td class="py-2 px-3 font-mono">GHS 1,200</td><td class="py-2 px-3">5 Passengers</td><td class="py-2 px-3 text-slate-400">Prado, Fortuner, Pajero</td></tr>
+                        <tr><td class="py-2 px-3 font-bold text-white">Executive Saloon</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 380</td><td class="py-2 px-3 font-mono">GHS 10.00/km</td><td class="py-2 px-3 font-mono">GHS 1,000</td><td class="py-2 px-3">4 Passengers</td><td class="py-2 px-3 text-slate-400">Mercedes E-Class, BMW 5, Camry</td></tr>
+                        <tr><td class="py-2 px-3 font-bold text-white">Standard Sedan</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 280</td><td class="py-2 px-3 font-mono">GHS 8.00/km</td><td class="py-2 px-3 font-mono">GHS 800</td><td class="py-2 px-3">4 Passengers</td><td class="py-2 px-3 text-slate-400">Corolla, Elantra, Civic</td></tr>
+                        <tr><td class="py-2 px-3 font-bold text-white">Passenger Van</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 550</td><td class="py-2 px-3 font-mono">GHS 15.00/km</td><td class="py-2 px-3 font-mono">GHS 1,500</td><td class="py-2 px-3">8 Passengers</td><td class="py-2 px-3 text-slate-400">Toyota HiAce, Hyundai H1</td></tr>
+                        <tr><td class="py-2 px-3 font-bold text-white">Coaster Bus</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 1,200</td><td class="py-2 px-3 font-mono">GHS 25.00/km</td><td class="py-2 px-3 font-mono">GHS 3,200</td><td class="py-2 px-3">30 Passengers</td><td class="py-2 px-3 text-slate-400">Toyota Coaster, Rosa</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- KPI Summary Strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="card-elevated rounded-xl px-4 py-3 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center shrink-0">
+                <i data-lucide="car" class="w-4 h-4"></i>
+            </div>
+            <div>
+                <p class="text-lg font-black text-white leading-none" id="fleetKpiTotal">{{ stats.total_fleet }}</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Fleet</p>
+            </div>
+        </div>
+        <div class="card-elevated rounded-xl px-4 py-3 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+            </div>
+            <div>
+                <p class="text-lg font-black text-white leading-none" id="fleetKpiAvailable">{{ stats.available_fleet }}</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Available</p>
+            </div>
+        </div>
+        <div class="card-elevated rounded-xl px-4 py-3 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+            </div>
+            <div>
+                <p class="text-lg font-black text-white leading-none" id="fleetKpiCompliant">{{ stats.compliant_fleet }}</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Compliant</p>
+            </div>
+        </div>
+        <div class="card-elevated rounded-xl px-4 py-3 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                <i data-lucide="wrench" class="w-4 h-4"></i>
+            </div>
+            <div>
+                <p class="text-lg font-black text-white leading-none" id="fleetKpiMaint">—</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Maintenance</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search, Filter & Bulk Controls -->
+    <div class="card-elevated rounded-2xl p-4 space-y-3">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center gap-3">
+            <!-- Search -->
+            <div class="relative flex-1 w-full lg:max-w-sm">
+                <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input type="text" id="fleetSearch" placeholder="Search plate, make, model, color…" 
+                    class="w-full pl-10 pr-4 py-2.5 bg-[#0A0F1D] rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#8CC63F]/40 transition-all">
+            </div>
+
+            <!-- Filter: Category -->
+            <select id="fleetFilterCategory" class="bg-[#0A0F1D] rounded-xl text-xs text-slate-300 py-2.5 px-3 focus:outline-none min-w-[140px]">
+                <option value="">All Categories</option>
+                <option value="SEDAN">Standard Sedan</option>
+                <option value="EXECUTIVE">Executive Saloon</option>
+                <option value="SUV">SUV / 4x4</option>
+                <option value="VAN">Passenger Van</option>
+                <option value="MINIBUS">Minibus / Shuttle</option>
+                <option value="COASTER_BUS">Coaster Bus</option>
+                <option value="LUXURY">VIP / Luxury</option>
+            </select>
+
+            <!-- Filter: Status -->
+            <select id="fleetFilterStatus" class="bg-[#0A0F1D] rounded-xl text-xs text-slate-300 py-2.5 px-3 focus:outline-none min-w-[130px]">
+                <option value="">All Statuses</option>
+                <option value="AVAILABLE">Available</option>
+                <option value="ASSIGNED">Assigned</option>
+                <option value="MAINTENANCE">Maintenance</option>
+                <option value="INACTIVE">Inactive</option>
+            </select>
+
+            <!-- Filter: Compliance -->
+            <select id="fleetFilterCompliance" class="bg-[#0A0F1D] rounded-xl text-xs text-slate-300 py-2.5 px-3 focus:outline-none min-w-[140px]">
+                <option value="">All Compliance</option>
+                <option value="COMPLIANT">Compliant</option>
+                <option value="NON_COMPLIANT">Non-Compliant</option>
+                <option value="PENDING_REVIEW">Pending Review</option>
+            </select>
+
+            <!-- Page Size -->
+            <select id="fleetPageSize" class="bg-[#0A0F1D] rounded-xl text-xs text-slate-300 py-2.5 px-3 focus:outline-none min-w-[90px]">
+                <option value="10" selected>10 / page</option>
+                <option value="25">25 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+                <option value="250">250 / page</option>
+            </select>
+        </div>
+
+        <!-- Active filters display & bulk actions -->
+        <div class="flex items-center justify-between">
+            <p class="text-[11px] text-slate-400" id="fleetResultCount">Showing <b class="text-white" id="fleetShowing">0</b> of <b class="text-white" id="fleetTotalFiltered">0</b> vehicles</p>
+            <div class="flex items-center gap-2">
+                <button onclick="fleetSelectAll()" class="text-[10px] font-bold text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-white/5 transition-all">Select All</button>
+                <button onclick="fleetDeselectAll()" class="text-[10px] font-bold text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-white/5 transition-all">Deselect</button>
+                <form method="POST" action="{% url 'portal_provider_workspace' %}" id="fleetBulkForm" class="flex items-center gap-1.5">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="bulk_update_vehicle_status">
+                    <input type="hidden" name="vehicle_ids" id="fleetBulkIds" value="">
+                    <select name="status" class="bg-[#0A0F1D] rounded-lg text-[10px] text-slate-300 py-1.5 px-2 focus:outline-none">
+                        <option value="AVAILABLE">→ Available</option>
+                        <option value="ASSIGNED">→ Assigned</option>
+                        <option value="MAINTENANCE">→ Maintenance</option>
+                        <option value="INACTIVE">→ Inactive</option>
+                    </select>
+                    <button type="button" onclick="fleetBulkUpdate()" class="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[10px] font-bold transition-all">
+                        Bulk Update (<span id="fleetBulkCount">0</span>)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fleet Data Table -->
+    <div class="card-elevated rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left" id="fleetTable">
+                <thead>
+                    <tr class="text-[10px] font-black uppercase tracking-wider text-slate-400 bg-black/30">
+                        <th class="py-3 pl-4 pr-2 w-10">
+                            <input type="checkbox" id="fleetCheckAll" class="w-3.5 h-3.5 rounded bg-[#0A0F1D] accent-[#8CC63F] cursor-pointer" onchange="fleetToggleAll(this)">
+                        </th>
+                        <th class="py-3 px-3 cursor-pointer select-none hover:text-white transition-colors" onclick="fleetSort('plate')">
+                            Plate <i data-lucide="chevrons-up-down" class="w-3 h-3 inline-block ml-0.5 opacity-50"></i>
+                        </th>
+                        <th class="py-3 px-3 cursor-pointer select-none hover:text-white transition-colors" onclick="fleetSort('vehicle')">
+                            Vehicle <i data-lucide="chevrons-up-down" class="w-3 h-3 inline-block ml-0.5 opacity-50"></i>
+                        </th>
+                        <th class="py-3 px-3 cursor-pointer select-none hover:text-white transition-colors hidden sm:table-cell" onclick="fleetSort('category')">
+                            Category <i data-lucide="chevrons-up-down" class="w-3 h-3 inline-block ml-0.5 opacity-50"></i>
+                        </th>
+                        <th class="py-3 px-3 hidden md:table-cell">Seats</th>
+                        <th class="py-3 px-3 hidden lg:table-cell">Amenities</th>
+                        <th class="py-3 px-3">Status</th>
+                        <th class="py-3 px-3 hidden md:table-cell">Compliance</th>
+                        <th class="py-3 px-3 text-right pr-5">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="fleetTableBody" class="divide-y divide-white/[0.04]">
+                    {% for v in vehicles %}
+                    <tr class="fleet-row text-xs hover:bg-white/[0.03] transition-colors group"
+                        data-plate="{{ v.registration_number|lower }}"
+                        data-vehicle="{{ v.make|lower }} {{ v.model|lower }} {{ v.color|default:''|lower }}"
+                        data-category="{{ v.category }}"
+                        data-status="{{ v.status }}"
+                        data-compliance="{{ v.compliance_status }}"
+                        data-id="{{ v.id }}">
+                        <td class="py-3 pl-4 pr-2">
+                            <input type="checkbox" class="fleet-check w-3.5 h-3.5 rounded bg-[#0A0F1D] accent-[#8CC63F] cursor-pointer" value="{{ v.id }}" onchange="fleetUpdateBulkCount()">
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="font-mono font-black text-white text-[11px] bg-white/[0.06] px-2 py-1 rounded-md tracking-wider">{{ v.registration_number }}</span>
+                        </td>
+                        <td class="py-3 px-3">
+                            <div class="font-bold text-white leading-tight">{{ v.make }} {{ v.model }}</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">{{ v.year|default:"2024" }} · {{ v.color|default:"Black" }}</div>
+                        </td>
+                        <td class="py-3 px-3 hidden sm:table-cell">
+                            <span class="text-slate-300 text-[11px]">{{ v.get_category_display }}</span>
+                        </td>
+                        <td class="py-3 px-3 hidden md:table-cell">
+                            <span class="text-slate-300 font-mono text-[11px]">{{ v.seating_capacity }}</span>
+                        </td>
+                        <td class="py-3 px-3 hidden lg:table-cell">
+                            <div class="flex items-center gap-1.5">
+                                {% if v.wifi_available %}
+                                <span class="w-5 h-5 rounded bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center" title="WiFi"><i data-lucide="wifi" class="w-3 h-3"></i></span>
+                                {% endif %}
+                                {% if v.water_provided %}
+                                <span class="w-5 h-5 rounded bg-blue-500/15 text-blue-400 flex items-center justify-center" title="Water"><i data-lucide="droplet" class="w-3 h-3"></i></span>
+                                {% endif %}
+                                {% if v.has_accessibility %}
+                                <span class="w-5 h-5 rounded bg-purple-500/15 text-purple-400 flex items-center justify-center" title="Accessible"><i data-lucide="accessibility" class="w-3 h-3"></i></span>
+                                {% endif %}
+                                {% if v.has_child_seat %}
+                                <span class="w-5 h-5 rounded bg-amber-500/15 text-amber-400 flex items-center justify-center" title="Child Seat"><i data-lucide="baby" class="w-3 h-3"></i></span>
+                                {% endif %}
+                                {% if not v.wifi_available and not v.water_provided and not v.has_accessibility and not v.has_child_seat %}
+                                <span class="text-[10px] text-slate-600">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold
+                                {% if v.status == 'AVAILABLE' %}bg-emerald-500/15 text-emerald-400
+                                {% elif v.status == 'ASSIGNED' %}bg-blue-500/15 text-blue-400
+                                {% elif v.status == 'MAINTENANCE' %}bg-amber-500/15 text-amber-400
+                                {% else %}bg-slate-500/15 text-slate-400{% endif %}">
+                                <span class="w-1.5 h-1.5 rounded-full
+                                    {% if v.status == 'AVAILABLE' %}bg-emerald-400
+                                    {% elif v.status == 'ASSIGNED' %}bg-blue-400
+                                    {% elif v.status == 'MAINTENANCE' %}bg-amber-400
+                                    {% else %}bg-slate-400{% endif %}"></span>
+                                {{ v.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3 hidden md:table-cell">
+                            <span class="text-[10px] font-bold
+                                {% if v.compliance_status == 'COMPLIANT' %}text-emerald-400
+                                {% elif v.compliance_status == 'NON_COMPLIANT' %}text-red-400
+                                {% else %}text-amber-400{% endif %}">
+                                {% if v.compliance_status == 'COMPLIANT' %}
+                                <i data-lucide="shield-check" class="w-3 h-3 inline-block mr-0.5"></i>
+                                {% elif v.compliance_status == 'NON_COMPLIANT' %}
+                                <i data-lucide="shield-x" class="w-3 h-3 inline-block mr-0.5"></i>
+                                {% else %}
+                                <i data-lucide="clock" class="w-3 h-3 inline-block mr-0.5"></i>
+                                {% endif %}
+                                {{ v.get_compliance_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3 text-right pr-5">
+                            <div class="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                <button type="button"
+                                    onclick="openEditVehicleModal(this)"
+                                    data-id="{{ v.id }}"
+                                    data-make="{{ v.make }}"
+                                    data-model="{{ v.model }}"
+                                    data-year="{{ v.year }}"
+                                    data-category="{{ v.category }}"
+                                    data-seats="{{ v.seating_capacity }}"
+                                    data-wifi="{{ v.wifi_available|yesno:'1,0' }}"
+                                    data-water="{{ v.water_provided|yesno:'1,0' }}"
+                                    data-color="{{ v.color|default:'' }}"
+                                    data-luggage="{{ v.luggage_capacity|default:'' }}"
+                                    data-access="{{ v.has_accessibility|yesno:'1,0' }}"
+                                    data-child="{{ v.has_child_seat|yesno:'1,0' }}"
+                                    class="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition-all"
+                                    title="Edit Vehicle">
+                                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <form method="POST" action="{% url 'portal_provider_workspace' %}" class="inline fleet-inline-status">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="update_vehicle_status">
+                                    <input type="hidden" name="vehicle_id" value="{{ v.id }}">
+                                    <select name="status" onchange="this.form.submit()" class="bg-transparent text-[10px] text-slate-400 hover:text-white py-1 px-1 rounded-lg cursor-pointer focus:outline-none hover:bg-white/10 transition-all appearance-none"
+                                        title="Quick Status">
+                                        <option value="" disabled selected>⋯</option>
+                                        <option value="AVAILABLE" {% if v.status == 'AVAILABLE' %}disabled{% endif %}>→ Available</option>
+                                        <option value="ASSIGNED" {% if v.status == 'ASSIGNED' %}disabled{% endif %}>→ Assigned</option>
+                                        <option value="MAINTENANCE" {% if v.status == 'MAINTENANCE' %}disabled{% endif %}>→ Maintenance</option>
+                                        <option value="INACTIVE" {% if v.status == 'INACTIVE' %}disabled{% endif %}>→ Inactive</option>
+                                    </select>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="py-16 text-center text-slate-500">
+                            <div class="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
+                                <i data-lucide="car" class="w-7 h-7 text-slate-600"></i>
+                            </div>
+                            <p class="text-sm font-bold text-slate-400 mb-1">No Vehicles Registered</p>
+                            <p class="text-xs text-slate-500">Add your first commercial vehicle to start receiving RFQs.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="flex items-center justify-between px-5 py-3.5 bg-black/20" id="fleetPagination">
+            <p class="text-[11px] text-slate-400">
+                Page <b class="text-white" id="fleetCurrentPage">1</b> of <b class="text-white" id="fleetTotalPages">1</b>
+            </p>
+            <div class="flex items-center gap-1" id="fleetPageButtons">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Fleet table management
+    const allRows = Array.from(document.querySelectorAll('#fleetTableBody .fleet-row'));
+    let filteredRows = [...allRows];
+    let currentPage = 1;
+    let sortCol = null;
+    let sortAsc = true;
+
+    // Compute maintenance KPI
+    const maintCount = allRows.filter(r => r.dataset.status === 'MAINTENANCE').length;
+    const maintEl = document.getElementById('fleetKpiMaint');
+    if (maintEl) maintEl.textContent = maintCount;
+
+    function getPageSize() {
+        return parseInt(document.getElementById('fleetPageSize').value) || 10;
+    }
+
+    function applyFilters() {
+        const q = (document.getElementById('fleetSearch').value || '').toLowerCase().trim();
+        const cat = document.getElementById('fleetFilterCategory').value;
+        const stat = document.getElementById('fleetFilterStatus').value;
+        const comp = document.getElementById('fleetFilterCompliance').value;
+
+        filteredRows = allRows.filter(row => {
+            if (q && !row.dataset.plate.includes(q) && !row.dataset.vehicle.includes(q)) return false;
+            if (cat && row.dataset.category !== cat) return false;
+            if (stat && row.dataset.status !== stat) return false;
+            if (comp && row.dataset.compliance !== comp) return false;
+            return true;
+        });
+
+        currentPage = 1;
+        renderPage();
+    }
+
+    function renderPage() {
+        const pageSize = getPageSize();
+        const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const pageRows = filteredRows.slice(start, end);
+
+        // Hide all, show page rows
+        allRows.forEach(r => r.style.display = 'none');
+        pageRows.forEach(r => r.style.display = '');
+
+        // Update counters
+        document.getElementById('fleetShowing').textContent = pageRows.length;
+        document.getElementById('fleetTotalFiltered').textContent = filteredRows.length;
+        document.getElementById('fleetCurrentPage').textContent = currentPage;
+        document.getElementById('fleetTotalPages').textContent = totalPages;
+
+        // Render pagination buttons
+        const btnContainer = document.getElementById('fleetPageButtons');
+        btnContainer.innerHTML = '';
+
+        const addBtn = (label, page, isActive, isDisabled) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = label;
+            btn.className = `px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${isActive ? 'bg-[#8CC63F] text-[#0A0F1D]' : 'text-slate-400 hover:text-white hover:bg-white/10'} ${isDisabled ? 'opacity-30 pointer-events-none' : ''}`;
+            if (!isDisabled) btn.onclick = () => { currentPage = page; renderPage(); };
+            btnContainer.appendChild(btn);
+        };
+
+        addBtn('‹', currentPage - 1, false, currentPage <= 1);
+
+        // Smart page window
+        let pages = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages = [1];
+            if (currentPage > 3) pages.push('…');
+            for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+            if (currentPage < totalPages - 2) pages.push('…');
+            pages.push(totalPages);
+        }
+
+        pages.forEach(p => {
+            if (p === '…') {
+                const sp = document.createElement('span');
+                sp.textContent = '…';
+                sp.className = 'text-slate-600 text-[11px] px-1';
+                btnContainer.appendChild(sp);
+            } else {
+                addBtn(p, p, p === currentPage, false);
+            }
+        });
+
+        addBtn('›', currentPage + 1, false, currentPage >= totalPages);
+
+        // Reset checkboxes
+        document.getElementById('fleetCheckAll').checked = false;
+        fleetUpdateBulkCount();
+    }
+
+    // Sorting
+    window.fleetSort = function(col) {
+        if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+
+        filteredRows.sort((a, b) => {
+            let va, vb;
+            if (col === 'plate') { va = a.dataset.plate; vb = b.dataset.plate; }
+            else if (col === 'vehicle') { va = a.dataset.vehicle; vb = b.dataset.vehicle; }
+            else if (col === 'category') { va = a.dataset.category; vb = b.dataset.category; }
+            else { va = ''; vb = ''; }
+            const cmp = va.localeCompare(vb);
+            return sortAsc ? cmp : -cmp;
+        });
+        currentPage = 1;
+        renderPage();
+    };
+
+    // Bulk selection
+    window.fleetToggleAll = function(el) {
+        const visible = filteredRows.filter(r => r.style.display !== 'none');
+        visible.forEach(r => { r.querySelector('.fleet-check').checked = el.checked; });
+        fleetUpdateBulkCount();
+    };
+
+    window.fleetSelectAll = function() {
+        filteredRows.forEach(r => { r.querySelector('.fleet-check').checked = true; });
+        fleetUpdateBulkCount();
+    };
+
+    window.fleetDeselectAll = function() {
+        allRows.forEach(r => { r.querySelector('.fleet-check').checked = false; });
+        fleetUpdateBulkCount();
+    };
+
+    window.fleetUpdateBulkCount = function() {
+        const checked = document.querySelectorAll('.fleet-check:checked');
+        document.getElementById('fleetBulkCount').textContent = checked.length;
+    };
+
+    window.fleetBulkUpdate = function() {
+        const checked = Array.from(document.querySelectorAll('.fleet-check:checked'));
+        if (checked.length === 0) return;
+        const ids = checked.map(c => c.value).join(',');
+        document.getElementById('fleetBulkIds').value = ids;
+        document.getElementById('fleetBulkForm').submit();
+    };
+
+    // Event listeners
+    document.getElementById('fleetSearch').addEventListener('input', applyFilters);
+    document.getElementById('fleetFilterCategory').addEventListener('change', applyFilters);
+    document.getElementById('fleetFilterStatus').addEventListener('change', applyFilters);
+    document.getElementById('fleetFilterCompliance').addEventListener('change', applyFilters);
+    document.getElementById('fleetPageSize').addEventListener('change', () => { currentPage = 1; renderPage(); });
+
+    // Keyboard shortcut: Escape clears search
+    document.getElementById('fleetSearch').addEventListener('keydown', e => {
+        if (e.key === 'Escape') { e.target.value = ''; applyFilters(); }
+    });
+
+    // Initial render
+    applyFilters();
+})();
+</script>

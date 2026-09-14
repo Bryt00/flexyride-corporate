@@ -1,0 +1,502 @@
+{% extends 'portal/base_public.html' %}
+{% load static %}
+
+{% block title %}How It Works | FlexyRide Corporate Orchestration Engine{% endblock %}
+
+{% block content %}
+<!-- Hero Section (Borderless) -->
+<section class="relative overflow-hidden pt-14 pb-20 lg:pt-24 lg:pb-32 bg-mesh">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold tracking-wide uppercase mb-6 shadow-sm shadow-[#8CC63F]/10">
+                <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                Orchestration & Workflow
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
+                The Intelligent Engine Behind <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#8CC63F] to-[#A3D959]">Enterprise Mobility</span>.
+            </h1>
+            <p class="mt-6 text-base sm:text-lg text-slate-300 leading-relaxed">
+                Experience seamless coordination between corporate travel administrators, vetted vehicle operators, and professional mobility brokers. Here is how FlexyRide automates every leg of your journey from quote to audit.
+            </p>
+            <div class="mt-8 flex flex-wrap gap-4 items-center">
+                <a href="#workflow-steps" class="px-6 py-3.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-sm btn-glow flex items-center gap-2">
+                    <i data-lucide="play" class="w-4 h-4 fill-[#0A0F1D]"></i> Walkthrough The Process
+                </a>
+                <a href="#faq" class="px-6 py-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold text-sm transition-all flex items-center gap-2 shadow-lg">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-[#8CC63F]"></i> Common Questions
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 5-Stage Orchestration Process (Borderless) -->
+<section id="workflow-steps" class="py-24 bg-[#0A0F1D]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
+        <div class="text-center max-w-2xl mx-auto">
+            <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">End-To-End Journey</span>
+            <h2 class="text-3xl sm:text-4xl font-black text-white mt-2">5 Steps from Request to Reconciliation</h2>
+            <p class="mt-4 text-sm text-slate-400 leading-relaxed">
+                A closed-loop workflow engineered for complete transparency, safety compliance, and financial accuracy.
+            </p>
+        </div>
+
+        <div class="space-y-14">
+            <!-- Step 1 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-8 sm:p-10 rounded-3xl bg-[#111728] shadow-2xl shadow-black/40 hover:-translate-y-1 transition-all duration-300">
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold">
+                        Stage 01
+                    </div>
+                    <h3 class="text-2xl font-black text-white">Smart Booking & Specifications</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Authorized corporate personnel submit journey requests via the web portal or direct ERP integration. Specify vehicle tier, multi-stop pickup points, flight numbers, child seats, luggage requirements, and internal cost-center codes.
+                    </p>
+                    <div class="grid grid-cols-2 gap-3 pt-2 text-xs">
+                        <div class="p-3.5 rounded-2xl bg-[#0A0F1D] shadow-inner">
+                            <span class="text-slate-400 block text-[11px]">Instant Validation</span>
+                            <strong class="text-white">Future Time Guarantee</strong>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-[#0A0F1D] shadow-inner">
+                            <span class="text-slate-400 block text-[11px]">Distance Engine</span>
+                            <strong class="text-[#8CC63F]">GPS Distance Calc</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 1 Visual UI Mockup (Borderless) -->
+                <div class="lg:col-span-7 bg-[#0A0F1D] p-6 sm:p-7 rounded-2xl shadow-2xl shadow-black/60 space-y-4">
+                    <div class="flex items-center justify-between pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center">
+                                <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-black text-white block">Corporate Transportation Request</span>
+                                <span class="text-[10px] text-slate-400">Enterprise Travel Desk · Portal Interface</span>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#8CC63F] animate-pulse"></span> Instant Quote
+                        </span>
+                    </div>
+
+                    <div class="space-y-3.5 text-xs">
+                        <!-- Journey Type Selector -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="p-2.5 rounded-xl bg-[#8CC63F]/15 text-center shadow-sm">
+                                <i data-lucide="plane" class="w-3.5 h-3.5 mx-auto text-[#8CC63F] mb-1"></i>
+                                <span class="text-[11px] font-bold text-white block">Airport Transfer</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-[#111728] text-center text-slate-400 hover:text-white transition-colors">
+                                <i data-lucide="arrow-right-left" class="w-3.5 h-3.5 mx-auto mb-1"></i>
+                                <span class="text-[11px] font-medium block">Daily Shuttle</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-[#111728] text-center text-slate-400 hover:text-white transition-colors">
+                                <i data-lucide="clock" class="w-3.5 h-3.5 mx-auto mb-1"></i>
+                                <span class="text-[11px] font-medium block">Hourly Hire</span>
+                            </div>
+                        </div>
+
+                        <!-- Route Details -->
+                        <div class="p-4 rounded-2xl bg-[#111728] space-y-2.5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2.5 h-2.5 rounded-full bg-[#8CC63F] shrink-0"></div>
+                                <div class="flex-1">
+                                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Pickup Location</span>
+                                    <span class="text-xs font-semibold text-white">Kempinski Hotel Gold Coast City, Accra</span>
+                                </div>
+                            </div>
+                            <div class="ml-1 pl-4 py-0.5 text-[10px] text-[#8CC63F] font-mono">
+                                11.8 km · 20 mins via Liberation Road
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></div>
+                                <div class="flex-1">
+                                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Destination & Flight</span>
+                                    <span class="text-xs font-semibold text-white">Kotoka Int'l Airport (ACC) · Terminal 3</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fleet & Cost Allocation -->
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="p-3.5 rounded-xl bg-[#111728]">
+                                <span class="text-[10px] text-slate-400 block">Selected Vehicle Class</span>
+                                <div class="flex items-center gap-1.5 mt-1 font-bold text-white">
+                                    <i data-lucide="car" class="w-3.5 h-3.5 text-[#8CC63F]"></i>
+                                    <span>Executive Saloon</span>
+                                </div>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-[#111728]">
+                                <span class="text-[10px] text-slate-400 block">Department Cost Center</span>
+                                <div class="flex items-center gap-1.5 mt-1 font-mono font-bold text-[#8CC63F]">
+                                    <i data-lucide="tag" class="w-3.5 h-3.5"></i>
+                                    <span>CORP-FIN-2026-Q3</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CTA button -->
+                        <div class="pt-1">
+                            <div class="w-full py-2.5 rounded-xl bg-[#8CC63F] text-[#0A0F1D] font-black text-xs text-center flex items-center justify-center gap-2 btn-glow">
+                                <span>Request Submitted · Automated Policy Check Passed</span>
+                                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-8 sm:p-10 rounded-3xl bg-[#111728] shadow-2xl shadow-black/40 hover:-translate-y-1 transition-all duration-300">
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold">
+                        Stage 02
+                    </div>
+                    <h3 class="text-2xl font-black text-white">Automated Governance & Manager Approval</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        If internal company approval is configured for the requester's tier or estimated spend threshold, the department manager receives an instant notification with 1-click approve/reject actions.
+                    </p>
+                    <ul class="space-y-2 pt-2 text-xs text-slate-400">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#8CC63F]"></i> Eliminates unauthorized corporate expenditure</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#8CC63F]"></i> Full audit log of approver identity & timestamp</li>
+                    </ul>
+                </div>
+                
+                <!-- Stage 2 Visual UI Mockup (Borderless) -->
+                <div class="lg:col-span-7 bg-[#0A0F1D] p-6 sm:p-7 rounded-2xl shadow-2xl shadow-black/60 space-y-4">
+                    <div class="flex items-center justify-between pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-black text-white block">Manager Approval Desk</span>
+                                <span class="text-[10px] text-slate-400">Ref: FRC-2026-0841 · Marketing Division</span>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-[10px] font-bold">
+                            Action Pending
+                        </span>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-[#111728] space-y-3.5 text-xs">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-bold text-white">Ama Mensah (Marketing Director)</div>
+                                <div class="text-[11px] text-slate-400">Mission: Tema Industrial Logistics Summit</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-mono font-bold text-white">GH₵ 650</div>
+                                <div class="text-[10px] text-[#8CC63F]">Within Q3 Cap (62% remain)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 pt-2">
+                            <div>Vehicle: <strong>Toyota Prado TX 4WD</strong></div>
+                            <div>Duration: <strong>Full Day Standby</strong></div>
+                        </div>
+
+                        <div class="flex gap-2.5 pt-2">
+                            <div class="flex-1 py-2.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-xs text-center flex items-center justify-center gap-1.5 btn-glow cursor-pointer">
+                                <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+                                <span>Approve Journey</span>
+                            </div>
+                            <div class="px-4 py-2.5 rounded-xl bg-white/[0.05] text-slate-400 font-bold text-xs hover:text-white text-center cursor-pointer">
+                                Reject
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-8 sm:p-10 rounded-3xl bg-[#111728] shadow-2xl shadow-black/40 hover:-translate-y-1 transition-all duration-300">
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold">
+                        Stage 03
+                    </div>
+                    <h3 class="text-2xl font-black text-white">Broker Matchmaking & Provider Sourcing</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        FlexyRide's 24/7 broker terminal routes the request to certified vehicle operators. The system reviews operator SLA ratings, vehicle roadworthiness validity, insurance currency, and driver availability.
+                    </p>
+                    <ul class="space-y-2 pt-2 text-xs text-slate-400">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#8CC63F]"></i> Pre-screened commercial DVLA licensed operators</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#8CC63F]"></i> Strict compliance gatekeeper prevents assigning expired vehicles</li>
+                    </ul>
+                </div>
+
+                <!-- Stage 3 Visual UI Mockup (Borderless) -->
+                <div class="lg:col-span-7 bg-[#0A0F1D] p-6 sm:p-7 rounded-2xl shadow-2xl shadow-black/60 space-y-3.5">
+                    <div class="flex items-center justify-between pb-2">
+                        <span class="text-xs font-black text-white uppercase tracking-wider">Broker Terminal · Match Confirmed</span>
+                        <span class="px-3 py-0.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] font-bold text-[10px]">
+                            100% Vetted
+                        </span>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-[#111728] flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center font-black">
+                                <i data-lucide="car" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white">Mercedes-Benz E-Class · GS 4821-24</div>
+                                <div class="text-[11px] text-slate-400">Operator: Gold Coast Express Logistics</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-[#8CC63F]">DVLA Licensed</span>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-[#111728] flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center font-black">
+                                <i data-lucide="user" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white">Chauffeur: Kofi Mensah</div>
+                                <div class="text-[11px] text-slate-400 flex items-center gap-2">
+                                    <span>NRSA Vetted</span>
+                                    <span>·</span>
+                                    <span class="text-[#8CC63F]">5.0 ★ (180+ trips)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-white/[0.08] text-white font-bold text-[10px]">
+                            Dispatched
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-8 sm:p-10 rounded-3xl bg-[#111728] shadow-2xl shadow-black/40 hover:-translate-y-1 transition-all duration-300">
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold">
+                        Stage 04
+                    </div>
+                    <h3 class="text-2xl font-black text-white">Live Journey Telemetry & Passenger Tracking</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Passengers and company travel coordinators receive real-time SMS and web tracking links. No mobile app download is required for travelers. Status updates transition smoothly through En Route, Arrived, Onboard, and In Progress.
+                    </p>
+                    <ul class="space-y-2 pt-2 text-xs text-slate-400">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#8CC63F]"></i> 1-click live passenger tracking URL with driver contact</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#8CC63F]"></i> Speed governor monitoring & geofence deviation detection</li>
+                    </ul>
+                </div>
+
+                <!-- Stage 4 Visual UI Mockup (Borderless) -->
+                <div class="lg:col-span-7 bg-[#0A0F1D] p-6 sm:p-7 rounded-2xl shadow-2xl shadow-black/60 space-y-4">
+                    <div class="flex items-center justify-between pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#8CC63F] animate-ping"></span>
+                            <span class="text-xs font-bold text-white">Passenger Live Journey Portal · No App Required</span>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F] text-[#0A0F1D] text-xs font-black">
+                            ONBOARD
+                        </span>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-[#111728] space-y-3.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-300 font-semibold">Accra - Kotoka Corridor Transit</span>
+                            <span class="font-mono text-[#8CC63F] font-bold">ETA: 14 mins</span>
+                        </div>
+                        <div class="w-full bg-white/[0.08] rounded-full h-2 overflow-hidden">
+                            <div class="bg-[#8CC63F] h-2 rounded-full w-3/4"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2.5 pt-2 text-center text-xs">
+                            <div class="p-2.5 rounded-xl bg-[#0A0F1D]">
+                                <span class="text-[10px] text-slate-400 block">Telemetry Speed</span>
+                                <strong class="text-white">74 km/h</strong>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-[#0A0F1D]">
+                                <span class="text-[10px] text-slate-400 block">Distance Left</span>
+                                <strong class="text-white">14.2 km</strong>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-[#0A0F1D]">
+                                <span class="text-[10px] text-slate-400 block">Driver Contact</span>
+                                <strong class="text-[#8CC63F] flex items-center justify-center gap-1">
+                                    <i data-lucide="phone" class="w-3 h-3"></i> Call
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-8 sm:p-10 rounded-3xl bg-[#111728] shadow-2xl shadow-black/40 hover:-translate-y-1 transition-all duration-300">
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold">
+                        Stage 05
+                    </div>
+                    <h3 class="text-2xl font-black text-white">Digital Proof of Service & Consolidated Billing</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        At trip completion, the driver records odometer telemetry and passenger sign-off. Instant passenger rating is gathered. The journey item is reconciled into the monthly consolidated corporate invoice with complete VAT documentation.
+                    </p>
+                    <ul class="space-y-2 pt-2 text-xs text-slate-400">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#8CC63F]"></i> Zero disputes: automated GPS distance audit</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-[#8CC63F]"></i> GRA E-VAT compliant digital tax receipts</li>
+                    </ul>
+                </div>
+
+                <!-- Stage 5 Visual UI Mockup (Borderless) -->
+                <div class="lg:col-span-7 bg-[#0A0F1D] p-6 sm:p-7 rounded-2xl shadow-2xl shadow-black/60 space-y-3.5">
+                    <div class="flex items-center justify-between pb-2 text-xs">
+                        <span class="font-bold text-white">Digital Journey Receipt & GRA E-VAT Record</span>
+                        <span class="px-3 py-0.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] font-bold text-[10px]">COMPLETED</span>
+                    </div>
+                    <div class="p-4 rounded-xl bg-[#111728] space-y-3 text-xs">
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">Audited Distance</span>
+                                <strong class="text-white">12.5 km</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">Duration</span>
+                                <strong class="text-white">24 mins</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">Passenger Rating</span>
+                                <strong class="text-[#8CC63F]">5.0 ★★★★★</strong>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 space-y-1.5 text-[11px]">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Transportation Base Rate</span>
+                                <span class="font-mono text-white">GH₵ 420</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>Airport Terminal Access Fee</span>
+                                <span class="font-mono text-white">GH₵ 25</span>
+                            </div>
+                            <div class="flex justify-between text-slate-400">
+                                <span>GRA VAT (Certified E-VAT)</span>
+                                <span class="font-mono text-white">GH₵ 65</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-bold text-white pt-2">
+                                <span>Consolidated Monthly Account Charge</span>
+                                <span class="font-mono text-[#8CC63F]">GH₵ 510</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tri-Party Ecosystem (Borderless Cards) -->
+<section class="py-24 bg-[#070B14]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <div class="text-center max-w-2xl mx-auto">
+            <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">Tri-Party Choreography</span>
+            <h2 class="text-3xl sm:text-4xl font-black text-white mt-2">How Our Tri-Party Model Protects You</h2>
+            <p class="mt-4 text-sm text-slate-400 leading-relaxed">
+                FlexyRide's architecture decouples client travel desks, independent certified fleet owners, and professional operations brokers to guarantee fair pricing, vetted safety, and guaranteed vehicle availability.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="surface-card p-8 space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center font-black">
+                    1
+                </div>
+                <h3 class="text-lg font-bold text-white">Corporate Clients</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Corporate travel coordinators and employees enjoy a single unified portal to book, track, approve, and audit all company movements with 30-day payment terms.
+                </p>
+            </div>
+            <div class="surface-card p-8 space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center font-black">
+                    2
+                </div>
+                <h3 class="text-lg font-bold text-white">FlexyRide Broker Desk</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Certified mobility dispatchers manage SLA compliance, monitor live vehicle telemetry, negotiate competitive rates, and enforce emergency replacement contingencies.
+                </p>
+            </div>
+            <div class="surface-card p-8 space-y-4">
+                <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center font-black">
+                    3
+                </div>
+                <h3 class="text-lg font-bold text-white">Certified Fleet Providers</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Audited vehicle operators receive high-volume corporate contracts, predictable weekly settlements, and digital fleet management tools.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Accordion (Borderless) -->
+<section id="faq" class="py-24 bg-[#0A0F1D]">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div class="text-center">
+            <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">Clear & Transparent</span>
+            <h2 class="text-3xl font-black text-white mt-2">Frequently Asked Questions</h2>
+        </div>
+
+        <div class="space-y-4">
+            <details class="group p-6 rounded-2xl bg-[#111728] shadow-lg hover:bg-[#141B30] transition-all duration-200">
+                <summary class="flex justify-between items-center font-bold text-sm text-white cursor-pointer list-none">
+                    <span>What are the lead times for booking a corporate vehicle?</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-[#8CC63F] group-open:rotate-180 transition-transform duration-300"></i>
+                </summary>
+                <p class="mt-3 text-xs text-slate-300 leading-relaxed">
+                    Standard city transfers can be booked with as little as 2 hours notice. For upcountry multi-day trips, specialized executive fleets, or large 30-50 passenger buses, we recommend submitting requests 12 to 24 hours in advance to guarantee specific vehicle matching.
+                </p>
+            </details>
+
+            <details class="group p-6 rounded-2xl bg-[#111728] shadow-lg hover:bg-[#141B30] transition-all duration-200">
+                <summary class="flex justify-between items-center font-bold text-sm text-white cursor-pointer list-none">
+                    <span>How does billing and payment work for enterprise accounts?</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-[#8CC63F] group-open:rotate-180 transition-transform duration-300"></i>
+                </summary>
+                <p class="mt-3 text-xs text-slate-300 leading-relaxed">
+                    Enterprise corporate accounts are placed on monthly credit lines with 15 or 30-day payment terms. You receive a consolidated bi-weekly or monthly statement with itemized digital trip receipts, passenger names, and project cost-center codes, fully compliant with Ghana Revenue Authority (GRA E-VAT) requirements.
+                </p>
+            </details>
+
+            <details class="group p-6 rounded-2xl bg-[#111728] shadow-lg hover:bg-[#141B30] transition-all duration-200">
+                <summary class="flex justify-between items-center font-bold text-sm text-white cursor-pointer list-none">
+                    <span>What happens if a vehicle experiences a mechanical breakdown?</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-[#8CC63F] group-open:rotate-180 transition-transform duration-300"></i>
+                </summary>
+                <p class="mt-3 text-xs text-slate-300 leading-relaxed">
+                    Our 24/7 Broker Operations Desk activates an emergency replacement vehicle immediately. Within the Greater Accra Metropolitan Area, a replacement of equal or higher tier is dispatched to your passenger's location within 20 minutes, backed by our SLA guarantee.
+                </p>
+            </details>
+
+            <details class="group p-6 rounded-2xl bg-[#111728] shadow-lg hover:bg-[#141B30] transition-all duration-200">
+                <summary class="flex justify-between items-center font-bold text-sm text-white cursor-pointer list-none">
+                    <span>Do passengers need to download an app on their smartphones?</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-[#8CC63F] group-open:rotate-180 transition-transform duration-300"></i>
+                </summary>
+                <p class="mt-3 text-xs text-slate-300 leading-relaxed">
+                    No! We understand enterprise passengers (executives, visiting delegates, or employees) value frictionless mobility. Passengers receive an SMS with a lightweight, secure web link showing driver details, vehicle photo, and real-time live map tracking without needing to install anything.
+                </p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action (Borderless) -->
+<section class="py-24 bg-[#070B14]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+        <h2 class="text-3xl sm:text-4xl font-black text-white">Experience Frictionless B2B Ground Mobility</h2>
+        <p class="text-sm text-slate-300 max-w-xl mx-auto">Get started with a personalized enterprise trial or explore our full vehicle fleet categories.</p>
+        <div class="flex flex-wrap justify-center gap-4 pt-2">
+            <a href="{% url 'portal_login' %}" class="px-8 py-3.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-xs btn-glow">
+                Sign In to Corporate Portal
+            </a>
+            <a href="{% url 'portal_fleet_categories' %}" class="px-8 py-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold text-xs transition-all shadow-lg">
+                View Fleet Categories
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

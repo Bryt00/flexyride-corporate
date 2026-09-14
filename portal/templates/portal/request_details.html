@@ -1,0 +1,433 @@
+{% extends 'portal/base_portal.html' %}
+
+{% block title %}Request Details - {{ req.request_number }} | FlexyRide Corporate{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- Header Section with Ambient Glow -->
+    <div class="relative overflow-hidden card-elevated p-6 sm:p-7 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div class="absolute -top-16 -left-16 w-48 h-48 bg-[#8CC63F]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <div class="flex flex-wrap items-center gap-3 mb-2">
+                <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-[#8CC63F] shadow-sm shadow-[#8CC63F]/50"></span>
+                    {{ req.request_number }}
+                </h1>
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 {% if req.booking_status == 'CANCELLED' %}bg-rose-500/15 text-rose-400{% elif req.booking_status == 'COMPLETED' %}bg-emerald-500/15 text-emerald-400{% elif req.booking_status in 'QUOTE_AVAILABLE AWAITING_CUSTOMER_ACCEPTANCE' %}bg-amber-500/15 text-amber-400 animate-pulse{% else %}bg-blue-500/15 text-blue-400{% endif %}">
+                    <span class="w-1.5 h-1.5 rounded-full {% if req.booking_status == 'CANCELLED' %}bg-rose-400{% elif req.booking_status == 'COMPLETED' %}bg-emerald-400{% elif req.booking_status in 'QUOTE_AVAILABLE AWAITING_CUSTOMER_ACCEPTANCE' %}bg-amber-400{% else %}bg-blue-400{% endif %}"></span>
+                    {{ req.get_booking_status_display }}
+                </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-400 font-medium">
+                <span class="text-white font-semibold">{{ req.get_journey_type_display }}</span> • {{ req.pickup_address }} → {{ req.destination_address }} • {{ req.departure_datetime|date:"d F Y, H:i" }}
+            </p>
+        </div>
+
+        <div class="relative z-10 flex flex-wrap items-center gap-3">
+            {% if customer_quote and customer_quote.status in 'SENT DRAFT' %}
+            <a href="{% url 'portal_quote_ready' request_id=req.request_number %}" class="btn-brand py-3 px-5 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-[#8CC63F]/25 active:scale-95">
+                <i data-lucide="tag" class="w-4 h-4"></i>
+                <span>Review Quote (GHS {{ customer_quote.final_customer_price|floatformat:0 }})</span>
+            </a>
+            {% endif %}
+
+            {% if assignment and req.booking_status in 'CONFIRMED ASSIGNED DRIVER_EN_ROUTE DRIVER_ARRIVED PASSENGER_ONBOARD TRIP_IN_PROGRESS' %}
+            <a href="{% url 'portal_live_journey' booking_id=req.request_number %}" class="btn-brand py-3 px-5 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-[#8CC63F]/25 active:scale-95">
+                <i data-lucide="navigation" class="w-4 h-4"></i>
+                <span>Track Journey Live</span>
+            </a>
+            {% endif %}
+
+            {% if req.booking_status not in 'COMPLETED CANCELLED' %}
+            <button onclick="document.getElementById('cancelModal').classList.remove('hidden')" class="py-2.5 px-4 rounded-xl text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 active:scale-95 transition-all">
+                Cancel Request
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 8-Stage Progress Tracker Bar with Illuminated Spine -->
+    <div class="card-elevated rounded-2xl p-6 sm:p-7">
+        <div class="flex items-center justify-between mb-6">
+            <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <i data-lucide="git-commit" class="w-4 h-4 text-[#8CC63F]"></i>
+                Booking Lifecycle Progress
+            </h4>
+            <span class="text-xs text-[#8CC63F] font-bold bg-[#8CC63F]/15 px-3 py-1 rounded-full">Stage {{ current_stage }} of 8</span>
+        </div>
+
+        <div class="surface-well p-4 sm:p-5 rounded-xl">
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-3 text-center relative">
+                <!-- Stage 1: Submitted -->
+                <div class="flex flex-col items-center gap-2 group">
+                    {% if current_stage > 1 %}
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/20">
+                        <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-400">Submitted</span>
+                    {% elif current_stage == 1 %}
+                    <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center font-black text-xs ring-4 ring-blue-500/30 shadow-lg shadow-blue-500/25 animate-pulse">1</div>
+                    <span class="text-[11px] font-bold text-blue-400">Submitted</span>
+                    {% else %}
+                    <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center font-bold text-xs">1</div>
+                    <span class="text-[11px] font-medium text-slate-500">Submitted</span>
+                    {% endif %}
+                </div>
+
+                <!-- Stage 2: Approved -->
+                <div class="flex flex-col items-center gap-2 group">
+                    {% if current_stage > 2 %}
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/20">
+                        <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-400">Approved</span>
+                    {% elif current_stage == 2 %}
+                    <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center font-black text-xs ring-4 ring-blue-500/30 shadow-lg shadow-blue-500/25 animate-pulse">2</div>
+                    <span class="text-[11px] font-bold text-blue-400">Approved</span>
+                    {% else %}
+                    <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center font-bold text-xs">2</div>
+                    <span class="text-[11px] font-medium text-slate-500">Approved</span>
+                    {% endif %}
+                </div>
+
+                <!-- Stage 3: Arranging -->
+                <div class="flex flex-col items-center gap-2 group">
+                    {% if current_stage > 3 %}
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/20">
+                        <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-400">Arranging</span>
+                    {% elif current_stage == 3 %}
+                    <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center font-black text-xs ring-4 ring-blue-500/30 shadow-lg shadow-blue-500/25 animate-pulse">3</div>
+                    <span class="text-[11px] font-bold text-blue-400">Arranging</span>
+                    {% else %}
+                    <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center font-bold text-xs">3</div>
+                    <span class="text-[11px] font-medium text-slate-500">Arranging</span>
+                    {% endif %}
+                </div>
+
+                <!-- Stage 4: Quote -->
+                <div class="flex flex-col items-center gap-2 group">
+                    {% if current_stage > 4 %}
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/20">
+                        <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-400">Quote</span>
+                    {% elif current_stage == 4 %}
+                    <div class="w-9 h-9 rounded-xl bg-amber-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs ring-4 ring-amber-500/30 shadow-lg shadow-amber-500/25 animate-pulse">4</div>
+                    <span class="text-[11px] font-bold text-amber-400">Quote Ready</span>
+                    {% else %}
+                    <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center font-bold text-xs">4</div>
+                    <span class="text-[11px] font-medium text-slate-500">Quote</span>
+                    {% endif %}
+                </div>
+
+                <!-- Stage 5: Payment / Confirmed -->
+                <div class="flex flex-col items-center gap-2 group">
+                    {% if current_stage > 5 %}
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/20">
+                        <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-400">Confirmed</span>
+                    {% elif current_stage == 5 %}
+                    <div class="w-9 h-9 rounded-xl bg-[#8CC63F] text-[#0A0F1D] flex items-center justify-center font-black text-xs ring-4 ring-[#8CC63F]/30 shadow-lg shadow-[#8CC63F]/25 animate-pulse">5</div>
+                    <span class="text-[11px] font-bold text-[#8CC63F]">Confirmed</span>
+                    {% else %}
+                    <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center font-bold text-xs">5</div>
+                    <span class="text-[11px] font-medium text-slate-500">Confirmed</span>
+                    {% endif %}
+                </div>
+
+                <!-- Stage 6: Assigned -->
+                <div class="flex flex-col items-center gap-2 group">
+                    {% if current_stage > 6 %}
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/20">
+                        <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-400">Assigned</span>
+                    {% elif current_stage == 6 %}
+                    <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center font-black text-xs ring-4 ring-blue-500/30 shadow-lg shadow-blue-500/25 animate-pulse">6</div>
+                    <span class="text-[11px] font-bold text-blue-400">Assigned</span>
+                    {% else %}
+                    <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center font-bold text-xs">6</div>
+                    <span class="text-[11px] font-medium text-slate-500">Assigned</span>
+                    {% endif %}
+                </div>
+
+                <!-- Stage 7: In Progress -->
+                <div class="flex flex-col items-center gap-2 group">
+                    {% if current_stage > 7 %}
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/20">
+                        <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-400">In Transit</span>
+                    {% elif current_stage == 7 %}
+                    <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center font-black text-xs ring-4 ring-blue-500/30 shadow-lg shadow-blue-500/25 animate-pulse">7</div>
+                    <span class="text-[11px] font-bold text-blue-400">In Transit</span>
+                    {% else %}
+                    <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center font-bold text-xs">7</div>
+                    <span class="text-[11px] font-medium text-slate-500">In Transit</span>
+                    {% endif %}
+                </div>
+
+                <!-- Stage 8: Completed -->
+                <div class="flex flex-col items-center gap-2 group">
+                    {% if current_stage >= 8 %}
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-[#0A0F1D] flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/20">
+                        <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-400">Completed</span>
+                    {% else %}
+                    <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center font-bold text-xs">8</div>
+                    <span class="text-[11px] font-medium text-slate-500">Completed</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Left Details & Right Updates Feed -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Left Column: Booking Specs in Elevated Cards -->
+        <div class="lg:col-span-8 space-y-6">
+            <div class="card-elevated rounded-2xl p-6 sm:p-7 space-y-6">
+                <div class="flex items-center justify-between pb-4">
+                    <h3 class="text-base font-black text-white flex items-center gap-2.5">
+                        <i data-lucide="route" class="w-5 h-5 text-[#8CC63F]"></i>
+                        Journey Specifications
+                    </h3>
+                    <span class="text-xs text-slate-400 font-medium">Logged: {{ req.created_at|date:"d M Y @ H:i" }}</span>
+                </div>
+
+                <!-- Inset Well Specification Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="surface-well p-4 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i> Pickup Location
+                        </span>
+                        <p class="text-sm font-bold text-white">{{ req.pickup_address }}</p>
+                    </div>
+
+                    <div class="surface-well p-4 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            <i data-lucide="flag" class="w-3.5 h-3.5 text-rose-400"></i> Destination
+                        </span>
+                        <p class="text-sm font-bold text-white">{{ req.destination_address }}</p>
+                    </div>
+
+                    <div class="surface-well p-4 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Date & Time
+                        </span>
+                        <p class="text-sm font-bold text-white">{{ req.departure_datetime|date:"d F Y \a\\t H:i" }}</p>
+                    </div>
+
+                    <div class="surface-well p-4 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            <i data-lucide="user" class="w-3.5 h-3.5 text-blue-400"></i> Primary Passenger
+                        </span>
+                        <p class="text-sm font-bold text-white">
+                            {% if primary_passenger %}
+                                {{ primary_passenger.full_name }} <span class="text-slate-400 text-xs font-normal">({{ primary_passenger.phone_number|default:"No phone" }})</span>
+                            {% else %}
+                                {{ req.requester.get_full_name|default:req.requester.username }} <span class="text-slate-400 text-xs font-normal">({{ req.requester.email }})</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="surface-well p-4 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            <i data-lucide="car" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Vehicle Preference
+                        </span>
+                        <p class="text-sm font-bold text-[#8CC63F]">{{ req.get_requested_vehicle_category_display }} <span class="text-xs text-slate-400 font-normal">(Qty: {{ req.vehicles_requested_count }})</span></p>
+                    </div>
+
+                    <div class="surface-well p-4 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            <i data-lucide="users" class="w-3.5 h-3.5 text-purple-400"></i> Passenger Count
+                        </span>
+                        <p class="text-sm font-bold text-white">{{ req.passenger_count }} Passenger(s)</p>
+                    </div>
+
+                    <div class="surface-well p-4 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            <i data-lucide="briefcase" class="w-3.5 h-3.5 text-amber-400"></i> Luggage Requirements
+                        </span>
+                        <p class="text-sm font-bold text-white">{{ req.luggage_requirements|default:"Standard Corporate Luggage" }}</p>
+                    </div>
+
+                    <div class="surface-well p-4 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            <i data-lucide="building" class="w-3.5 h-3.5 text-slate-400"></i> Corporate Client
+                        </span>
+                        <p class="text-sm font-bold text-white">{{ req.customer.company_name }}</p>
+                    </div>
+                </div>
+
+                {% if req.pickup_notes or req.internal_notes %}
+                <div class="surface-well p-4 rounded-2xl">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Dispatch Instructions & Notes
+                    </span>
+                    <p class="text-xs text-slate-300 font-medium leading-relaxed">{{ req.pickup_notes|default:req.internal_notes }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Assigned Vehicle & Driver (if available) -->
+                {% if assignment %}
+                <div class="pt-4">
+                    <span class="text-[11px] font-black text-[#8CC63F] uppercase tracking-wider block mb-3">Assigned Vehicle & Chauffeur</span>
+                    <div class="flex flex-col sm:flex-row gap-4 p-5 rounded-2xl surface-well items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-[#8CC63F]/20 text-[#8CC63F] flex items-center justify-center font-black shadow-md shadow-[#8CC63F]/15">
+                                <i data-lucide="car" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white">{{ assignment.vehicle.make }} {{ assignment.vehicle.model }} <span class="text-[#8CC63F] font-mono">({{ assignment.vehicle.registration_number }})</span></h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Chauffeur: <b class="text-white">{{ assignment.driver.full_name }}</b> • {{ assignment.driver.phone_number }}</p>
+                            </div>
+                        </div>
+                        <a href="{% url 'portal_live_journey' booking_id=req.request_number %}" class="btn-brand py-2.5 px-4 rounded-xl text-xs font-black flex items-center gap-2 shrink-0 shadow-lg shadow-[#8CC63F]/25 active:scale-95">
+                            <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Track Live
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Live Updates Feed & Support -->
+        <div class="lg:col-span-4 space-y-6">
+            <!-- Updates Feed in Elevated Card -->
+            <div class="card-elevated rounded-2xl p-6 sm:p-7 space-y-5">
+                <h3 class="text-base font-black text-white pb-3 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="bell" class="w-4 h-4 text-[#8CC63F]"></i>
+                        Activity Updates
+                    </span>
+                    <span class="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full">Live Audit</span>
+                </h3>
+
+                <div class="space-y-4 relative before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-white/5 pl-8">
+                    {% for event in timeline %}
+                    <div class="relative">
+                        <div class="w-3 h-3 rounded-full bg-[#8CC63F] absolute -left-8 top-1 ring-4 ring-[#0D1424] shadow-sm shadow-[#8CC63F]/40"></div>
+                        <p class="text-xs font-bold text-white">{{ event.event_type }}</p>
+                        <p class="text-[11px] text-slate-300">{{ event.notes|default:"" }}</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">{{ event.timestamp|date:"d M Y @ H:i" }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="relative">
+                        <div class="w-3 h-3 rounded-full bg-blue-500 absolute -left-8 top-1 ring-4 ring-[#0D1424]"></div>
+                        <p class="text-xs font-bold text-white">Request Created</p>
+                        <p class="text-[10px] text-slate-400">{{ req.created_at|date:"d M Y @ H:i" }}</p>
+                    </div>
+                    <div class="relative">
+                        <div class="w-3 h-3 rounded-full bg-emerald-500 absolute -left-8 top-1 ring-4 ring-[#0D1424]"></div>
+                        <p class="text-xs font-bold text-white">Current Status: {{ req.get_booking_status_display }}</p>
+                        <p class="text-[10px] text-slate-400">{{ req.updated_at|date:"d M Y @ H:i" }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Need Help Box with Glass Card -->
+            <div class="card-glass rounded-2xl p-6 text-center space-y-4 relative overflow-hidden">
+                <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-[#8CC63F]/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="w-12 h-12 rounded-2xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center mx-auto shadow-md shadow-[#8CC63F]/10">
+                    <i data-lucide="headphones" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">24/7 Corporate Dispatch</h4>
+                    <p class="text-xs text-slate-400 mt-1">Need to adjust route, schedule changes, or have urgent travel requirements?</p>
+                </div>
+                <a href="tel:+233302000000" class="btn-brand py-3 px-4 rounded-xl text-xs font-black block w-full shadow-lg shadow-[#8CC63F]/25 active:scale-95">
+                    Call Dispatch Desk
+                </a>
+                <button type="button" onclick="document.getElementById('issueModal').classList.remove('hidden')" class="btn-secondary py-2.5 px-4 rounded-xl text-xs font-bold block w-full text-amber-300 hover:text-white border border-amber-500/20 active:scale-95 transition-all">
+                    Report Issue / Lodge Ticket
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Support Ticket Modal -->
+<div id="issueModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#10172A] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-white/10">
+        <div class="flex items-center justify-between pb-2 border-b border-white/10">
+            <h3 class="text-base font-black text-white">Lodge Operational Issue</h3>
+            <button onclick="document.getElementById('issueModal').classList.add('hidden')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'portal_report_support_issue' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="request_number" value="{{ req.request_number }}">
+            <input type="hidden" name="next_url" value="{{ request.path }}">
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Category</label>
+                <select name="issue_type" class="w-full px-4 py-3 surface-well rounded-xl text-white text-xs focus:ring-2 focus:ring-[#8CC63F]/50">
+                    <option value="ROUTE_DEVIATION">Route Deviation / Route Query</option>
+                    <option value="NO_SHOW">Chauffeur Delay / No-Show</option>
+                    <option value="BREAKDOWN">Vehicle Issue / Replacement Required</option>
+                    <option value="BILLING">Billing / Invoice Inquiry</option>
+                    <option value="OTHER">General Assistance</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Issue Description</label>
+                <textarea name="description" rows="3" required placeholder="Describe the incident or special requirements..." class="w-full px-4 py-3 surface-well rounded-xl text-white text-xs focus:ring-2 focus:ring-[#8CC63F]/50"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('issueModal').classList.add('hidden')" class="btn-secondary px-4 py-2.5 rounded-xl text-xs font-bold">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-brand px-4 py-2.5 rounded-xl text-xs font-black shadow-md shadow-[#8CC63F]/25">
+                    Submit to Dispatch Desk
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Cancel Booking Modal -->
+<div id="cancelModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#10172A] rounded-2xl max-w-md w-full p-6 shadow-2xl shadow-black/80 space-y-4">
+        <div class="flex items-center justify-between pb-3">
+            <h3 class="text-base font-black text-white">Cancel Transportation Request</h3>
+            <button onclick="document.getElementById('cancelModal').classList.add('hidden')" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'portal_request_details' request_id=req.request_number %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="cancel_booking">
+
+            <p class="text-xs text-slate-300">Are you sure you want to cancel booking <b class="text-white font-mono">{{ req.request_number }}</b>? This action cannot be undone.</p>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Reason for Cancellation</label>
+                <textarea name="reason" rows="3" required placeholder="Please explain why you need to cancel this request..." class="w-full px-4 py-3 surface-well rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/50"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('cancelModal').classList.add('hidden')" class="btn-secondary px-4 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-all">
+                    Keep Booking
+                </button>
+                <button type="submit" class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 transition-all">
+                    Confirm Cancellation
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

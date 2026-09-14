@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#070B14]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Trip Tracking | FlexyRide Corporate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Maps Integration Ready -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { DEFAULT: '#8CC63F', dark: '#73A233' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full bg-[#070B14] text-slate-100 font-sans antialiased p-4 md:p-8 flex flex-col justify-between">
+
+    <!-- Top Header -->
+    <div class="max-w-4xl mx-auto w-full">
+        <header class="flex items-center justify-between bg-[#0A0F1D] rounded-2xl p-5 mb-6 shadow-xl shadow-black/40">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#8CC63F] flex items-center justify-center text-[#0A0F1D] font-black text-xl shadow-md shadow-[#8CC63F]/20">
+                    <i data-lucide="car" class="w-6 h-6 stroke-[2.5]"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-black text-white">Flexy<span class="text-[#8CC63F]">Ride</span></span>
+                    <span class="block text-[10px] font-bold uppercase tracking-widest text-[#8CC63F]">Passenger Live Pass</span>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="px-3.5 py-1.5 rounded-full text-xs font-black bg-[#8CC63F]/15 text-[#8CC63F] shadow-sm">
+                    Live Trip #FR-C-1048
+                </span>
+            </div>
+        </header>
+
+        <!-- Status Progress Pipeline -->
+        <div class="bg-[#0A0F1D] rounded-2xl p-6 mb-6 shadow-xl shadow-black/40">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-400 mb-4">
+                <span class="text-emerald-400 flex items-center gap-1"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Driver Assigned</span>
+                <span class="text-emerald-400 flex items-center gap-1"><i data-lucide="check-circle-2" class="w-4 h-4"></i> En Route to Pickup</span>
+                <span class="text-[#8CC63F] flex items-center gap-1 font-extrabold animate-pulse"><i data-lucide="map-pin" class="w-4 h-4"></i> Driver Arrived</span>
+                <span class="text-slate-500">Trip In Progress</span>
+                <span class="text-slate-500">Completed</span>
+            </div>
+            <div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden">
+                <div class="bg-gradient-to-r from-[#8CC63F] to-emerald-400 h-full rounded-full transition-all duration-500 shadow-sm shadow-[#8CC63F]/50" style="width: 60%;"></div>
+            </div>
+        </div>
+
+        <!-- Driver & Vehicle Information Card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Driver Card -->
+            <div class="bg-[#0A0F1D] rounded-2xl p-6 space-y-4 shadow-xl shadow-black/40">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Assigned Driver Profile</span>
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#8CC63F] to-emerald-400 flex items-center justify-center font-black text-2xl text-[#0A0F1D] shadow-lg shadow-[#8CC63F]/20">
+                        KM
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white">Kofi Mensah</h3>
+                        <p class="text-xs text-[#8CC63F] font-semibold">Rating ★ 4.96 (128 trips)</p>
+                        <p class="text-xs text-slate-400 mt-1"><i data-lucide="languages" class="w-3.5 h-3.5 inline mr-1 text-slate-400"></i> Languages: English, Twi, Ga</p>
+                    </div>
+                </div>
+                <a href="tel:+233244123456" class="w-full py-3 bg-[#8CC63F] text-[#0A0F1D] font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-[#73A233] active:scale-95 transition-all shadow-lg shadow-[#8CC63F]/20">
+                    <i data-lucide="phone" class="w-4 h-4"></i> Call Driver (+233 24 412 3456)
+                </a>
+            </div>
+
+            <!-- Vehicle & Amenities Card -->
+            <div class="bg-[#0A0F1D] rounded-2xl p-6 space-y-4 shadow-xl shadow-black/40">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Vehicle Info & Amenities</span>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-black text-white">Toyota Prado TX</h3>
+                        <p class="text-xs text-slate-400">Black • Reg: <strong class="text-white font-mono">GS 4821-24</strong></p>
+                    </div>
+                    <span class="px-3 py-1.5 bg-[#10172A] rounded-xl text-xs font-mono font-bold text-[#8CC63F]">
+                        Executive 4x4
+                    </span>
+                </div>
+                <!-- Amenities Badges -->
+                <div class="pt-2 flex flex-wrap gap-2">
+                    <span class="px-2.5 py-1 bg-[#8CC63F]/15 text-[#8CC63F] rounded-lg text-xs font-bold flex items-center gap-1.5">
+                        <i data-lucide="wifi" class="w-3.5 h-3.5"></i> High-Speed WiFi
+                    </span>
+                    <span class="px-2.5 py-1 bg-blue-500/15 text-blue-400 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                        <i data-lucide="droplet" class="w-3.5 h-3.5"></i> Bottled Water
+                    </span>
+                    <span class="px-2.5 py-1 bg-purple-500/15 text-purple-400 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                        <i data-lucide="baby" class="w-3.5 h-3.5"></i> Child Seat Available
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Map View -->
+        <div class="bg-[#0A0F1D] rounded-3xl p-0 relative overflow-hidden mb-6 min-h-[400px] flex flex-col justify-between shadow-2xl shadow-black/60" style="z-index: 1;">
+            
+            <!-- Map Container -->
+            <div id="map" class="absolute inset-0 z-0"></div>
+
+            <div class="flex items-center justify-between z-10 m-4 pointer-events-none">
+                <span class="text-xs font-bold text-slate-200 bg-[#070B14]/85 backdrop-blur-md px-3.5 py-2 rounded-xl flex items-center shadow-lg"><i data-lucide="navigation-2" class="w-4 h-4 inline mr-1 text-[#8CC63F]"></i> Real-time Route GPS</span>
+                <span class="text-xs text-[#8CC63F] font-mono font-bold bg-[#070B14]/85 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-lg">Arrival: 14m</span>
+            </div>
+
+            <!-- Route Details -->
+            <div class="z-10 bg-[#070B14]/90 backdrop-blur-md rounded-2xl p-4 space-y-3 mt-auto m-4 shadow-2xl pointer-events-auto">
+                <div class="flex items-center gap-3 text-xs">
+                    <div class="w-3.5 h-3.5 rounded-full bg-[#8CC63F] ring-4 ring-[#8CC63F]/20 shadow-lg shadow-[#8CC63F]/50"></div>
+                    <span class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Pickup</span>
+                    <strong class="text-white truncate">Kotoka Int. Airport (ACC)</strong>
+                </div>
+                <div class="h-4 border-l-2 border-dashed border-white/15 ml-1.5 -my-2"></div>
+                <div class="flex items-center gap-3 text-xs">
+                    <div class="w-3.5 h-3.5 rounded-full bg-rose-500 ring-4 ring-rose-500/20 shadow-lg shadow-rose-500/50"></div>
+                    <span class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Dest</span>
+                    <strong class="text-white truncate">Kempinski Hotel Gold Coast City</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5-Star Journey Rating & Feedback Box -->
+        <div class="bg-[#0A0F1D] rounded-2xl p-6 text-center space-y-4 shadow-xl shadow-black/40">
+            <h3 class="text-base font-black text-white">Rate Your Journey Experience</h3>
+            <p class="text-xs text-slate-400">Help FlexyRide maintain premium corporate service quality (1 = Poor, 5 = Excellent).</p>
+            <div class="flex justify-center items-center gap-3 text-3xl text-amber-400 cursor-pointer">
+                <span class="hover:scale-125 transition-transform">★</span>
+                <span class="hover:scale-125 transition-transform">★</span>
+                <span class="hover:scale-125 transition-transform">★</span>
+                <span class="hover:scale-125 transition-transform">★</span>
+                <span class="hover:scale-125 transition-transform">★</span>
+            </div>
+            <textarea placeholder="Write feedback or comments regarding your ride..." class="w-full bg-[#10172A] rounded-xl p-3.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 transition-all"></textarea>
+            <button class="px-6 py-3 bg-[#8CC63F] text-[#0A0F1D] font-extrabold rounded-xl text-xs hover:bg-[#73A233] active:scale-95 transition-all shadow-lg shadow-[#8CC63F]/20">
+                Submit Rating & Feedback
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const serverMapsKey = "{{ GOOGLE_MAPS_API_KEY|default:'' }}".trim();
+        const storedMapsKey = (sessionStorage.getItem('GOOGLE_MAPS_API_KEY') || '').trim();
+        const googleApiKey = serverMapsKey || storedMapsKey;
+
+        const darkMapStyles = [
+            { elementType: "geometry", stylers: [{ color: "#0A0F1D" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#0A0F1D" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#74829c" }] },
+            { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#cbd5e1" }] },
+            { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
+            { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#0f172a" }] },
+            { featureType: "road", elementType: "geometry", stylers: [{ color: "#1e293b" }] },
+            { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2d3748" }] },
+            { featureType: "transit", elementType: "geometry", stylers: [{ color: "#161f33" }] },
+            { featureType: "water", elementType: "geometry", stylers: [{ color: "#050811" }] },
+            { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#475569" }] }
+        ];
+
+        function renderApiKeyPrompt() {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) return;
+
+            mapContainer.innerHTML = `
+                <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[#070B14]/90 backdrop-blur-md relative z-20">
+                    <div class="max-w-md w-full p-6 rounded-2xl bg-[#0A0F1D] shadow-2xl space-y-4">
+                        <div class="w-12 h-12 mx-auto rounded-xl bg-[#8CC63F]/15 flex items-center justify-center text-[#8CC63F]">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                                <line x1="9" y1="3" x2="9" y2="18"></line>
+                                <line x1="15" y1="6" x2="15" y2="21"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-white">Google Maps API Key Required</h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                                Enter your Google Maps API key to activate passenger live GPS telemetry.
+                            </p>
+                        </div>
+                        <div class="space-y-2">
+                            <input id="runtimePassengerMapKey" type="password" placeholder="AIzaSy..." class="w-full bg-[#10172A] rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40" />
+                            <button onclick="saveAndLoadPassengerKey()" class="w-full py-2.5 bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black rounded-xl text-xs transition-all shadow-md active:scale-95">
+                                Activate Live Google Map
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-500">
+                            Or configure <code class="text-slate-300 font-mono">GOOGLE_MAPS_API_KEY</code> in your Django settings.
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveAndLoadPassengerKey() {
+            const input = document.getElementById('runtimePassengerMapKey');
+            const key = (input ? input.value : '').trim();
+            if (!key) {
+                alert('Please paste a valid Google Maps API Key.');
+                return;
+            }
+            sessionStorage.setItem('GOOGLE_MAPS_API_KEY', key);
+            loadGoogleMapsScript(key);
+        }
+
+        window.initPassengerMap = function() {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) return;
+            mapContainer.innerHTML = '';
+
+            // Kotoka Airport to Kempinski Hotel Accra
+            const pickupCoords = { lat: 5.6052, lng: -0.1681 };
+            const destCoords = { lat: 5.5539, lng: -0.1989 };
+            const driverCoords = { lat: 5.5780, lng: -0.1800 };
+
+            const map = new google.maps.Map(mapContainer, {
+                center: driverCoords,
+                zoom: 13,
+                styles: darkMapStyles,
+                disableDefaultUI: true,
+                zoomControl: true
+            });
+
+            function createSvgMarker(url, size) {
+                return {
+                    url: url,
+                    scaledSize: new google.maps.Size(size, size),
+                    anchor: new google.maps.Point(size / 2, size / 2)
+                };
+            }
+
+            const pickupIconSvg = 'data:image/svg+xml;utf-8,' + encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+                    <circle cx="14" cy="14" r="12" fill="#8CC63F" stroke="#ffffff" stroke-width="3"/>
+                    <circle cx="14" cy="14" r="4" fill="#ffffff"/>
+                </svg>
+            `);
+
+            const destIconSvg = 'data:image/svg+xml;utf-8,' + encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+                    <circle cx="14" cy="14" r="12" fill="#EF4444" stroke="#ffffff" stroke-width="3"/>
+                    <circle cx="14" cy="14" r="4" fill="#ffffff"/>
+                </svg>
+            `);
+
+            const carIconSvg = 'data:image/svg+xml;utf-8,' + encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="20" fill="#0A0F1D" stroke="#8CC63F" stroke-width="3"/>
+                    <path d="M14 26l2-6h12l2 6" stroke="#8CC63F" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <rect x="13" y="24" width="18" height="6" rx="2" fill="#8CC63F"/>
+                    <circle cx="17" cy="30" r="2" fill="#0A0F1D"/>
+                    <circle cx="27" cy="30" r="2" fill="#0A0F1D"/>
+                </svg>
+            `);
+
+            new google.maps.Marker({
+                position: pickupCoords,
+                map: map,
+                title: 'Pickup (Kotoka Airport ACC)',
+                icon: createSvgMarker(pickupIconSvg, 28)
+            });
+
+            new google.maps.Marker({
+                position: destCoords,
+                map: map,
+                title: 'Destination (Kempinski Hotel Accra)',
+                icon: createSvgMarker(destIconSvg, 28)
+            });
+
+            new google.maps.Marker({
+                position: driverCoords,
+                map: map,
+                title: 'Assigned Vehicle',
+                icon: createSvgMarker(carIconSvg, 44),
+                zIndex: 999
+            });
+
+            const routeCoordinates = [
+                pickupCoords,
+                { lat: 0.0800, lng: 32.4600 },
+                driverCoords,
+                { lat: 0.2000, lng: 32.5000 },
+                { lat: 0.2500, lng: 32.5400 },
+                destCoords
+            ];
+
+            const routePath = new google.maps.Polyline({
+                path: routeCoordinates,
+                geodesic: true,
+                strokeColor: '#8CC63F',
+                strokeOpacity: 0.9,
+                strokeWeight: 4
+            });
+            routePath.setMap(map);
+
+            const bounds = new google.maps.LatLngBounds();
+            routeCoordinates.forEach(c => bounds.extend(c));
+            map.fitBounds(bounds, 60);
+        };
+
+        function loadGoogleMapsScript(key) {
+            if (window.google && window.google.maps) {
+                window.initPassengerMap();
+                return;
+            }
+            const existingScript = document.getElementById('google-maps-passenger-sdk');
+            if (existingScript) existingScript.remove();
+
+            const script = document.createElement('script');
+            script.id = 'google-maps-passenger-sdk';
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=geometry,places&callback=initPassengerMap`;
+            script.async = true;
+            script.defer = true;
+            script.onerror = function() {
+                alert('Failed to load Google Maps SDK. Please check your API key.');
+                renderApiKeyPrompt();
+            };
+            document.head.appendChild(script);
+        }
+
+        if (googleApiKey) {
+            loadGoogleMapsScript(googleApiKey);
+        } else {
+            renderApiKeyPrompt();
+        }
+    </script>
+</body>
+</html>

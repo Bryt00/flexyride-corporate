@@ -1,0 +1,42 @@
+<!-- Star Rating Modal -->
+<div id="ratingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="card-elevated rounded-2xl max-w-md w-full p-6 sm:p-8 space-y-6 relative border border-white/10 shadow-2xl">
+        <div class="text-center space-y-2">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
+                <i data-lucide="star" class="w-6 h-6 fill-amber-400"></i>
+            </div>
+            <h3 class="text-xl font-black text-white">Rate Journey Experience</h3>
+            <p class="text-xs text-slate-400">Trip Reference: <span id="ratingModalTripRef" class="font-mono font-bold text-white">--</span></p>
+        </div>
+
+        <form method="POST" action="{% url 'portal_submit_journey_rating' %}" class="space-y-5">
+            {% csrf_token %}
+            <input type="hidden" id="ratingRequestNumber" name="request_number" value="">
+            <input type="hidden" id="ratingValueInput" name="rating" value="5">
+
+            <!-- Star Selectors -->
+            <div class="flex items-center justify-center gap-2 py-2">
+                {% for i in "12345" %}
+                <button type="button" data-rating="{{ forloop.counter }}" onclick="setStarRating(Number(this.dataset.rating))" class="star-btn p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer">
+                    <i data-lucide="star" class="w-8 h-8 fill-amber-400"></i>
+                </button>
+                {% endfor %}
+            </div>
+
+            <!-- Review Feedback -->
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Chauffeur & Vehicle Review (Optional)</label>
+                <textarea name="comments" rows="3" placeholder="Punctuality, vehicle cleanliness, route comfort, and driver etiquette..." class="w-full px-4 py-3 surface-well rounded-xl text-white text-xs placeholder-slate-500 focus:ring-2 focus:ring-[#8CC63F]/50 focus:outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+                <button type="button" onclick="closeRatingModal()" class="btn-secondary py-3 px-4 rounded-xl text-xs font-bold flex-1 text-slate-300 hover:text-white">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-brand py-3 px-4 rounded-xl text-xs font-black flex-1 shadow-lg shadow-[#8CC63F]/25">
+                    Submit Rating
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

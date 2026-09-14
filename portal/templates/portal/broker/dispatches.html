@@ -1,0 +1,158 @@
+{% extends "portal/broker/broker_base.html" %}
+{% load humanize %}
+
+{% block broker_page_title %}Mission Control & Live Dispatch Monitor{% endblock %}
+{% block broker_page_subtitle %}Live flight board of confirmed corporate journeys, driver tracking, route telemetry, and mission lifecycle state management.{% endblock %}
+
+{% block broker_content %}
+<div class="space-y-6">
+
+    <!-- Active Missions Ledger -->
+    <div class="card-elevated p-6 rounded-2xl border border-white/5 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-base font-black text-white">Active Corporate Journey Dispatches</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Real-time status of assigned chauffeur units and active passenger missions.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    {{ dispatches|length }} Active Missions
+                </span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-white/5">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider bg-white/[0.02] border-b border-white/5">
+                        <th class="py-3.5 px-4">Mission Ref</th>
+                        <th class="py-3.5 px-4">Corporate Client</th>
+                        <th class="py-3.5 px-4">Mission Route</th>
+                        <th class="py-3.5 px-4">Provider & Unit</th>
+                        <th class="py-3.5 px-4">Assigned Chauffeur</th>
+                        <th class="py-3.5 px-4">Departure Time</th>
+                        <th class="py-3.5 px-4">Lifecycle Status</th>
+                        <th class="py-3.5 px-4 text-right">Advance Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.03]">
+                    {% for trip in dispatches %}
+                    {% with assignment=trip.vehicle_assignments.first %}
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                        
+                        <!-- Mission Ref -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <a href="{% url 'portal_request_details' request_id=trip.request_number %}" class="font-mono font-bold text-white hover:text-amber-400 transition-colors">
+                                {{ trip.request_number }}
+                            </a>
+                            <span class="block text-[10px] text-slate-400 uppercase font-semibold">{{ trip.get_journey_type_display }}</span>
+                        </td>
+
+                        <!-- Corporate Client -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <span class="font-bold text-slate-200">{{ trip.customer.company_name }}</span>
+                            <span class="block text-[10px] text-slate-400">{{ trip.passenger_count }} Passenger{{ trip.passenger_count|pluralize }}</span>
+                        </td>
+
+                        <!-- Route -->
+                        <td class="py-4 px-4 max-w-xs">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8CC63F]"></span>
+                                    <span class="text-slate-300 truncate" title="{{ trip.pickup_address }}">{{ trip.pickup_address|truncatechars:24 }}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                    <span class="text-slate-300 truncate" title="{{ trip.destination_address }}">{{ trip.destination_address|truncatechars:24 }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Provider & Unit -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {% if assignment and assignment.vehicle %}
+                                <span class="font-bold text-white">{{ assignment.vehicle.make }} {{ assignment.vehicle.model }}</span>
+                                <span class="block text-[10px] font-mono text-amber-300">{{ assignment.vehicle.registration_number }}</span>
+                            {% else %}
+                                <span class="text-slate-400">{{ trip.get_requested_vehicle_category_display }}</span>
+                                <span class="block text-[10px] text-amber-400/80">Vehicle Pending</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Chauffeur -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {% if assignment and assignment.driver %}
+                                <div class="flex items-center gap-1.5 font-bold text-slate-200">
+                                    <i data-lucide="user-check" class="w-3.5 h-3.5 text-[#8CC63F]"></i>
+                                    <span>{{ assignment.driver.full_name }}</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400">{{ assignment.driver.phone_number }}</span>
+                            {% else %}
+                                <span class="text-slate-400 italic">Unassigned</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Departure Time -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <span class="font-bold text-white">{{ trip.departure_datetime|date:"d M Y" }}</span>
+                            <span class="block text-[10px] text-slate-400 font-medium">{{ trip.departure_datetime|date:"h:i A" }}</span>
+                        </td>
+
+                        <!-- Status Badge -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {% if trip.booking_status == 'DRIVER_EN_ROUTE' %}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400/15 text-amber-400 border border-amber-400/20 flex items-center gap-1 w-max">
+                                    <i data-lucide="navigation" class="w-3 h-3"></i> En Route
+                                </span>
+                            {% elif trip.booking_status == 'TRIP_IN_PROGRESS' or trip.booking_status == 'PASSENGER_ONBOARD' %}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 flex items-center gap-1 w-max">
+                                    <i data-lucide="play" class="w-3 h-3"></i> Onboard / Live
+                                </span>
+                            {% elif trip.booking_status == 'CONFIRMED' or trip.booking_status == 'ASSIGNED' %}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20 flex items-center gap-1 w-max">
+                                    <i data-lucide="check" class="w-3 h-3"></i> Scheduled
+                                </span>
+                            {% else %}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/10 text-slate-300">
+                                    {{ trip.get_booking_status_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- State Transition Action -->
+                        <td class="py-4 px-4 whitespace-nowrap text-right">
+                            <form method="POST" action="{% url 'portal_broker_dispatches' %}" class="inline-flex items-center gap-1">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_dispatch_status">
+                                <input type="hidden" name="request_id" value="{{ trip.id }}">
+                                
+                                <select name="new_status" onchange="this.form.submit()" class="px-2 py-1 surface-well rounded-lg text-[11px] text-slate-300 border border-white/10 focus:outline-none focus:ring-1 focus:ring-amber-400/50 cursor-pointer">
+                                    <option value="" disabled selected>Update Status...</option>
+                                    <option value="DRIVER_EN_ROUTE">Driver En Route</option>
+                                    <option value="DRIVER_ARRIVED">Driver Arrived</option>
+                                    <option value="PASSENGER_ONBOARD">Passenger Onboard</option>
+                                    <option value="TRIP_IN_PROGRESS">Trip In Progress</option>
+                                    <option value="COMPLETED">Mark Completed</option>
+                                    <option value="CANCELLED">Cancel Mission</option>
+                                </select>
+                            </form>
+                        </td>
+
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-slate-500">
+                            <p class="font-bold text-white text-sm">No active dispatches currently on the road</p>
+                            <p class="text-xs text-slate-400 mt-1">Confirmed missions and active chauffeur journeys will display here in real time.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

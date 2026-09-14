@@ -1,0 +1,102 @@
+<div id="tab-content-rfqs" class="space-y-4">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#121829] border border-white/10 rounded-2xl p-4">
+        <div>
+            <h2 class="text-base font-black text-white">FlexyRide RFQ Marketplace & Wholesale Bidding</h2>
+            <p class="text-xs text-gray-400">Direct quote requests sent by FlexyRide brokers for corporate client transport.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button type="button" onclick="filterRfqs('all')" id="rfq-filter-all" class="rfq-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white">All ({{ quote_requests|length }})</button>
+            <button type="button" onclick="filterRfqs('pending')" id="rfq-filter-pending" class="rfq-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:text-white">Awaiting Quote</button>
+            <button type="button" onclick="filterRfqs('quoted')" id="rfq-filter-quoted" class="rfq-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:text-white">Submitted</button>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        {% for quote_req in quote_requests %}
+        <div class="rfq-card {% if quote_req.quotes.first %}rfq-status-quoted{% else %}rfq-status-pending{% endif %} bg-[#121829] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-1 bg-amber-400/10 text-amber-400 border border-amber-400/20 text-xs font-black rounded-lg font-mono">RFQ #{{ quote_req.request.request_number }}</span>
+                        <span class="px-2.5 py-1 bg-white/5 text-gray-300 text-xs font-bold rounded-lg">{{ quote_req.request.get_journey_type_display }}</span>
+                        <span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded-lg">{{ quote_req.request.get_requested_vehicle_category_display }} (Qty: {{ quote_req.request.vehicles_requested_count }})</span>
+                        {% if quote_req.request.executive_vehicle_required %}
+                        <span class="px-2 py-0.5 bg-yellow-400/20 text-yellow-300 text-[10px] font-extrabold rounded-md">VIP Executive</span>
+                        {% endif %}
+                        <span class="text-xs text-gray-500">•</span>
+                        <span class="text-xs text-gray-400">Received {{ quote_req.requested_at|timesince }} ago</span>
+                    </div>
+
+                    <h3 class="text-base font-extrabold text-white">{{ quote_req.request.pickup_address }} → {{ quote_req.request.destination_address }}</h3>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-400 pt-1">
+                        <div>
+                            <span class="block text-[10px] font-bold uppercase text-gray-500">Departure</span>
+                            <span class="text-white font-semibold">{{ quote_req.request.departure_datetime|date:"M d, Y @ h:i A" }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold uppercase text-gray-500">Est. Distance</span>
+                            <span class="text-white font-semibold">{{ quote_req.request.estimated_distance_km|default:"--" }} km</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold uppercase text-gray-500">Passengers</span>
+                            <span class="text-white font-semibold">{{ quote_req.request.passenger_count }} Person(s)</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold uppercase text-gray-500">Corporate Customer</span>
+                            <span class="text-white font-semibold">{{ quote_req.request.customer.company_name }}</span>
+                        </div>
+                    </div>
+
+                    {% if quote_req.request.luggage_requirements %}
+                    <p class="text-xs text-gray-400"><b class="text-gray-300">Special Notes:</b> {{ quote_req.request.luggage_requirements }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Pricing & Action Controls -->
+                <div class="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-between gap-3 border-t lg:border-t-0 border-white/10 pt-4 lg:pt-0">
+                    {% with quote=quote_req.quotes.first %}
+                    {% if quote %}
+                    <div class="text-left lg:text-right">
+                        <span class="text-[10px] font-bold uppercase text-gray-400">Your Submitted Wholesale Quote:</span>
+                        <p class="text-lg font-mono font-black text-emerald-400">GHS {{ quote.offered_cost|floatformat:0 }}</p>
+                        {% if quote.proposed_vehicle %}
+                        <span class="text-[11px] text-gray-400">Proposed: <b class="text-white">{{ quote.proposed_vehicle.registration_number }}</b> ({{ quote.proposed_vehicle.make }})</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openQuoteModal('{{ quote_req.id }}', '{{ quote_req.request.request_number }}', '{{ quote_req.request.get_requested_vehicle_category_display }}', '{{ quote.offered_cost }}', '{{ quote.proposed_vehicle_id }}', '{{ quote.notes }}')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all">
+                            Revise Quote
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="text-left lg:text-right">
+                        <span class="text-xs text-amber-400 font-bold">Awaiting Quote Submission</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <form method="POST" action="{% url 'portal_provider_workspace' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="decline_rfq">
+                            <input type="hidden" name="quote_request_id" value="{{ quote_req.id }}">
+                            <button type="submit" onclick="return confirm('Are you sure you want to decline this RFQ?')" class="px-3.5 py-2 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-white/10 rounded-xl text-xs font-bold transition-all">
+                                Decline
+                            </button>
+                        </form>
+                        <button onclick="openQuoteModal('{{ quote_req.id }}', '{{ quote_req.request.request_number }}', '{{ quote_req.request.get_requested_vehicle_category_display }}')" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20">
+                            Submit Wholesale Quote
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12 bg-[#121829] border border-white/10 rounded-2xl text-gray-400">
+            <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-gray-500"></i>
+            <p class="font-bold">No active RFQs at this time.</p>
+            <p class="text-xs text-gray-500 mt-1">When FlexyRide brokers send quote requests for transport, they will appear here in real-time.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>

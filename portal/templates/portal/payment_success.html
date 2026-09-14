@@ -1,0 +1,64 @@
+{% extends 'portal/base_portal.html' %}
+
+{% block title %}Payment Successful | FlexyRide Corporate{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto space-y-8 text-center py-8">
+
+    <!-- Green Check Hero -->
+    <div class="space-y-4">
+        <div class="w-24 h-24 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/25 animate-bounce">
+            <i data-lucide="check-circle" class="w-12 h-12 stroke-[2.5]"></i>
+        </div>
+
+        <h1 class="text-3xl font-black text-white tracking-tight">Payment Successful!</h1>
+        <div class="text-3xl font-black text-[#8CC63F] font-mono">
+            GHS {% if payment %}{{ payment.amount|floatformat:0 }}{% elif quote %}{{ quote.final_customer_price|floatformat:0 }}{% else %}0{% endif %}
+        </div>
+        <p class="text-xs text-slate-400 font-medium">Your journey is now booked and confirmed. Booking Reference: <span class="text-white font-bold font-mono">{{ req.request_number }}</span></p>
+    </div>
+
+    <!-- Payment Receipt Summary Card -->
+    <div class="card-elevated p-6 sm:p-7 rounded-2xl text-left space-y-4 shadow-2xl">
+        <div class="flex justify-between items-center pb-3">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Transaction Ref</span>
+            <span class="text-xs font-mono font-bold text-white">{{ payment.transaction_reference|default:"PAY-CONFIRMED-AUTO" }}</span>
+        </div>
+
+        <div class="flex justify-between items-center pb-3">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Payment Method</span>
+            <span class="text-xs text-white font-semibold">{{ payment.get_payment_method_display|default:"Mobile Money" }}</span>
+        </div>
+
+        <div class="flex justify-between items-center pb-3">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Date & Time</span>
+            <span class="text-xs text-white">{% if payment and payment.payment_date %}{{ payment.payment_date|date:"d F Y \a\\t H:i" }}{% else %}{{ req.updated_at|date:"d F Y \a\\t H:i" }}{% endif %}</span>
+        </div>
+
+        <div class="flex justify-between items-center">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Payment Status</span>
+            <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">
+                {{ payment.get_status_display|default:"SUCCESSFUL" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col gap-3">
+        {% if payment and payment.transaction_reference %}
+        <a href="{% url 'portal_receipt_printable' receipt_ref=payment.transaction_reference %}" target="_blank" class="py-3.5 px-6 rounded-xl text-xs font-extrabold bg-white/10 hover:bg-white/15 text-white flex items-center justify-center gap-2 border border-white/10 active:scale-95 transition-all">
+            <i data-lucide="receipt" class="w-4 h-4 text-[#8CC63F]"></i> Print Official VAT Tax Receipt
+        </a>
+        {% endif %}
+
+        <a href="{% url 'portal_confirmed_booking' booking_id=req.request_number %}" class="btn-brand py-3.5 px-6 rounded-xl text-xs font-extrabold shadow-lg shadow-[#8CC63F]/25 flex items-center justify-center gap-2 active:scale-95">
+            <i data-lucide="calendar" class="w-4 h-4"></i> View Confirmed Booking Details
+        </a>
+
+        <a href="{% url 'portal_dashboard' %}" class="btn-secondary py-3 px-6 text-xs text-slate-300 hover:text-white font-bold rounded-xl active:scale-95 transition-all">
+            Return to Dashboard
+        </a>
+    </div>
+</div>
+
+{% endblock %}

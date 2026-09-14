@@ -1,0 +1,226 @@
+{% extends "portal/base_public.html" %}
+{% load static %}
+
+{% block title %}Open Corporate Account | FlexyRide Corporate{% endblock %}
+
+{% block content %}
+<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center bg-[#F8FAFC]">
+
+    <!-- Top Container -->
+    <div class="max-w-4xl w-full space-y-8">
+
+        <!-- Header -->
+        <div class="text-center space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#1A3408] text-xs font-black uppercase tracking-wider border border-[#8CC63F]/30 shadow-sm">
+                <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#8CC63F]"></i>
+                Corporate Client Self-Service Onboarding
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Open a Corporate Account</h1>
+            <p class="text-sm text-slate-600 max-w-xl mx-auto">
+                Empower your organization with scheduled corporate shuttles, VIP airport transfers, cross-region delegations, and consolidated monthly billing.
+            </p>
+        </div>
+
+        <!-- Registration Form Card -->
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/50">
+
+            {% if form.errors %}
+            <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs space-y-1">
+                <p class="font-black flex items-center gap-1.5 text-sm text-red-900">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-red-600"></i>
+                    Please correct the following errors:
+                </p>
+                <ul class="list-disc list-inside space-y-0.5 pl-2 font-medium">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li><b>{{ field|title }}:</b> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'portal_signup' %}" enctype="multipart/form-data" class="space-y-8" id="corporateSignupForm">
+                {% csrf_token %}
+
+                <!-- Step 1: Corporate Entity Information -->
+                <div class="space-y-5">
+                    <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                        <span class="w-6 h-6 rounded-lg bg-[#8CC63F] text-[#0A0F1D] flex items-center justify-center text-xs font-black">1</span>
+                        <h2 class="text-base font-black text-slate-900">Corporate Legal Entity</h2>
+                        <span class="text-xs text-slate-400 font-medium ml-auto">Company Credentials</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Company Legal Registered Name <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.company_name }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Business Registration Number (RGD)
+                            </label>
+                            {{ form.registration_number }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Tax Identification Number (TIN / GRA)
+                            </label>
+                            {{ form.tax_id }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Official Billing / Finance Email <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.company_email }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Corporate Head Office Phone <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.company_phone }}
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Corporate Office Physical Address <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.company_address }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Preferred Billing Model
+                            </label>
+                            {{ form.billing_preference }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Corporate Brand Logo <span class="text-slate-400 font-normal text-[11px]">(Optional — or upload on profile)</span>
+                            </label>
+                            {{ form.company_logo }}
+                            <p class="text-[10px] text-slate-500 mt-1">PNG, JPG, SVG or WEBP. Displayed on your portal navbar.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Administrator Contact Credentials -->
+                <div class="space-y-5 pt-4">
+                    <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                        <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-black">2</span>
+                        <h2 class="text-base font-black text-slate-900">Corporate Administrator Credentials</h2>
+                        <span class="text-xs text-slate-400 font-medium ml-auto">Primary Account Manager</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Administrator First Name <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.first_name }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Administrator Last Name <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.last_name }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Department / Designation
+                            </label>
+                            {{ form.department }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Direct Work Mobile Phone
+                            </label>
+                            {{ form.admin_phone }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Portal Login Username <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.username }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Work Email Address (Login ID) <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.admin_email }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Secure Password <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.password }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                Confirm Password <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.confirm_password }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Terms & Submission -->
+                <div class="pt-4 border-t border-slate-100 space-y-4">
+                    <div class="flex items-start gap-3">
+                        {{ form.terms_agreed }}
+                        <label for="{{ form.terms_agreed.id_for_label }}" class="text-xs text-slate-600 leading-relaxed cursor-pointer">
+                            I confirm that I am an authorized representative of this company, agree to the <a href="{% url 'portal_compliance_safety' %}" target="_blank" class="text-blue-600 font-bold underline">Terms of Corporate Service</a> and <a href="#" class="text-blue-600 font-bold underline">Privacy Policy</a>, and consent to FlexyRide verifying commercial credentials.
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                        <a href="{% url 'portal_login' %}" class="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors flex items-center gap-1.5 order-2 sm:order-1">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                            Already have an account? Sign In
+                        </a>
+                        <button type="submit" class="w-full sm:w-auto px-8 py-4 bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-extrabold rounded-xl text-sm transition-all shadow-lg shadow-[#8CC63F]/25 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 order-1 sm:order-2">
+                            <span>Create Corporate Account</span>
+                            <i data-lucide="check-circle-2" class="w-4 h-4 stroke-[2.5]"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+            <div class="p-4 bg-white/70 backdrop-blur rounded-2xl border border-slate-200/80">
+                <i data-lucide="shield-check" class="w-6 h-6 text-emerald-600 mx-auto mb-1.5"></i>
+                <p class="text-xs font-black text-slate-900">DVLA & NRSA Inspected</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">100% roadworthy vetted fleets</p>
+            </div>
+            <div class="p-4 bg-white/70 backdrop-blur rounded-2xl border border-slate-200/80">
+                <i data-lucide="credit-card" class="w-6 h-6 text-blue-600 mx-auto mb-1.5"></i>
+                <p class="text-xs font-black text-slate-900">Flexible Payment Terms</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Prepaid, Corporate Card & Net 30</p>
+            </div>
+            <div class="p-4 bg-white/70 backdrop-blur rounded-2xl border border-slate-200/80">
+                <i data-lucide="clock" class="w-6 h-6 text-[#8CC63F] mx-auto mb-1.5"></i>
+                <p class="text-xs font-black text-slate-900">24/7 Dedicated Broker Desk</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Real-time mission coordination</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

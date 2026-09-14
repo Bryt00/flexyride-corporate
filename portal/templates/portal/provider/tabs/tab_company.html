@@ -1,0 +1,431 @@
+<div id="tab-content-company" class="space-y-6">
+
+    <!-- Hero Corporate Identity Banner -->
+    <div class="card-elevated rounded-3xl p-6 sm:p-8 relative overflow-hidden bg-white border border-slate-200 shadow-sm">
+        <div class="absolute -right-12 -top-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -right-4 -bottom-12 w-48 h-48 bg-[#8CC63F]/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div class="flex items-center gap-5">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-[#8CC63F] p-0.5 shadow-xl shadow-blue-500/20 shrink-0">
+                    <div class="w-full h-full bg-slate-100 rounded-[14px] flex items-center justify-center font-black text-2xl text-slate-900 tracking-wider">
+                        {{ company.company_name|slice:":2"|upper|default:"ST" }}
+                    </div>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            {{ company.get_status_display|default:"Approved & Active" }}
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
+                            Verified Commercial Operator
+                        </span>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">{{ company.company_name|default:"Safari Transport Ltd" }}</h2>
+                    <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                        <span>Permit: <b class="font-mono text-slate-700">{{ company.registration_number|default:"REG-GCE-2024-GH" }}</b></span>
+                        <span class="text-slate-300">•</span>
+                        <span>Depot: <b class="text-slate-700">{{ company.address|default:"Accra, Ghana"|truncatechars:35 }}</b></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quality & Fleet Quick Badges -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full md:w-auto">
+                <div class="surface-well rounded-xl px-4 py-2.5 text-center bg-slate-50 border border-slate-200">
+                    <p class="text-base font-black text-slate-900 leading-none">{{ stats.total_fleet|default:"0" }}</p>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-500 mt-1">Fleet Vehicles</p>
+                </div>
+                <div class="surface-well rounded-xl px-4 py-2.5 text-center bg-purple-50 border border-purple-100">
+                    <p class="text-base font-black text-purple-700 leading-none">{{ stats.total_drivers|default:"0" }}</p>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-purple-600 mt-1">Chauffeurs</p>
+                </div>
+                <div class="surface-well rounded-xl px-4 py-2.5 text-center col-span-2 sm:col-span-1 bg-amber-50 border border-amber-100">
+                    <p class="text-base font-black text-amber-700 leading-none flex items-center justify-center gap-1">
+                        ★ {{ company.overall_rating|default:"4.90" }}
+                    </p>
+                    <p class="text-[9px] font-bold uppercase tracking-wider text-amber-600 mt-1">Quality Score</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Update Form -->
+    <form method="POST" action="{% url 'portal_provider_company' %}" class="space-y-6" id="companyProfileForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_company">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- ================= Column 1: Identity & Dispatch Coordination ================= -->
+            <div class="space-y-6">
+
+                <!-- Section 1: Corporate Legal Entity -->
+                <div class="card-elevated rounded-3xl p-6 sm:p-7 space-y-5 bg-white border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="building-2" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 tracking-tight">Corporate Legal Entity</h3>
+                            <p class="text-[11px] text-slate-500">Registered business information & commercial credentials</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                Company Legal Name <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="building" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                                <input type="text" name="company_name" value="{{ company.company_name }}" required
+                                    class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                DVLA Commercial Permit / Business Registration <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="file-badge" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                                <input type="text" name="registration_number" value="{{ company.registration_number|default:'REG-GCE-2024-GH' }}" required
+                                    class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                Official Operations & Invoicing Email <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                                <input type="email" name="email" value="{{ company.email|default:'admin@safari.com' }}" required
+                                    class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Regulatory Notice -->
+                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+                            <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5"></i>
+                            <p class="text-[11px] text-slate-600 leading-relaxed">
+                                Corporate verification is certified by the FlexyRide Compliance Desk. Updating registration permits will trigger automated re-validation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Dispatch Coordination Desk -->
+                <div class="card-elevated rounded-3xl p-6 sm:p-7 space-y-5 bg-white border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="phone-call" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 tracking-tight">24/7 Dispatch Coordination Desk</h3>
+                            <p class="text-[11px] text-slate-500">Primary contact channels used by FlexyRide brokers</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                Primary Operations Contact Person <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="user-check" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                                <input type="text" name="contact_person" value="{{ company.contact_person|default:'Fleet Operations Desk' }}" required
+                                    class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                Direct Dispatch Phone / Emergency Line <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="phone" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                                <input type="text" name="phone" value="{{ company.phone|default:'+233 30 200 0000' }}" required
+                                    class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                Fleet Depot & Maintenance Base Address
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none"></i>
+                                <textarea name="address" rows="3"
+                                    class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 transition-all resize-none">{{ company.address|default:'Liberation Road, Airport City, Accra, Ghana' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ================= Column 2: Geographic Hubs & Specializations ================= -->
+            <div class="space-y-6">
+
+                <!-- Section 3: Covered Service Operating Hubs -->
+                <div class="card-elevated rounded-3xl p-6 sm:p-7 space-y-5 bg-white border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="map" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 tracking-tight">Operating Geographic Coverage</h3>
+                            <p class="text-[11px] text-slate-500">Hubs and corridors where your vehicles operate</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                            Active Operating Hubs (Click to toggle)
+                        </label>
+                        
+                        <!-- Interactive Hub Pills -->
+                        <div class="flex flex-wrap gap-2" id="hubPillsContainer">
+                            <button type="button" onclick="toggleHubTag(this, 'Accra Metropolis')" class="hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                📍 Accra Metropolis
+                            </button>
+                            <button type="button" onclick="toggleHubTag(this, 'Tema Industrial')" class="hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                📍 Tema Industrial
+                            </button>
+                            <button type="button" onclick="toggleHubTag(this, 'Kumasi Corridor')" class="hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                📍 Kumasi Corridor
+                            </button>
+                            <button type="button" onclick="toggleHubTag(this, 'Takoradi Oil & Gas')" class="hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                📍 Takoradi Oil & Gas
+                            </button>
+                            <button type="button" onclick="toggleHubTag(this, 'Cape Coast')" class="hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100">
+                                📍 Cape Coast
+                            </button>
+                            <button type="button" onclick="toggleHubTag(this, 'Tamale Northern')" class="hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100">
+                                📍 Tamale Northern
+                            </button>
+                            <button type="button" onclick="toggleHubTag(this, 'Sunyani')" class="hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100">
+                                📍 Sunyani
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-3 mb-1.5">
+                                Operating Area Summary
+                            </label>
+                            <textarea name="service_area" id="serviceAreaInput" rows="2"
+                                placeholder="e.g. Accra, Tema, Kumasi, Takoradi"
+                                class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all resize-none">{{ company.service_area|default:'Accra, Tema, Kumasi, Takoradi' }}</textarea>
+                            <p class="text-[10px] text-slate-500 mt-1">Brokers match quote requests based on your registered operating hubs.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Fleet & Service Capabilities -->
+                <div class="card-elevated rounded-3xl p-6 sm:p-7 space-y-5 bg-white border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 tracking-tight">Fleet Capabilities & Specializations</h3>
+                            <p class="text-[11px] text-slate-500">Match with specialized client journeys & executive requests</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                            Specialization Tags (Click to toggle)
+                        </label>
+
+                        <!-- Interactive Specialization Pills -->
+                        <div class="flex flex-wrap gap-2" id="specPillsContainer">
+                            <button type="button" onclick="toggleSpecTag(this, 'VIP Airport Transfers')" class="spec-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-700 border border-amber-200">
+                                ✈️ VIP Airport Transfers
+                            </button>
+                            <button type="button" onclick="toggleSpecTag(this, 'Corporate Delegations')" class="spec-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-700 border border-amber-200">
+                                💼 Corporate Delegations
+                            </button>
+                            <button type="button" onclick="toggleSpecTag(this, 'Executive Saloons')" class="spec-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-700 border border-amber-200">
+                                🚗 Executive Saloons
+                            </button>
+                            <button type="button" onclick="toggleSpecTag(this, 'Long Distance Charters')" class="spec-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-700 border border-amber-200">
+                                🛣️ Long Distance Charters
+                            </button>
+                            <button type="button" onclick="toggleSpecTag(this, 'Staff Commute Shuttles')" class="spec-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100">
+                                🚐 Staff Commute Shuttles
+                            </button>
+                            <button type="button" onclick="toggleSpecTag(this, '4x4 Mining Escort')" class="spec-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100">
+                                🏔️ 4x4 Mining Escort
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-3 mb-1.5">
+                                Specialization Tags String
+                            </label>
+                            <input type="text" name="specializations" id="specializationsInput"
+                                value="{{ company.specializations|default:'VIP Airport Transfers, Corporate Delegations, Executive Saloons, Long Distance Charters' }}"
+                                class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all">
+                            <p class="text-[10px] text-slate-500 mt-1">High-priority RFQs from corporate clients are routed to matching providers first.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Sticky Floating Action Bar for Company Profile -->
+        <div class="card-elevated rounded-2xl px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-200 bg-white shadow-lg">
+            <div class="flex items-center gap-2.5 text-xs text-slate-600">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                <span>Changes update your broker live dispatch profile immediately.</span>
+            </div>
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <a href="{% url 'portal_provider_overview' %}" class="btn-secondary px-5 py-2.5 rounded-xl text-xs font-bold text-center w-full sm:w-auto">
+                    Cancel
+                </a>
+                <button type="submit" class="btn-brand px-7 py-2.5 rounded-xl text-xs font-black shadow-lg shadow-[#8CC63F]/25 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+                    <i data-lucide="save" class="w-4 h-4 stroke-[2.5]"></i>
+                    Save Company Profile
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+    <!-- Administrator Personal Account & Security Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-slate-200">
+
+        <!-- Administrator Personal Profile -->
+        <div class="card-elevated rounded-3xl p-6 sm:p-7 space-y-5 bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div class="w-9 h-9 rounded-xl bg-[#8CC63F]/15 text-[#1A3408] flex items-center justify-center shrink-0">
+                    <i data-lucide="user-cog" class="w-4 h-4 text-[#8CC63F]"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Provider Administrator Account</h3>
+                    <p class="text-[11px] text-slate-500">Your personal contact profile and portal login credentials</p>
+                </div>
+            </div>
+
+            <form method="POST" action="{% url 'portal_provider_company' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_admin_profile">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">First Name</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" required
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Last Name</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" required
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Work Email (Login)</label>
+                        <input type="email" name="email" value="{{ user.email }}" required
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Phone Number</label>
+                        <input type="text" name="phone_number" value="{{ user.phone_number|default:'' }}" placeholder="+233 24 000 0000"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="btn-brand px-5 py-2.5 rounded-xl text-xs font-black shadow-md shadow-[#8CC63F]/20 flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        Save Personal Details
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Security & Password Update -->
+        <div class="card-elevated rounded-3xl p-6 sm:p-7 space-y-5 bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Security & Authentication</h3>
+                    <p class="text-[11px] text-slate-500">Update your provider account password</p>
+                </div>
+            </div>
+
+            <form method="POST" action="{% url 'portal_provider_company' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_admin_password">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Current Password</label>
+                    <input type="password" name="current_password" required placeholder="••••••••"
+                        class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">New Password</label>
+                        <input type="password" name="new_password" required placeholder="Min. 6 chars"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Confirm New Password</label>
+                        <input type="password" name="confirm_new_password" required placeholder="••••••••"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-purple-600/20 flex items-center gap-2">
+                        <i data-lucide="key" class="w-4 h-4"></i>
+                        Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    function toggleHubTag(btn, tagText) {
+        const input = document.getElementById('serviceAreaInput');
+        let current = input.value ? input.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+        const index = current.indexOf(tagText);
+
+        if (index > -1) {
+            current.splice(index, 1);
+            btn.className = 'hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100';
+        } else {
+            current.push(tagText);
+            btn.className = 'hub-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-emerald-50 text-emerald-700 border border-emerald-200';
+        }
+        input.value = current.join(', ');
+    }
+
+    function toggleSpecTag(btn, tagText) {
+        const input = document.getElementById('specializationsInput');
+        let current = input.value ? input.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+        const index = current.indexOf(tagText);
+
+        if (index > -1) {
+            current.splice(index, 1);
+            btn.className = 'spec-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100';
+        } else {
+            current.push(tagText);
+            btn.className = 'spec-pill px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-700 border border-amber-200';
+        }
+        input.value = current.join(', ');
+    }
+</script>

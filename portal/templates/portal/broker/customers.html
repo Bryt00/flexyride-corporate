@@ -1,0 +1,85 @@
+{% extends "portal/broker/broker_base.html" %}
+{% load humanize %}
+
+{% block broker_page_title %}Corporate Client Accounts{% endblock %}
+{% block broker_page_subtitle %}Corporate enterprise customers, credit terms, authorized company approvers, and corporate mobility accounts.{% endblock %}
+
+{% block broker_content %}
+<div class="space-y-6">
+
+    <!-- Corporate Clients Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for cust in corporate_customers %}
+        <div class="card-elevated p-6 rounded-2xl border border-white/5 hover:border-amber-400/30 transition-all space-y-5 bg-[#0d1424] flex flex-col justify-between">
+            
+            <div class="space-y-4">
+                <!-- Header -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center justify-center font-black text-sm tracking-wider">
+                            {{ cust.company_name|slice:":2"|upper }}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-white">{{ cust.company_name }}</h3>
+                            <span class="text-[10px] text-slate-400 font-mono">Account: {{ cust.account_number|default:"MTN-GH-9982" }}</span>
+                        </div>
+                    </div>
+
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/20">
+                        {{ cust.billing_terms|default:"Corporate Net-30" }}
+                    </span>
+                </div>
+
+                <!-- Account Stats -->
+                <div class="grid grid-cols-3 gap-2 text-center p-3 surface-well rounded-xl border border-white/5">
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Requests</span>
+                        <span class="font-mono font-black text-white text-sm">{{ cust.requests.count }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Invoices</span>
+                        <span class="font-mono font-black text-white text-sm">{{ cust.invoices.count }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Status</span>
+                        <span class="font-bold text-emerald-400 text-xs">Active</span>
+                    </div>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="space-y-1.5 text-xs text-slate-300">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span class="truncate">{{ cust.contact_email|default:"rep@corporate.com" }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span>{{ cust.contact_phone|default:"+233 24 000 0000" }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span class="truncate">{{ cust.address|default:"Airport City, Accra, Ghana" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Strip -->
+            <div class="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+                <span class="text-[11px] text-slate-500 font-semibold">Consolidated Billing</span>
+                <a href="mailto:{{ cust.contact_email }}" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold transition-all border border-white/5 inline-flex items-center gap-1.5">
+                    <i data-lucide="mail" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Contact Rep</span>
+                </a>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="col-span-3 py-12 text-center text-slate-500 card-elevated rounded-2xl p-6">
+            <p class="font-bold text-white text-sm">No corporate clients found</p>
+            <p class="text-xs text-slate-400 mt-1">Enterprise accounts will appear here once registered.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,266 @@
+{% load humanize %}
+<!-- Main Table Card with Search, Filter & Per-Page Controls -->
+<div class="card-elevated p-6 space-y-5 border border-white/5 shadow-2xl">
+    
+    <!-- Filter Bar Header -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        
+        <!-- Left: Search Box with Clear Button -->
+        <div class="relative flex-1 max-w-lg">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none"></i>
+            <input type="text" id="tripSearch" oninput="handleSearchInput()" placeholder="Search by booking ref, route, chauffeur, or vehicle plate..." 
+                   class="w-full pl-10 pr-10 py-2.5 surface-well rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 border border-white/5 transition-all">
+            <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-3 text-slate-400 hover:text-white transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Right: Filter Pills, Sort & Page Size Controls -->
+        <div class="flex flex-wrap items-center gap-3">
+            
+            <!-- Category Filter Buttons -->
+            <div class="flex items-center gap-1 p-1 surface-well rounded-xl border border-white/5">
+                <button type="button" onclick="setCategoryFilter('ALL')" id="cat-ALL" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-[#8CC63F] text-[#080D18] shadow-sm transition-all active:scale-95">
+                    All
+                </button>
+                <button type="button" onclick="setCategoryFilter('SUV')" id="cat-SUV" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all active:scale-95">
+                    SUV / 4x4
+                </button>
+                <button type="button" onclick="setCategoryFilter('EXECUTIVE')" id="cat-EXECUTIVE" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all active:scale-95">
+                    Saloon / VIP
+                </button>
+                <button type="button" onclick="setCategoryFilter('COASTER_BUS')" id="cat-COASTER_BUS" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all active:scale-95">
+                    Coaster / Van
+                </button>
+            </div>
+
+            <!-- Sort Dropdown -->
+            <div class="relative">
+                <select id="sortBy" onchange="changeSortOrder()" class="appearance-none pl-3 pr-8 py-2 surface-well rounded-xl text-xs text-slate-300 font-semibold focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 border border-white/5 cursor-pointer">
+                    <option value="date-desc">Newest First</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="amount-desc">Highest Amount</option>
+                    <option value="amount-asc">Lowest Amount</option>
+                </select>
+                <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-3 pointer-events-none"></i>
+            </div>
+
+            <!-- Page Size Dropdown -->
+            <div class="relative">
+                <select id="pageSize" onchange="changePageSize()" class="appearance-none pl-3 pr-8 py-2 surface-well rounded-xl text-xs text-slate-300 font-semibold focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 border border-white/5 cursor-pointer">
+                    <option value="10">10 per page</option>
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                </select>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-3 pointer-events-none"></i>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Trips Ledger Table -->
+    <div class="overflow-x-auto rounded-xl border border-white/5">
+        <table class="w-full text-left border-collapse" id="tripsLedger">
+            <thead>
+                <tr class="text-[11px] font-black text-slate-400 uppercase tracking-wider bg-white/[0.03] border-b border-white/5 select-none">
+                    <th class="py-3.5 px-4">Date & Time</th>
+                    <th class="py-3.5 px-4">Booking Ref</th>
+                    <th class="py-3.5 px-4">Mission Route</th>
+                    <th class="py-3.5 px-4">Assigned Chauffeur & Unit</th>
+                    <th class="py-3.5 px-4">Amount Billed</th>
+                    <th class="py-3.5 px-4">Status</th>
+                    <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-xs divide-y divide-white/[0.04]" id="tripsTbody">
+                {% for trip in completed_trips %}
+                {% with assignment=trip.vehicle_assignments.first payment=trip.payments.first quote=trip.customer_quotes.first %}
+                <tr class="trip-row hover:bg-white/[0.03] transition-all group" 
+                    data-search="{{ trip.request_number }} {{ trip.pickup_address }} {{ trip.destination_address }} {{ assignment.driver.full_name|default:'' }} {{ assignment.vehicle.make|default:'' }} {{ assignment.vehicle.model|default:'' }} {{ assignment.vehicle.registration_number|default:'' }}"
+                    data-category="{{ trip.requested_vehicle_category }}"
+                    data-amount="{{ trip.billed_amount }}"
+                    data-timestamp="{{ trip.departure_datetime|date:'U' }}">
+                    
+                    <!-- Date & Time Column -->
+                    <td class="py-4 px-4 whitespace-nowrap">
+                        <div class="font-bold text-white text-[13px]">
+                            {{ trip.departure_datetime|date:"d M Y" }}
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1 font-medium">
+                            <i data-lucide="clock" class="w-3 h-3 text-slate-500"></i>
+                            <span>{{ trip.departure_datetime|date:"h:i A" }} • {{ trip.departure_datetime|date:"D" }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Booking Reference Column -->
+                    <td class="py-4 px-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'portal_request_details' request_id=trip.request_number %}" class="inline-flex items-center px-2.5 py-1 rounded-lg bg-white/5 font-mono font-bold text-white hover:text-[#8CC63F] hover:bg-white/10 transition-all border border-white/5">
+                                {{ trip.request_number }}
+                            </a>
+                            <button type="button" onclick="copyToClipboard('{{ trip.request_number }}', this)" title="Copy Reference" class="p-1 rounded-md text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-all">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                        <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">
+                            {{ trip.get_journey_type_display|default:"Corporate Transfer" }}
+                        </div>
+                    </td>
+
+                    <!-- Mission Route Column -->
+                    <td class="py-4 px-4 min-w-[280px] max-w-sm">
+                        <div class="route-connector space-y-1.5">
+                            <div class="flex items-start gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#8CC63F] mt-1 shrink-0 shadow-sm shadow-[#8CC63F]/50"></span>
+                                <p class="text-slate-200 font-medium leading-tight truncate text-xs" title="{{ trip.pickup_address }}">
+                                    {{ trip.pickup_address }}
+                                </p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="w-2 h-2 rounded-full bg-blue-400 mt-1 shrink-0 shadow-sm shadow-blue-400/50"></span>
+                                <p class="text-slate-300 font-medium leading-tight truncate text-xs" title="{{ trip.destination_address }}">
+                                    {{ trip.destination_address }}
+                                </p>
+                            </div>
+                        </div>
+                        {% if trip.estimated_distance_km or trip.passenger_count %}
+                        <div class="flex items-center gap-2 mt-1.5 text-[10px] text-slate-400 font-medium">
+                            {% if trip.estimated_distance_km %}
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="navigation" class="w-2.5 h-2.5 text-purple-400"></i>
+                                {{ trip.estimated_distance_km }} km
+                            </span>
+                            <span>•</span>
+                            {% endif %}
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="users" class="w-2.5 h-2.5 text-blue-400"></i>
+                                {{ trip.passenger_count }} pax
+                            </span>
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- Assigned Chauffeur & Vehicle Unit -->
+                    <td class="py-4 px-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-white text-xs">
+                                {% if assignment and assignment.vehicle %}
+                                    {{ assignment.vehicle.make }} {{ assignment.vehicle.model }}
+                                {% else %}
+                                    {{ trip.get_requested_vehicle_category_display }}
+                                {% endif %}
+                            </span>
+                            {% if assignment and assignment.vehicle and assignment.vehicle.registration_number %}
+                            <span class="plate-badge px-2 py-0.5 rounded text-[10px] font-mono font-bold text-amber-300">
+                                {{ assignment.vehicle.registration_number }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-1 font-medium">
+                            <i data-lucide="user-check" class="w-3 h-3 text-[#8CC63F]"></i>
+                            <span>{{ assignment.driver.full_name|default:"FlexyRide Vetted Chauffeur" }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Amount Billed (Thousands Formatted) -->
+                    <td class="py-4 px-4 whitespace-nowrap">
+                        <div class="font-mono font-black text-sm text-[#8CC63F] tracking-tight">
+                            GHS {{ trip.billed_amount|floatformat:0|intcomma }}
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-semibold tracking-wide">
+                            E-VAT Inclusive
+                        </div>
+                    </td>
+
+                    <!-- Status Column -->
+                    <td class="py-4 px-4 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            Completed
+                        </span>
+                    </td>
+
+                    <!-- Actions Column -->
+                    <td class="py-4 px-4 whitespace-nowrap text-right space-x-2">
+                        {% if trip.ratings.exists %}
+                        <span class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-400/15 text-amber-300 border border-amber-400/20 inline-flex items-center gap-1 shadow-sm">
+                            <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
+                            <span>{{ trip.ratings.first.rating }}.0</span>
+                        </span>
+                        {% else %}
+                        <button type="button" 
+                            onclick="openRatingModal('{{ trip.request_number }}')"
+                            class="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-amber-200 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-1 border border-amber-500/20 shadow-sm">
+                            <i data-lucide="star" class="w-3.5 h-3.5"></i>
+                            <span>Rate</span>
+                        </button>
+                        {% endif %}
+                        <button type="button" 
+                            onclick="openReceiptModal(this)"
+                            data-ref="{{ trip.request_number }}"
+                            data-date="{{ trip.departure_datetime|date:'d M Y, h:i A' }}"
+                            data-pickup="{{ trip.pickup_address }}"
+                            data-dest="{{ trip.destination_address }}"
+                            data-amount="{{ trip.billed_amount|floatformat:0 }}"
+                            data-vehicle="{{ assignment.vehicle.make|default:'' }} {{ assignment.vehicle.model|default:'' }} ({{ assignment.vehicle.registration_number|default:'' }})"
+                            data-driver="{{ assignment.driver.full_name|default:'FlexyRide Professional Chauffeur' }}"
+                            data-journey-type="{{ trip.get_journey_type_display }}"
+                            data-distance="{{ trip.estimated_distance_km|default:'--' }}"
+                            class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-1.5 border border-white/5 shadow-sm">
+                            <i data-lucide="receipt" class="w-3.5 h-3.5 text-[#8CC63F]"></i>
+                            <span>Receipt</span>
+                        </button>
+                        <a href="{% url 'portal_request_details' request_id=trip.request_number %}" 
+                           class="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-1 border border-blue-500/20 shadow-sm">
+                            <span>Details</span>
+                            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </td>
+
+                </tr>
+                {% endwith %}
+                {% empty %}
+                <tr id="emptyRow">
+                    <td colspan="7" class="py-16 text-center text-slate-500">
+                        <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 mx-auto mb-3 border border-white/5">
+                            <i data-lucide="inbox" class="w-8 h-8"></i>
+                        </div>
+                        <p class="font-bold text-base text-white">No completed journeys found</p>
+                        <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                            Once corporate trips are completed by transport providers, itemized ledger entries and official GRA tax receipts will automatically appear here.
+                        </p>
+                        <a href="{% url 'portal_new_request' %}" class="btn-brand py-2 px-5 rounded-xl text-xs font-extrabold inline-flex items-center gap-2 mt-4 shadow-lg shadow-[#8CC63F]/20">
+                            <i data-lucide="plus" class="w-4 h-4"></i> New Booking Request
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Table Footer: Pagination & Information -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 text-xs text-slate-400">
+        <div id="tableInfo" class="flex items-center gap-2">
+            <span>Showing <span id="startRange" class="font-bold text-white">1</span> to <span id="endRange" class="font-bold text-white">{{ completed_trips|length }}</span> of <span id="totalRows" class="font-bold text-white">{{ completed_trips|length }}</span> trips</span>
+            <span class="text-slate-600">•</span>
+            <span id="filteredSpendBadge" class="text-[#8CC63F] font-mono font-bold">GHS {{ metrics.total_spent|floatformat:0|intcomma }} total</span>
+        </div>
+
+        <div class="flex items-center gap-2" id="paginationControls">
+            <button type="button" onclick="prevPage()" id="prevBtn" class="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95 flex items-center gap-1 border border-white/5">
+                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+                <span>Previous</span>
+            </button>
+            <div class="px-3.5 py-1.5 rounded-xl surface-well text-white font-mono font-bold border border-white/5" id="pageIndicator">
+                Page 1 of 1
+            </div>
+            <button type="button" onclick="nextPage()" id="nextBtn" class="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95 flex items-center gap-1 border border-white/5">
+                <span>Next</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+    </div>
+
+</div>

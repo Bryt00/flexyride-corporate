@@ -1,0 +1,10 @@
+{% extends "portal/provider/provider_base.html" %}
+
+{% block title %}Company & Admin Profile | {{ company.company_name|default:"Gold Coast Express Logistics" }}{% endblock %}
+
+{% block header_title %}Transport Partner & Admin Profile{% endblock %}
+{% block header_description %}Manage your verified commercial credentials, 24/7 dispatch coordination desk, administrator account security, and operating hubs across Ghana.{% endblock %}
+
+{% block provider_content %}
+{% include 'portal/provider/tabs/tab_company.html' %}
+{% endblock %}

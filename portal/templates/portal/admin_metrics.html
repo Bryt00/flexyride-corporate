@@ -1,0 +1,151 @@
+{% extends "portal/base_portal.html" %}
+
+{% block title %}System Administrator SLA & Quality Dashboard | FlexyRide Corporate{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 card-elevated rounded-2xl p-6">
+        <div>
+            <div class="flex items-center gap-2 mb-1.5">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#8CC63F] text-[#0A0F1D] uppercase tracking-wider">System Administration</span>
+                <span class="text-xs text-slate-400 font-semibold">FlexyRide Platform Operations</span>
+            </div>
+            <h1 class="text-2xl font-black text-white tracking-tight">SLA Performance & Provider Compliance Dashboard</h1>
+            <p class="text-xs text-slate-400 mt-1">Real-time monitoring of provider quote response times, trip completion SLA rates, CSAT scores, and document compliance.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="btn-brand px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-[#8CC63F]/25 active:scale-95">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                Export SLA Report (PDF/CSV)
+            </button>
+        </div>
+    </div>
+
+    <!-- SLA Metric Gauges -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Metric 1: Response Time -->
+        <div class="card-elevated card-elevated-interactive rounded-2xl p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg Quote Response</span>
+                <div class="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center text-blue-400">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-white mt-2 font-mono">18.4 mins</p>
+            <div class="flex items-center justify-between text-[11px] mt-1.5 font-medium">
+                <span class="text-emerald-400 font-semibold">Target: &lt; 30 mins</span>
+                <span class="text-slate-400">SLA Met</span>
+            </div>
+        </div>
+
+        <!-- Metric 2: On-Time Rate -->
+        <div class="card-elevated card-elevated-interactive rounded-2xl p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">On-Time Arrival Rate</span>
+                <div class="w-8 h-8 rounded-xl bg-[#8CC63F]/15 flex items-center justify-center text-[#8CC63F]">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-[#8CC63F] mt-2 font-mono">99.1%</p>
+            <div class="flex items-center justify-between text-[11px] mt-1.5 font-medium">
+                <span class="text-emerald-400 font-semibold">Target: &gt; 98.0%</span>
+                <span class="text-slate-400">Exceeds Target</span>
+            </div>
+        </div>
+
+        <!-- Metric 3: Trip Completion Rate -->
+        <div class="card-elevated card-elevated-interactive rounded-2xl p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Trip Completion Rate</span>
+                <div class="w-8 h-8 rounded-xl bg-purple-500/15 flex items-center justify-center text-purple-400">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-white mt-2 font-mono">99.8%</p>
+            <div class="flex items-center justify-between text-[11px] mt-1.5 font-medium">
+                <span class="text-emerald-400 font-semibold">Target: 99.5%</span>
+                <span class="text-slate-400">0.2% Cancelled</span>
+            </div>
+        </div>
+
+        <!-- Metric 4: CSAT -->
+        <div class="card-elevated card-elevated-interactive rounded-2xl p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Customer CSAT</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400">
+                    <i data-lucide="star" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-amber-400 mt-2 font-mono">4.91 / 5.0</p>
+            <div class="flex items-center justify-between text-[11px] mt-1.5 font-medium">
+                <span class="text-emerald-400 font-semibold">Based on 412 ratings</span>
+                <span class="text-slate-400">Top Tier</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Provider Quality & SLA Leaderboard Table -->
+    <div class="card-elevated rounded-2xl p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+                <h2 class="text-lg font-black text-white tracking-tight">Transport Provider Quality Leaderboard</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Automated performance ranking used by FlexyRide for RFQ allocation.</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 bg-white/[0.03]">
+                        <th class="py-3 px-4 rounded-l-xl">Provider Company</th>
+                        <th class="py-3 px-4">Fleet Size</th>
+                        <th class="py-3 px-4">Avg Response Time</th>
+                        <th class="py-3 px-4">On-Time Rate</th>
+                        <th class="py-3 px-4">CSAT Rating</th>
+                        <th class="py-3 px-4">Compliance Status</th>
+                        <th class="py-3 px-4 text-right rounded-r-xl">SLA Tier</th>
+                    </tr>
+                </thead>
+                <tbody class="text-xs text-slate-300">
+                    <!-- Row 1 -->
+                    <tr class="hover:bg-white/5 transition-all">
+                        <td class="py-4 px-4 font-bold text-white flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 font-bold flex items-center justify-center text-xs">P1</div>
+                            Platinum Express Ltd
+                        </td>
+                        <td class="py-4 px-4">18 Vehicles</td>
+                        <td class="py-4 px-4 font-mono text-emerald-400 font-bold">12 mins</td>
+                        <td class="py-4 px-4 font-mono font-bold text-white">99.4%</td>
+                        <td class="py-4 px-4 font-bold text-amber-400">★ 4.94</td>
+                        <td class="py-4 px-4">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400">Fully Compliant</span>
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                            <span class="px-3 py-1 bg-[#8CC63F] text-[#0A0F1D] rounded-xl text-xs font-black shadow-sm">Tier 1 Gold</span>
+                        </td>
+                    </tr>
+
+                    <!-- Row 2 -->
+                    <tr class="hover:bg-white/5 transition-all">
+                        <td class="py-4 px-4 font-bold text-white flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 font-bold flex items-center justify-center text-xs">P2</div>
+                            Jinja Executive Fleet Ltd
+                        </td>
+                        <td class="py-4 px-4">12 Vehicles</td>
+                        <td class="py-4 px-4 font-mono text-blue-400 font-bold">22 mins</td>
+                        <td class="py-4 px-4 font-mono font-bold text-white">98.2%</td>
+                        <td class="py-4 px-4 font-bold text-amber-400">★ 4.86</td>
+                        <td class="py-4 px-4">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-400/15 text-amber-400">Doc Expiring Soon</span>
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                            <span class="px-3 py-1 bg-blue-500 text-white rounded-xl text-xs font-black shadow-sm">Tier 2 Silver</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

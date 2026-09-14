@@ -1,0 +1,484 @@
+{% extends 'portal/base_public.html' %}
+{% load static %}
+
+{% block title %}Fleet Categories & Vehicle Specifications | FlexyRide Corporate{% endblock %}
+
+{% block content %}
+<!-- Hero Section (Borderless) -->
+<section class="relative overflow-hidden pt-14 pb-20 lg:pt-24 lg:pb-32 bg-mesh">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold tracking-wide uppercase mb-6 shadow-sm shadow-[#8CC63F]/10">
+                <i data-lucide="car" class="w-3.5 h-3.5"></i>
+                Vetted Enterprise Fleet
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
+                Every Tier of Corporate Mobility, <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#8CC63F] to-[#A3D959]">Maintained to Perfection</span>.
+            </h1>
+            <p class="mt-6 text-base sm:text-lg text-slate-300 leading-relaxed">
+                Explore our catalog of commercially licensed, 45-point inspected vehicles. From quiet executive sedans and rugged diplomatic 4WDs to high-capacity staff commuter buses.
+            </p>
+            <div class="mt-8 flex flex-wrap gap-4 items-center">
+                {% if user_is_auth %}
+                <a href="{% url 'portal_new_request' %}" class="px-6 py-3.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-sm btn-glow flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> Book A Vehicle Now
+                </a>
+                {% else %}
+                <a href="{% url 'portal_login' %}" class="px-6 py-3.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-sm btn-glow flex items-center gap-2">
+                    <span>Reserve For Your Company</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 stroke-[3]"></i>
+                </a>
+                {% endif %}
+                <a href="#inspection-checklist" class="px-6 py-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold text-sm transition-all flex items-center gap-2 shadow-lg">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-[#8CC63F]"></i> Inspection Standards
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Filter Tabs & Fleet Grid (Borderless) -->
+<section class="py-24 bg-[#0A0F1D]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <!-- Interactive Category Filter -->
+        <div class="flex flex-wrap items-center justify-between gap-6">
+            <div>
+                <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">Explore Categories</span>
+                <h2 class="text-2xl sm:text-3xl font-black text-white mt-1">Select Fleet Class</h2>
+            </div>
+            <div class="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-[#111728] shadow-xl shadow-black/40 text-xs font-bold">
+                <button onclick="filterFleet('all')" class="fleet-filter-btn px-4 py-2.5 rounded-xl bg-[#8CC63F] text-[#0A0F1D] shadow-md transition-all duration-200" data-target="all">All Vehicles</button>
+                <button onclick="filterFleet('executive')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="executive">Executive & VIP</button>
+                <button onclick="filterFleet('suv')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="suv">SUVs & 4x4</button>
+                <button onclick="filterFleet('bus')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="bus">Shuttles & Buses</button>
+                <button onclick="filterFleet('special')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="special">Accessible & Standard</button>
+            </div>
+        </div>
+
+        <!-- Fleet Grid (Borderless Cards) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="fleetGrid">
+            
+            <!-- 1. Executive Saloon -->
+            <div class="fleet-card surface-card p-7 flex flex-col justify-between space-y-6 group" data-category="executive">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-[11px] font-black uppercase tracking-wider">
+                            Executive Saloon
+                        </span>
+                        <span class="text-xs font-mono text-[#8CC63F] flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse"></span> Available Today
+                        </span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Mercedes-Benz E-Class / BMW 5</h3>
+                        <p class="text-xs text-slate-400 mt-1">Or premium equivalent (Toyota Camry Executive, Lexus ES)</p>
+                    </div>
+
+                    <!-- Key Specs -->
+                    <div class="grid grid-cols-2 gap-2.5 p-4 rounded-2xl bg-[#0A0F1D] shadow-inner text-xs">
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="users" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Up to 3 Passengers</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="luggage" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>2 Large Suitcases</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="wifi" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Onboard 4G Wi-Fi</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="cup-soda" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Chilled Water Included</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Best Suited For</div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            C-Suite executive city transfers, VIP client meetings, diplomat airport reception, and discreet corporate travel.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400">Tier: <strong class="text-white">Premium VIP</strong></span>
+                    <a href="{% if user_is_auth %}{% url 'portal_new_request' %}{% else %}{% url 'portal_login' %}{% endif %}" class="px-4 py-2 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-bold text-xs btn-glow">
+                        Book Vehicle →
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. Premium Executive SUV -->
+            <div class="fleet-card surface-card p-7 flex flex-col justify-between space-y-6 group" data-category="suv executive">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-[11px] font-black uppercase tracking-wider">
+                            Executive 4x4 SUV
+                        </span>
+                        <span class="text-xs font-mono text-[#8CC63F] flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse"></span> Available Today
+                        </span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Toyota Land Cruiser Prado TX / V8</h3>
+                        <p class="text-xs text-slate-400 mt-1">Or Range Rover Sport, Lexus LX 570</p>
+                    </div>
+
+                    <!-- Key Specs -->
+                    <div class="grid grid-cols-2 gap-2.5 p-4 rounded-2xl bg-[#0A0F1D] shadow-inner text-xs">
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="users" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>4 - 6 Passengers</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="luggage" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>4 Large Suitcases</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="shield" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>High-Clearance 4WD</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="wind" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Dual Climate Zones</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Best Suited For</div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Upcountry terrain, regional site inspections, diplomatic delegations, long distance interstate journeys.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400">Tier: <strong class="text-white">Rugged Luxury</strong></span>
+                    <a href="{% if user_is_auth %}{% url 'portal_new_request' %}{% else %}{% url 'portal_login' %}{% endif %}" class="px-4 py-2 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-bold text-xs btn-glow">
+                        Book Vehicle →
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. VIP Minivan & Luxury MPV -->
+            <div class="fleet-card surface-card p-7 flex flex-col justify-between space-y-6 group" data-category="executive bus">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-[11px] font-black uppercase tracking-wider">
+                            Luxury VIP Minivan
+                        </span>
+                        <span class="text-xs font-mono text-[#8CC63F] flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse"></span> Available Today
+                        </span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Toyota Alphard / Mercedes V-Class</h3>
+                        <p class="text-xs text-slate-400 mt-1">Or Toyota HiAce Super Custom VIP (Captain Seats)</p>
+                    </div>
+
+                    <!-- Key Specs -->
+                    <div class="grid grid-cols-2 gap-2.5 p-4 rounded-2xl bg-[#0A0F1D] shadow-inner text-xs">
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="users" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>6 - 7 Passengers</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="luggage" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>5 Large Bags</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="armchair" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Captain Recliners</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Tinted Privacy Glass</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Best Suited For</div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Mobile boardroom briefings, visiting multinational delegations, luxury family airport transfers.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400">Tier: <strong class="text-white">VIP Group</strong></span>
+                    <a href="{% if user_is_auth %}{% url 'portal_new_request' %}{% else %}{% url 'portal_login' %}{% endif %}" class="px-4 py-2 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-bold text-xs btn-glow">
+                        Book Vehicle →
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. Coaster Bus -->
+            <div class="fleet-card surface-card p-7 flex flex-col justify-between space-y-6 group" data-category="bus">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-[11px] font-black uppercase tracking-wider">
+                            Corporate Shuttle
+                        </span>
+                        <span class="text-xs font-mono text-[#8CC63F] flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse"></span> Available
+                        </span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Toyota Coaster / Rosa Bus</h3>
+                        <p class="text-xs text-slate-400 mt-1">28 to 30 Seater Air-Conditioned Mid-Bus</p>
+                    </div>
+
+                    <!-- Key Specs -->
+                    <div class="grid grid-cols-2 gap-2.5 p-4 rounded-2xl bg-[#0A0F1D] shadow-inner text-xs">
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="users" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>28 - 30 Passengers</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="luggage" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Overhead + Rear Bay</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="mic" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>PA Address System</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="gauge" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Speed Governor 80km/h</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Best Suited For</div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Daily employee corporate shuttles, industrial plant shift changes, regional corporate training seminars.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400">Tier: <strong class="text-white">High Capacity</strong></span>
+                    <a href="{% if user_is_auth %}{% url 'portal_new_request' %}{% else %}{% url 'portal_login' %}{% endif %}" class="px-4 py-2 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-bold text-xs btn-glow">
+                        Book Vehicle →
+                    </a>
+                </div>
+            </div>
+
+            <!-- 5. Luxury Conference Coach -->
+            <div class="fleet-card surface-card p-7 flex flex-col justify-between space-y-6 group" data-category="bus">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-[11px] font-black uppercase tracking-wider">
+                            Touring Coach
+                        </span>
+                        <span class="text-xs font-mono text-[#8CC63F] flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse"></span> Available
+                        </span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Scania / Mercedes 50-Seater Coach</h3>
+                        <p class="text-xs text-slate-400 mt-1">Long-Distance Luxury Passenger Coach</p>
+                    </div>
+
+                    <!-- Key Specs -->
+                    <div class="grid grid-cols-2 gap-2.5 p-4 rounded-2xl bg-[#0A0F1D] shadow-inner text-xs">
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="users" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>45 - 55 Passengers</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="luggage" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Underfloor Belly Cargo</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="tv" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>USB Charging / Screen</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="snowflake" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Full Heavy AC</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Best Suited For</div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            National company retreats, annual general meetings, university/NGO conferences, cross-district transport.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400">Tier: <strong class="text-white">Mass Transit</strong></span>
+                    <a href="{% if user_is_auth %}{% url 'portal_new_request' %}{% else %}{% url 'portal_login' %}{% endif %}" class="px-4 py-2 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-bold text-xs btn-glow">
+                        Book Vehicle →
+                    </a>
+                </div>
+            </div>
+
+            <!-- 6. Standard Business Sedan & Accessible -->
+            <div class="fleet-card surface-card p-7 flex flex-col justify-between space-y-6 group" data-category="special">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-[11px] font-black uppercase tracking-wider">
+                            Standard Sedan / Accessible
+                        </span>
+                        <span class="text-xs font-mono text-[#8CC63F] flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse"></span> Available
+                        </span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Toyota Premio / Wheelchair Van</h3>
+                        <p class="text-xs text-slate-400 mt-1">Efficient Urban Saloon or Hydraulic Ramp Van</p>
+                    </div>
+
+                    <!-- Key Specs -->
+                    <div class="grid grid-cols-2 gap-2.5 p-4 rounded-2xl bg-[#0A0F1D] shadow-inner text-xs">
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="users" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>3 - 4 Passengers</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="accessibility" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>ADA Ramp Available</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="baby" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>Child Seat Ready</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-[#8CC63F]"></i>
+                            <span>GPS Tracked</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Best Suited For</div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Cost-conscious everyday city transit, administrative team dispatches, travelers requiring wheelchair accessibility.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400">Tier: <strong class="text-white">Accessible / Eco</strong></span>
+                    <a href="{% if user_is_auth %}{% url 'portal_new_request' %}{% else %}{% url 'portal_login' %}{% endif %}" class="px-4 py-2 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-bold text-xs btn-glow">
+                        Book Vehicle →
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- 45-Point Inspection Standard (Borderless) -->
+<section id="inspection-checklist" class="py-24 bg-[#070B14]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <div class="text-center max-w-2xl mx-auto">
+            <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">Quality Assurance</span>
+            <h2 class="text-3xl sm:text-4xl font-black text-white mt-2">The FlexyRide 45-Point Vehicle Audit</h2>
+            <p class="mt-4 text-sm text-slate-400 leading-relaxed">
+                Every vehicle in our fleet provider network undergoes strict mechanical, cosmetic, and regulatory evaluations before joining and every quarter thereafter.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="surface-card p-8 space-y-4">
+                <div class="w-11 h-11 rounded-2xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </div>
+                <h4 class="text-base font-bold text-white">Mechanical & Brake Systems</h4>
+                <ul class="text-xs text-slate-400 space-y-2.5 pt-2">
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Brake pad thickness & ABS diagnostics</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Tire tread depth (minimum 3.5mm)</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Suspension & steering alignment checks</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Functional air conditioning & cabin filtration</li>
+                </ul>
+            </div>
+
+            <div class="surface-card p-8 space-y-4">
+                <div class="w-11 h-11 rounded-2xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center">
+                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                </div>
+                <h4 class="text-base font-bold text-white">Safety & Emergency Readiness</h4>
+                <ul class="text-xs text-slate-400 space-y-2.5 pt-2">
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Calibrated speed governor (max 80 km/h)</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Serviced fire extinguisher & warning triangles</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Sealed medical first-aid kit in cabin</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> 3-point functional seatbelts for all seats</li>
+                </ul>
+            </div>
+
+            <div class="surface-card p-8 space-y-4">
+                <div class="w-11 h-11 rounded-2xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center">
+                    <i data-lucide="file-check-2" class="w-5 h-5"></i>
+                </div>
+                <h4 class="text-base font-bold text-white">Legal & Compliance Documentation</h4>
+                <ul class="text-xs text-slate-400 space-y-2.5 pt-2">
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Valid Ghana DVLA Roadworthiness Inspection</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Comprehensive commercial passenger insurance</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> DVLA commercial license & NRSA road transport authorization</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Maximum fleet age limit: 7 years</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action (Borderless) -->
+<section class="py-24 bg-[#0A0F1D]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+        <h2 class="text-3xl sm:text-4xl font-black text-white">Need a Customized Fleet Combination?</h2>
+        <p class="text-sm text-slate-300 max-w-xl mx-auto">
+            From single executive airport runs to a mixed 20-vehicle conference convoy, our mobility brokers will assemble the ideal fleet for your company.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4 pt-2">
+            <a href="{% url 'portal_login' %}" class="px-8 py-3.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-xs btn-glow">
+                Request Fleet Consultation
+            </a>
+            <a href="{% url 'portal_compliance_safety' %}" class="px-8 py-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold text-xs transition-all shadow-lg">
+                View Compliance Standards
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filterFleet(category) {
+        document.querySelectorAll('.fleet-filter-btn').forEach(btn => {
+            btn.classList.remove('bg-[#8CC63F]', 'text-[#0A0F1D]', 'shadow-md');
+            btn.classList.add('text-slate-400');
+        });
+        const activeBtn = document.querySelector(`.fleet-filter-btn[data-target="${category}"]`);
+        if (activeBtn) {
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('bg-[#8CC63F]', 'text-[#0A0F1D]', 'shadow-md');
+        }
+
+        const cards = document.querySelectorAll('.fleet-card');
+        cards.forEach(card => {
+            if (category === 'all') {
+                card.classList.remove('hidden');
+            } else {
+                const cats = card.getAttribute('data-category') || '';
+                if (cats.includes(category)) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

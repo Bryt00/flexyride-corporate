@@ -1,0 +1,123 @@
+<!-- ==================== DIGITAL RECEIPT MODAL (GRA TAX COMPLIANT) ==================== -->
+<div id="receiptModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 transition-all" onclick="handleBackdropClick(event)">
+    <div class="bg-[#10172A] rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl shadow-black/90 space-y-6 relative overflow-hidden border border-white/10" onclick="event.stopPropagation()">
+        
+        <!-- Watermark -->
+        <div class="absolute right-4 top-24 select-none pointer-events-none opacity-5">
+            <i data-lucide="shield-check" class="w-64 h-64 text-[#8CC63F]"></i>
+        </div>
+
+        <!-- Receipt Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-[#8CC63F] flex items-center justify-center text-[#080D18] font-black shadow-lg shadow-[#8CC63F]/25">
+                    <i data-lucide="shield" class="w-5 h-5 stroke-[2.5]"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-white flex items-center gap-2">
+                        FlexyRide Corporate
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-[#8CC63F]/20 text-[#8CC63F]">GRA E-VAT</span>
+                    </h3>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Official Digital E-Receipt & Tax Invoice</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeReceiptModal()" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-all no-print">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Receipt Meta Grid -->
+        <div class="grid grid-cols-2 gap-3 text-xs surface-well p-4 rounded-2xl border border-white/5">
+            <div>
+                <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Receipt Reference</span>
+                <span class="font-mono font-bold text-white text-sm" id="modalReceiptRef">RCT-FRC-0000</span>
+            </div>
+            <div class="text-right">
+                <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Date & Time Fulfilled</span>
+                <span class="font-bold text-white" id="modalReceiptDate">--</span>
+            </div>
+            <div>
+                <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Corporate Client</span>
+                <span class="font-bold text-white truncate block">{{ company.company_name|default:"MTN Ghana Corporate" }}</span>
+            </div>
+            <div class="text-right">
+                <span class="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Journey Class</span>
+                <span class="font-semibold text-slate-300" id="modalReceiptType">Corporate Transfer</span>
+            </div>
+        </div>
+
+        <!-- Mission Details (Pickup & Dropoff) -->
+        <div class="space-y-1.5 text-xs">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Route Manifest</span>
+                <span class="text-[10px] text-purple-400 font-semibold" id="modalDistance">-- km</span>
+            </div>
+            <div class="p-3.5 surface-well rounded-xl space-y-2.5 border border-white/5">
+                <div class="flex items-start gap-2.5">
+                    <span class="w-2 h-2 rounded-full bg-[#8CC63F] mt-1 shrink-0 shadow-sm shadow-[#8CC63F]/50"></span>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Pickup Location</span>
+                        <span class="font-semibold text-slate-200 text-xs" id="modalPickup">--</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-2.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-400 mt-1 shrink-0 shadow-sm shadow-blue-400/50"></span>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Destination Location</span>
+                        <span class="font-semibold text-slate-200 text-xs" id="modalDestination">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unit & Chauffeur Assignment -->
+        <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="p-3 surface-well rounded-xl border border-white/5">
+                <span class="text-[10px] text-slate-500 uppercase font-bold block tracking-wider">Assigned Vehicle</span>
+                <span class="font-bold text-white truncate block text-xs mt-0.5" id="modalVehicle">--</span>
+            </div>
+            <div class="p-3 surface-well rounded-xl border border-white/5">
+                <span class="text-[10px] text-slate-500 uppercase font-bold block tracking-wider">Assigned Chauffeur</span>
+                <span class="font-bold text-white truncate block text-xs mt-0.5" id="modalDriver">--</span>
+            </div>
+        </div>
+
+        <!-- Itemized Tax & Fare Breakdown (Ghana Revenue Authority Standard) -->
+        <div class="space-y-2 pt-2 text-xs border-t border-white/10">
+            <div class="flex justify-between items-center text-slate-400">
+                <span>Base Transportation Fare</span>
+                <span class="font-mono text-white font-medium" id="modalSubtotal">GHS 0</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-400">
+                <span>NHIL (2.5%) & GETFund (2.5%)</span>
+                <span class="font-mono text-slate-300" id="modalLevies">GHS 0</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-400">
+                <span>GRA Standard VAT (15.0%)</span>
+                <span class="font-mono text-slate-300" id="modalVat">GHS 0</span>
+            </div>
+            <div class="flex justify-between items-center text-sm font-black text-white pt-2 border-t border-white/5">
+                <span>Total Amount Paid</span>
+                <span class="font-mono text-lg text-[#8CC63F]" id="modalTotal">GHS 0</span>
+            </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex items-center justify-between pt-3 border-t border-white/10 no-print">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-black border border-emerald-500/20">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> PAID & AUDITED
+            </span>
+
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="window.print()" class="px-4 py-2 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 border border-white/10 shadow-sm">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                    <span>Print Receipt</span>
+                </button>
+                <button type="button" onclick="closeReceiptModal()" class="px-4 py-2 bg-white/5 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all hover:bg-white/10 active:scale-95 border border-white/5">
+                    Close
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>

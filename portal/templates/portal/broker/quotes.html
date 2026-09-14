@@ -1,0 +1,148 @@
+{% extends "portal/broker/broker_base.html" %}
+{% load humanize %}
+
+{% block broker_page_title %}Commercial Quotes & Margins Desk{% endblock %}
+{% block broker_page_subtitle %}Configure FlexyRide commercial markups, calculate protected wholesale spreads, and dispatch official quotes to corporate customers.{% endblock %}
+
+{% block broker_content %}
+<div class="space-y-6">
+
+    <!-- Interactive Quick Margin Calculator Banner -->
+    <div class="card-elevated p-6 rounded-2xl border border-white/5 space-y-4 bg-gradient-to-r from-[#11192e] to-[#0c1322]">
+        <div class="flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-[#8CC63F]/15 text-[#8CC63F]">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            </span>
+            <div>
+                <h3 class="text-sm font-bold text-white">Commercial Protection Guarantee (US-49 & US-108)</h3>
+                <p class="text-[11px] text-slate-400">Provider wholesale costs and FlexyRide commission percentages are strictly hidden from corporate clients in all billing outputs and customer manifests.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generated Customer Quotations Table -->
+    <div class="card-elevated p-6 rounded-2xl border border-white/5 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-base font-black text-white">Dispatched Customer Quotations</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Historical and active binding customer quotes with protected margin breakdown.</p>
+            </div>
+            <span class="px-3 py-1 rounded-xl surface-well text-xs font-mono font-bold text-slate-300 border border-white/5">
+                {{ customer_quotes|length }} Quotations Recorded
+            </span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-white/5">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider bg-white/[0.02] border-b border-white/5">
+                        <th class="py-3.5 px-4">Booking Ref</th>
+                        <th class="py-3.5 px-4">Corporate Customer</th>
+                        <th class="py-3.5 px-4">Selected Provider</th>
+                        <th class="py-3.5 px-4">Wholesale Cost (Protected)</th>
+                        <th class="py-3.5 px-4">FlexyRide Margin</th>
+                        <th class="py-3.5 px-4">Final Customer Price</th>
+                        <th class="py-3.5 px-4">Client Acceptance</th>
+                        <th class="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.03]">
+                    {% for quote in customer_quotes %}
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                        
+                        <!-- Booking Ref -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <a href="{% url 'portal_request_details' request_id=quote.request.request_number %}" class="font-mono font-bold text-white hover:text-amber-400 transition-colors">
+                                {{ quote.request.request_number }}
+                            </a>
+                            <span class="block text-[10px] text-slate-400">{{ quote.created_at|date:"d M Y, H:i" }}</span>
+                        </td>
+
+                        <!-- Corporate Customer -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <span class="font-bold text-slate-200">{{ quote.request.customer.company_name }}</span>
+                            <span class="block text-[10px] text-slate-500 font-semibold">{{ quote.request.customer.billing_terms|default:"Corporate Net-30" }}</span>
+                        </td>
+
+                        <!-- Provider -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {% if quote.selected_provider_quote %}
+                                <span class="font-semibold text-amber-300">{{ quote.selected_provider_quote.provider.company_name }}</span>
+                                {% if quote.selected_provider_quote.proposed_vehicle %}
+                                <span class="block text-[10px] text-slate-400 font-mono">{{ quote.selected_provider_quote.proposed_vehicle.make }} ({{ quote.selected_provider_quote.proposed_vehicle.registration_number }})</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-slate-400 font-medium">Standard Provider Pool</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Wholesale Cost (Protected) -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
+                                <span class="font-mono font-bold text-amber-400">GHS {{ quote.provider_cost|floatformat:0|intcomma }}</span>
+                            </div>
+                            <span class="text-[9px] text-slate-500">Wholesale Base</span>
+                        </td>
+
+                        <!-- FlexyRide Margin -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <span class="font-mono font-bold text-[#8CC63F]">+GHS {{ quote.margin_amount|floatformat:0|intcomma }}</span>
+                            <span class="block text-[9px] text-slate-400 font-semibold">
+                                Margin Spread
+                            </span>
+                        </td>
+
+                        <!-- Final Customer Price -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <span class="font-mono font-black text-sm text-white">GHS {{ quote.final_customer_price|floatformat:0|intcomma }}</span>
+                            <span class="block text-[9px] text-slate-500">Tax Inclusive</span>
+                        </td>
+
+                        <!-- Status -->
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {% if quote.status == 'ACCEPTED' %}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 flex items-center gap-1 w-max">
+                                    <i data-lucide="check" class="w-3 h-3"></i> Accepted
+                                </span>
+                            {% elif quote.status == 'SENT' %}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/20 flex items-center gap-1 w-max">
+                                    <i data-lucide="clock" class="w-3 h-3"></i> Awaiting Client
+                                </span>
+                            {% elif quote.status == 'DECLINED' %}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/20 flex items-center gap-1 w-max">
+                                    <i data-lucide="x" class="w-3 h-3"></i> Declined
+                                </span>
+                            {% else %}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/10 text-slate-300">
+                                    {{ quote.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="py-4 px-4 whitespace-nowrap text-right">
+                            <button type="button" 
+                                    onclick="openMarginQuoteModal('{{ quote.request.id }}', '{{ quote.request.request_number }}', '{{ quote.request.customer.company_name|escapejs }}', '{{ quote.selected_provider_quote.provider.company_name|default:'Provider'|escapejs }}', '{{ quote.provider_cost }}', '{{ quote.selected_provider_quote.id|default:'' }}')" 
+                                    class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white font-bold text-[11px] transition-all border border-white/5 inline-flex items-center gap-1">
+                                <i data-lucide="edit-3" class="w-3 h-3 text-amber-400"></i>
+                                <span>Adjust Margin</span>
+                            </button>
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-slate-500">
+                            <p class="font-bold text-white text-sm">No customer quotes currently dispatched</p>
+                            <p class="text-xs text-slate-400 mt-1">Use the RFQ Sourcing Desk to tender provider requests and calculate retail margins.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

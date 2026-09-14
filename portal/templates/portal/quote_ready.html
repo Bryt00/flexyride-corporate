@@ -1,0 +1,153 @@
+{% extends 'portal/base_portal.html' %}
+
+{% block title %}Quote Ready - {{ req.request_number }} | FlexyRide Corporate{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Header with Glowing Badge (Borderless) -->
+    <div class="text-center space-y-3">
+        <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-black uppercase tracking-widest shadow-sm shadow-[#8CC63F]/20">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            Corporate Transport Quote Ready
+        </span>
+        <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Review & Authorize Journey</h1>
+        <p class="text-xs sm:text-sm text-slate-400 font-medium">Booking Reference: <span class="text-white font-mono font-bold">{{ req.request_number }}</span></p>
+    </div>
+
+    <!-- Main Elevated Card (Borderless) -->
+    <div class="relative overflow-hidden card-elevated rounded-2xl p-6 sm:p-8 space-y-8">
+        <!-- Ambient corner glows -->
+        <div class="absolute -top-20 -right-20 w-56 h-56 bg-[#8CC63F]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-20 -left-20 w-56 h-56 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            <!-- Left: Vehicle Image & Category Card -->
+            <div class="md:col-span-5 text-center md:text-left space-y-4">
+                <div class="surface-well p-3 rounded-2xl group transition-all">
+                    <div class="relative rounded-xl overflow-hidden shadow-lg">
+                        <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=600&auto=format&fit=crop" alt="Executive Vehicle" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute bottom-3 left-3 bg-[#0D1424]/90 backdrop-blur-md px-3 py-1 rounded-lg text-[11px] font-bold text-[#8CC63F] flex items-center gap-1.5 shadow-md">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                            Compliant Fleet
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-black text-white tracking-tight">
+                        {% if quote and quote.proposed_vehicle %}
+                            {{ quote.proposed_vehicle.make }} {{ quote.proposed_vehicle.model }}
+                        {% else %}
+                            {{ req.get_requested_vehicle_category_display }}
+                        {% endif %}
+                    </h3>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">{{ req.get_journey_type_display }} • {{ req.passenger_count }} Passenger(s)</p>
+                </div>
+            </div>
+
+            <!-- Right: Journey Details & Pricing -->
+            <div class="md:col-span-7 space-y-5 surface-well p-6 sm:p-7 rounded-2xl">
+                <div class="flex items-center justify-between pb-3">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="map" class="w-4 h-4 text-[#8CC63F]"></i>
+                        Journey Itinerary
+                    </h4>
+                    <span class="text-[10px] font-bold text-[#8CC63F] bg-[#8CC63F]/10 px-2.5 py-1 rounded-md">Fixed Fare</span>
+                </div>
+
+                <div class="space-y-3.5 text-xs">
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-slate-400 block font-bold uppercase text-[10px]">Pickup Location</span>
+                            <span class="text-white font-semibold text-sm">{{ req.pickup_address }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="flag" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-slate-400 block font-bold uppercase text-[10px]">Destination</span>
+                            <span class="text-white font-semibold text-sm">{{ req.destination_address }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-slate-400 block font-bold uppercase text-[10px]">Date & Time</span>
+                            <span class="text-white font-semibold">{{ req.departure_datetime|date:"l, d F Y \a\\t H:i" }}</span>
+                        </div>
+                    </div>
+
+                    {% if req.luggage_requirements %}
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-slate-400 block font-bold uppercase text-[10px]">Luggage & Requirements</span>
+                            <span class="text-white font-semibold">{{ req.luggage_requirements }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Price Breakdown with Ambient Glow -->
+                <div class="pt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Customer Fare</span>
+                        <span class="text-3xl font-black text-[#8CC63F] tracking-tight glow-brand">GHS {{ quote.final_customer_price|floatformat:0|default:"--" }}</span>
+                    </div>
+                    <span class="text-[11px] text-slate-300 font-semibold bg-white/5 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i>
+                        Taxes & Fuel Surcharge Included
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="relative z-10 flex flex-col sm:flex-row items-center gap-4 pt-6">
+            {% if quote %}
+            <form method="POST" action="{% url 'portal_quote_ready' request_id=req.request_number %}" class="w-full sm:w-auto">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="accept_quote">
+                <input type="hidden" name="quote_id" value="{{ quote.id }}">
+                <button type="submit" class="btn-brand py-4 px-8 rounded-xl text-sm font-black shadow-xl shadow-[#8CC63F]/25 flex items-center justify-center gap-2 w-full">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                    <span>Accept Quote & Authorize</span>
+                </button>
+            </form>
+            {% else %}
+            <a href="{% url 'portal_request_details' request_id=req.request_number %}" class="btn-brand py-4 px-8 rounded-xl text-sm font-black shadow-xl shadow-[#8CC63F]/25 flex items-center justify-center gap-2 w-full sm:w-auto">
+                View Request Status
+            </a>
+            {% endif %}
+
+            <a href="{% url 'portal_request_details' request_id=req.request_number %}" class="btn-secondary py-3.5 px-6 rounded-xl text-xs font-bold w-full sm:w-auto text-center flex items-center justify-center gap-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Back to Request</span>
+            </a>
+
+            {% if quote %}
+            <form method="POST" action="{% url 'portal_quote_ready' request_id=req.request_number %}" class="w-full sm:w-auto" onsubmit="return confirm('Are you sure you want to decline this quote?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="decline_quote">
+                <input type="hidden" name="quote_id" value="{{ quote.id }}">
+                <button type="submit" class="py-3.5 px-6 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 w-full sm:w-auto text-center transition-all">
+                    Decline Quote
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

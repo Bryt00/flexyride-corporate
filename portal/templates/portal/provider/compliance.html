@@ -1,0 +1,7 @@
+{% extends "portal/provider/provider_base.html" %}
+
+{% block title %}Regulatory & Compliance Vault | {{ company.company_name|default:"Gold Coast Express Logistics" }}{% endblock %}
+
+{% block provider_content %}
+{% include 'portal/provider/tabs/tab_compliance.html' %}
+{% endblock %}

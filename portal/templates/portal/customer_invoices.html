@@ -1,0 +1,158 @@
+{% extends "portal/base_portal.html" %}
+
+{% block title %}Invoices & Billing | FlexyRide Corporate{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+<style>
+    /* Dark Mode DataTables Overrides (Borderless) */
+    .dataTable-wrapper { color: #cbd5e1; font-family: 'Inter', sans-serif; }
+    .dataTable-top, .dataTable-bottom { padding: 1rem 0; }
+    .dataTable-input { background-color: #090E1B; color: white; border: none; border-radius: 0.75rem; padding: 0.65rem 1rem; font-size: 0.75rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+    .dataTable-selector { background-color: #090E1B; color: white; border: none; border-radius: 0.75rem; padding: 0.4rem 0.75rem; font-size: 0.75rem; margin-right: 0.5rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+    .dataTable-table > thead > tr > th { border-bottom: none; vertical-align: bottom; }
+    .dataTable-table > tbody > tr > td { border-bottom: none; }
+    .dataTable-pagination a { color: #9ca3af; border: none; border-radius: 0.5rem; padding: 0.35rem 0.65rem; font-size: 0.75rem; }
+    .dataTable-pagination a:hover { background-color: rgba(255,255,255,0.05); }
+    .dataTable-pagination .active a, .dataTable-pagination .active a:focus, .dataTable-pagination .active a:hover { background-color: #8CC63F; color: #0A0F1D; font-weight: bold; }
+    .dataTable-info { font-size: 0.75rem; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="invoice-content" class="space-y-6">
+    <!-- Header with Ambient Depth (Borderless) -->
+    <div class="relative overflow-hidden card-elevated rounded-2xl p-6 sm:p-7 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+        <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#8CC63F]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="px-3 py-1 rounded-full text-[11px] font-black bg-[#8CC63F]/20 text-[#8CC63F] uppercase tracking-wider">Credit Account Billing</span>
+                <span class="text-xs text-slate-400 font-medium">Account: <b class="text-white">{{ company.company_name|default:"Corporate Client" }}</b></span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Corporate Invoices & Statements</h1>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Consolidated monthly billing statements, itemized trip line items, tax receipts, and payment settlements.</p>
+        </div>
+        <div class="relative z-10 flex items-center gap-3">
+            <button onclick="generatePDF()" class="btn-brand px-5 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-[#8CC63F]/20" data-html2canvas-ignore>
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>Download Tax Statement (PDF)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Credit Line Summary with Ambient Depth (Borderless) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider block">Approved Credit Line</span>
+            <p class="text-2xl sm:text-3xl font-black text-white mt-2 tracking-tight">GHS {{ company.credit_limit|floatformat:0|default:"150,000" }}</p>
+            <span class="text-[11px] text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-md inline-block mt-2">{{ company.get_payment_terms_display|default:"Post-paid 30-day terms" }}</span>
+        </div>
+
+        <div class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-[#8CC63F]/10 rounded-full blur-2xl pointer-events-none"></div>
+            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider block">Current Outstanding Balance</span>
+            <p class="text-2xl sm:text-3xl font-black text-[#8CC63F] mt-2 tracking-tight glow-brand">GHS {{ outstanding_balance|floatformat:0 }}</p>
+            <span class="text-[11px] text-slate-400 font-medium inline-block mt-2">Active Unbilled / Pending Invoices</span>
+        </div>
+
+        <div class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider block">Settlement Terms</span>
+            <p class="text-2xl sm:text-3xl font-black text-white mt-2 tracking-tight">Net 30 Days</p>
+            <span class="text-[11px] text-amber-400 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-md inline-block mt-2">Commercial SLA Tier 1</span>
+        </div>
+    </div>
+
+    <!-- Monthly Invoices Table in Elevated Card (Borderless) -->
+    <div class="card-elevated rounded-2xl p-6 sm:p-7">
+        <div class="flex items-center justify-between mb-5 pb-2">
+            <div>
+                <h2 class="text-lg font-black text-white tracking-tight flex items-center gap-2">
+                    <i data-lucide="receipt" class="w-5 h-5 text-[#8CC63F]"></i>
+                    Monthly Consolidated Invoices
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Automated tax invoices generated at the end of each corporate billing cycle.</p>
+            </div>
+            <span class="text-xs font-bold text-slate-400 bg-white/5 px-3 py-1 rounded-xl">GRA Compliant E-Invoicing</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl surface-well">
+            <table id="invoicesTable" class="w-full text-left">
+                <thead>
+                    <tr class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 bg-black/20">
+                        <th class="py-3.5 px-5">Invoice #</th>
+                        <th class="py-3.5 px-5">Billing Period</th>
+                        <th class="py-3.5 px-5">Subtotal</th>
+                        <th class="py-3.5 px-5">VAT / Tax</th>
+                        <th class="py-3.5 px-5">Total Amount</th>
+                        <th class="py-3.5 px-5">Status</th>
+                        <th class="py-3.5 px-5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-xs text-slate-300">
+                    {% for inv in invoices %}
+                    <tr class="hover:bg-white/[0.04] transition-colors">
+                        <td class="py-4 px-5 font-bold text-white font-mono">{{ inv.invoice_number }}</td>
+                        <td class="py-4 px-5">{{ inv.billing_period_start|date:"M d, Y" }} — {{ inv.billing_period_end|date:"M d, Y" }}</td>
+                        <td class="py-4 px-5 font-mono text-slate-300">GHS {{ inv.subtotal|floatformat:0 }}</td>
+                        <td class="py-4 px-5 font-mono text-slate-400">GHS {{ inv.tax_amount|floatformat:0 }} (GRA E-VAT)</td>
+                        <td class="py-4 px-5 font-mono font-black text-white">GHS {{ inv.total|floatformat:0 }}</td>
+                        <td class="py-4 px-5">
+                            <span class="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black {% if inv.status == 'PAID' %}bg-emerald-500/15 text-emerald-400{% elif inv.status == 'OVERDUE' %}bg-red-500/15 text-red-400{% else %}bg-amber-400/15 text-amber-400{% endif %}">
+                                <span class="w-1.5 h-1.5 rounded-full {% if inv.status == 'PAID' %}bg-emerald-400{% elif inv.status == 'OVERDUE' %}bg-red-400{% else %}bg-amber-400{% endif %}"></span>
+                                {{ inv.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-5 text-right">
+                            <a href="{% url 'portal_invoice_printable' invoice_num=inv.invoice_number %}" target="_blank" class="btn-brand px-3.5 py-1.5 rounded-xl text-xs font-black inline-flex items-center gap-1.5 ml-auto shadow-md active:scale-95">
+                                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print / PDF
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-14 text-center text-slate-400">
+                            <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 mx-auto mb-3">
+                                <i data-lucide="file-text" class="w-6 h-6"></i>
+                            </div>
+                            <p class="font-bold text-sm text-slate-300">No invoices issued yet</p>
+                            <p class="text-xs text-slate-500 mt-1">Monthly consolidated tax invoices will appear here at the end of each billing cycle.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const table = document.getElementById('invoicesTable');
+        if (table && table.querySelectorAll('tbody tr').length > 0 && !table.innerText.includes('No invoices issued yet')) {
+            new simpleDatatables.DataTable(table, {
+                searchable: true,
+                fixedHeight: false,
+                perPage: 10
+            });
+        }
+    });
+
+    function generatePDF() {
+        const element = document.getElementById('invoice-content');
+        const opt = {
+            margin: 0.5,
+            filename: 'Corporate_Billing_Statement_{{ company.company_name|slugify|default:"flexyride" }}.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Ready: {{ request.request_number }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #080D18;
+            color: #E2E8F0;
+            margin: 0;
+            padding: 24px 12px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #10172A;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .header {
+            background: linear-gradient(135deg, #141C33 0%, #0F1626 100%);
+            padding: 32px 28px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+        .badge {
+            display: inline-block;
+            background-color: rgba(140, 198, 63, 0.15);
+            color: #8CC63F;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(140, 198, 63, 0.25);
+        }
+        .title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin: 0 0 6px;
+            letter-spacing: -0.02em;
+        }
+        .ref-text {
+            font-size: 13px;
+            color: #94A3B8;
+            margin: 0;
+        }
+        .ref-code {
+            font-family: monospace;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+        .body {
+            padding: 28px;
+        }
+        .section-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #8CC63F;
+            margin: 0 0 12px;
+        }
+        .route-card {
+            background-color: #0A0F1D;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .route-row {
+            margin-bottom: 12px;
+        }
+        .route-row:last-child {
+            margin-bottom: 0;
+        }
+        .route-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748B;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .route-val {
+            font-size: 14px;
+            font-weight: 600;
+            color: #F8FAFC;
+        }
+        .specs-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+        .specs-col {
+            display: table-cell;
+            width: 50%;
+            background-color: #0A0F1D;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 14px;
+        }
+        .specs-col:first-child {
+            margin-right: 8px;
+        }
+        .price-card {
+            background: linear-gradient(135deg, rgba(140, 198, 63, 0.08) 0%, rgba(140, 198, 63, 0.02) 100%);
+            border: 1px solid rgba(140, 198, 63, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .price-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94A3B8;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .price-amount {
+            font-size: 32px;
+            font-weight: 900;
+            color: #8CC63F;
+            font-family: monospace;
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+        .price-note {
+            font-size: 11px;
+            color: #64748B;
+            margin-top: 6px;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 28px 0 16px;
+        }
+        .btn-cta {
+            display: inline-block;
+            background-color: #8CC63F;
+            color: #080D18 !important;
+            font-size: 14px;
+            font-weight: 900;
+            text-decoration: none;
+            padding: 14px 36px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(140, 198, 63, 0.25);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .footer {
+            padding: 20px 28px;
+            background-color: #0A0F1D;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+            font-size: 11px;
+            color: #64748B;
+            line-height: 1.6;
+        }
+        .footer a {
+            color: #8CC63F;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="badge">Official Corporate Quote</span>
+            <h1 class="title">Review Your Transport Quote</h1>
+            <p class="ref-text">Booking Reference: <span class="ref-code">{{ request.request_number }}</span></p>
+        </div>
+
+        <div class="body">
+            <p style="font-size: 13px; color: #CBD5E1; margin: 0 0 20px; line-height: 1.5;">
+                Hello {{ recipient_name|default:"Corporate Travel Coordinator" }},<br>
+                Your requested corporate transportation has been verified and priced by the FlexyRide dispatch network. Please review the journey details below and authorize the quote to confirm chauffeur assignment.
+            </p>
+
+            <div class="section-title">Mission Itinerary</div>
+            <div class="route-card">
+                <div class="route-row">
+                    <span class="route-label">Pickup Location</span>
+                    <span class="route-val">{{ request.pickup_address }}</span>
+                </div>
+                <div class="route-row">
+                    <span class="route-label">Destination</span>
+                    <span class="route-val">{{ request.destination_address }}</span>
+                </div>
+            </div>
+
+            <div class="section-title">Schedule & Fleet Class</div>
+            <table style="width: 100%; margin-bottom: 20px; border-collapse: separate; border-spacing: 8px 0;">
+                <tr>
+                    <td style="background-color: #0A0F1D; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 12px; width: 50%;">
+                        <span class="route-label">Departure Date & Time</span>
+                        <span style="font-size: 13px; font-weight: 700; color: #FFFFFF;">{{ request.departure_datetime|date:"d M Y, h:i A" }}</span>
+                    </td>
+                    <td style="background-color: #0A0F1D; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 12px; width: 50%;">
+                        <span class="route-label">Fleet Category</span>
+                        <span style="font-size: 13px; font-weight: 700; color: #8CC63F;">{{ request.get_requested_vehicle_category_display }}</span>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Net Price Card (Completely clean, confidential) -->
+            <div class="price-card">
+                <span class="price-label">Net Total Customer Fare</span>
+                <p class="price-amount">GHS {{ quote.final_customer_price|floatformat:2 }}</p>
+                <p class="price-note">GRA E-VAT & statutory fuel surcharges included • Fixed binding fare</p>
+            </div>
+
+            <div class="btn-container">
+                <a href="{{ authorization_url }}" class="btn-cta">
+                    Review & Authorize Booking &rarr;
+                </a>
+            </div>
+            
+            <p style="text-align: center; font-size: 11px; color: #64748B; margin-top: 14px;">
+                Or copy this link to your browser:<br>
+                <a href="{{ authorization_url }}" style="color: #94A3B8; word-break: break-all;">{{ authorization_url }}</a>
+            </p>
+        </div>
+
+        <div class="footer">
+            FlexyRide Corporate Mobility Platform • 24/7 Operations Desk<br>
+            Accra, Ghana • <a href="mailto:support@flexyride.com">support@flexyride.com</a><br>
+            &copy; {% now "Y" %} FlexyRide. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

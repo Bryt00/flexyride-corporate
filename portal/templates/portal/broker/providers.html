@@ -1,0 +1,93 @@
+{% extends "portal/broker/broker_base.html" %}
+{% load humanize %}
+
+{% block broker_page_title %}Transport Provider Network{% endblock %}
+{% block broker_page_subtitle %}Commercial fleet operator directory, fleet capacity, DVLA compliance certifications, and SLA fulfillment metrics.{% endblock %}
+
+{% block broker_content %}
+<div class="space-y-6">
+
+    <!-- Provider Network Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for prov in providers %}
+        <div class="card-elevated p-6 rounded-2xl border border-white/5 hover:border-amber-400/30 transition-all space-y-5 bg-[#0d1424] flex flex-col justify-between">
+            
+            <div class="space-y-4">
+                <!-- Header with Monogram & Status -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center justify-center font-black text-sm tracking-wider">
+                            {{ prov.company_name|slice:":2"|upper }}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-white">{{ prov.company_name }}</h3>
+                            <span class="text-[10px] text-slate-400 font-mono">Permit: {{ prov.license_number|default:"DVLA-GH-COMM-048" }}</span>
+                        </div>
+                    </div>
+
+                    {% if prov.is_verified %}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                        <i data-lucide="shield-check" class="w-3 h-3"></i> Verified
+                    </span>
+                    {% else %}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/15 text-amber-400 border border-amber-400/20">
+                        Pending
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Metrics Pill Bar -->
+                <div class="grid grid-cols-3 gap-2 text-center p-3 surface-well rounded-xl border border-white/5">
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Fleet</span>
+                        <span class="font-mono font-black text-white text-sm">{{ prov.vehicles.count }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">Drivers</span>
+                        <span class="font-mono font-black text-white text-sm">{{ prov.drivers.count }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold block">SLA Score</span>
+                        <span class="font-mono font-black text-emerald-400 text-sm">99.2%</span>
+                    </div>
+                </div>
+
+                <!-- Contact & Operations Desk -->
+                <div class="space-y-1.5 text-xs text-slate-300">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span class="truncate">{{ prov.email|default:"dispatch@provider.com" }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span>{{ prov.phone_number|default:"+233 24 000 0000" }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span class="truncate">{{ prov.address|default:"Greater Accra Region, Ghana" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Strip -->
+            <div class="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+                <span class="text-[11px] text-slate-500 font-semibold">
+                    {{ prov.quotes.count }} Wholesale Bids Logged
+                </span>
+                <a href="mailto:{{ prov.email }}" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold transition-all border border-white/5 inline-flex items-center gap-1.5">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Contact Desk</span>
+                </a>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="col-span-3 py-12 text-center text-slate-500 card-elevated rounded-2xl p-6">
+            <p class="font-bold text-white text-sm">No transport providers registered</p>
+            <p class="text-xs text-slate-400 mt-1">Providers will automatically appear once registered in the ecosystem.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

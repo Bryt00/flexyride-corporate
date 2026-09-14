@@ -1,0 +1,460 @@
+{% extends 'portal/base_portal.html' %}
+
+{% block title %}Dashboard | FlexyRide Corporate{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-7xl mx-auto">
+    <!-- Welcome Header with Ambient Depth (Borderless) -->
+    <div class="relative overflow-hidden card-elevated p-6 sm:p-7 rounded-2xl">
+        <!-- Ambient corner glow -->
+        <div class="absolute -top-16 -right-16 w-64 h-64 bg-[#8CC63F]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5">
+            <div class="flex items-center gap-5">
+                <div class="relative group">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8CC63F]/20 to-[#8CC63F]/5 flex items-center justify-center text-[#8CC63F] shadow-lg shadow-[#8CC63F]/15 group-hover:scale-105 transition-transform">
+                        <i data-lucide="building-2" class="w-8 h-8"></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Welcome back, {{ user.first_name|default:user.username }}</h1>
+                        <span class="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#8CC63F]/15 text-[#8CC63F] uppercase tracking-wider">Verified Portal</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1 flex items-center gap-2">
+                        <span>{% if company %}{{ company.company_name }} <span class="text-slate-600">•</span> Account #{{ company.id }}{% else %}Corporate User{% endif %}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <a href="{% url 'portal_new_request' %}" class="btn-brand flex-1 sm:flex-none px-6 py-3.5 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span>Request Transport</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Summary Row with Dynamic Color Glows & Depth (Borderless) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Stat 1: Active Requests -->
+        <a href="{% url 'portal_dashboard' %}" class="relative group card-elevated card-elevated-interactive rounded-2xl p-5 overflow-hidden">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-blue-500/20 transition-all"></div>
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Active Requests</span>
+                <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shadow-md shadow-blue-500/10 group-hover:scale-110 transition-transform">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between relative z-10">
+                <div>
+                    <span class="text-3xl sm:text-4xl font-black text-white tracking-tight">{{ stats.active|default:0 }}</span>
+                    <p class="text-[11px] text-slate-400 mt-1 font-medium">In processing pipeline</p>
+                </div>
+                <span class="text-xs text-blue-400 font-bold flex items-center gap-0.5">
+                    Live <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                </span>
+            </div>
+        </a>
+
+        <!-- Stat 2: Upcoming Trips -->
+        <a href="{% url 'portal_upcoming_trips' %}" class="relative group card-elevated card-elevated-interactive rounded-2xl p-5 overflow-hidden">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-[#8CC63F]/10 rounded-full blur-2xl pointer-events-none group-hover:bg-[#8CC63F]/20 transition-all"></div>
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Upcoming Trips</span>
+                <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center shadow-md shadow-[#8CC63F]/10 group-hover:scale-110 transition-transform">
+                    <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between relative z-10">
+                <div>
+                    <span class="text-3xl sm:text-4xl font-black text-white tracking-tight">{{ stats.upcoming|default:0 }}</span>
+                    <p class="text-[11px] text-slate-400 mt-1 font-medium">Confirmed bookings</p>
+                </div>
+                <span class="text-xs text-[#8CC63F] font-bold flex items-center gap-0.5">
+                    Ready <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </span>
+            </div>
+        </a>
+
+        <!-- Stat 3: Completed Trips -->
+        <a href="{% url 'portal_trip_history' %}" class="relative group card-elevated card-elevated-interactive rounded-2xl p-5 overflow-hidden">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-purple-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-purple-500/20 transition-all"></div>
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Completed Trips</span>
+                <div class="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center shadow-md shadow-purple-500/10 group-hover:scale-110 transition-transform">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between relative z-10">
+                <div>
+                    <span class="text-3xl sm:text-4xl font-black text-white tracking-tight">{{ stats.completed|default:0 }}</span>
+                    <p class="text-[11px] text-slate-400 mt-1 font-medium">Archived to ledger</p>
+                </div>
+                <span class="text-xs text-purple-400 font-bold flex items-center gap-0.5">
+                    History <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </span>
+            </div>
+        </a>
+
+        <!-- Stat 4: Invoices Due -->
+        <a href="{% url 'portal_customer_invoices' %}" class="relative group card-elevated card-elevated-interactive rounded-2xl p-5 overflow-hidden">
+            <div class="absolute top-0 right-0 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/20 transition-all"></div>
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Billing Status</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shadow-md shadow-emerald-500/10 group-hover:scale-110 transition-transform">
+                    <i data-lucide="file-check-2" class="w-5 h-5"></i>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between relative z-10">
+                <div>
+                    <span class="text-3xl sm:text-4xl font-black text-white tracking-tight">{% if stats.invoices %}{{ stats.invoices }}{% else %}Clean{% endif %}</span>
+                    <p class="text-[11px] text-slate-400 mt-1 font-medium">All billing up-to-date</p>
+                </div>
+                <span class="text-xs text-emerald-400 font-bold">
+                    100% Closed
+                </span>
+            </div>
+        </a>
+    </div>
+
+    {% if pending_quote %}
+    <!-- Action Required Banner (Quote Ready) with Multi-layer Glass & Glow -->
+    <div class="relative overflow-hidden card-elevated rounded-2xl p-6 sm:p-8 shadow-2xl">
+        <!-- Ambient lighting blobs -->
+        <div class="absolute -top-12 -left-12 w-64 h-64 bg-[#8CC63F]/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-3 w-3 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-400"></span>
+                    </span>
+                    <span class="text-xs font-black text-amber-400 uppercase tracking-widest">Urgent Decision Required</span>
+                </div>
+                <span class="px-3.5 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-black flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="tag" class="w-3.5 h-3.5"></i> Custom Quote Ready
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <!-- Left Info & Route Timeline -->
+                <div class="lg:col-span-6 space-y-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-2xl font-black text-white tracking-tight">{{ pending_quote.request.request_number }}</span>
+                        <span class="text-xs font-bold text-slate-300 bg-white/10 px-3 py-1 rounded-lg">{{ pending_quote.request.get_journey_type_display }}</span>
+                    </div>
+
+                    <!-- Visual Route Block (Borderless Well) -->
+                    <div class="surface-well p-4 rounded-2xl space-y-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pickup Location</div>
+                                <div class="text-sm font-semibold text-white truncate">{{ pending_quote.request.pickup_address }}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0 mt-0.5">
+                                <i data-lucide="flag" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Destination</div>
+                                <div class="text-sm font-semibold text-white truncate">{{ pending_quote.request.destination_address }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-5 text-xs text-slate-400">
+                        <span class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg">
+                            <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i> {{ pending_quote.request.departure_datetime|date:"l, d M Y" }}
+                        </span>
+                        <span class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg">
+                            <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i> {{ pending_quote.request.departure_datetime|time:"H:i" }}
+                        </span>
+                    </div>
+
+                    <!-- Price Display with Glow -->
+                    <div class="pt-2 flex items-baseline gap-3">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider font-extrabold">Total Corporate Fare:</span>
+                        <span class="text-3xl font-black text-[#8CC63F] tracking-tight glow-brand">GHS {{ pending_quote.final_customer_price|floatformat:0 }}</span>
+                    </div>
+                </div>
+
+                <!-- Vehicle Visual Card (Borderless Well) -->
+                <div class="lg:col-span-3">
+                    <div class="surface-well p-4 rounded-2xl text-center flex flex-col items-center justify-center group hover:scale-[1.02] transition-transform duration-300">
+                        <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=400&auto=format&fit=crop" alt="Executive Vehicle" class="w-full h-28 object-cover rounded-xl mb-3 shadow-md group-hover:scale-105 transition-transform duration-300">
+                        <span class="text-xs font-extrabold text-white tracking-wide">{{ pending_quote.request.get_requested_vehicle_category_display }}</span>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Compliant Fleet & Driver Verified</span>
+                    </div>
+                </div>
+
+                <!-- Action CTAs -->
+                <div class="lg:col-span-3 flex flex-col gap-3">
+                    <a href="{% url 'portal_payment' request_id=pending_quote.request.request_number %}" class="btn-brand py-3.5 px-4 rounded-xl text-xs font-black text-center flex items-center justify-center gap-2 shadow-xl shadow-[#8CC63F]/25">
+                        <i data-lucide="shield-check" class="w-4 h-4 stroke-[3]"></i>
+                        <span>Accept & Authorize Pay</span>
+                    </a>
+
+                    <a href="{% url 'portal_request_details' request_id=pending_quote.request.request_number %}" class="btn-secondary py-3 px-4 rounded-xl text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                        <span>Review Full Details</span>
+                    </a>
+
+                    <a href="{% url 'portal_quote_ready' request_id=pending_quote.request.request_number %}" class="py-2.5 px-4 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 text-center transition-all">
+                        Decline Quote
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Analytics & Spend Overview (Borderless) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Monthly Spend Line Chart -->
+        <div class="card-elevated rounded-2xl p-6 sm:p-7">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-sm font-extrabold text-white flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    </div>
+                    Monthly Transport Spend (GHS)
+                </h3>
+                <span class="text-[11px] font-bold text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg">H1 2026</span>
+            </div>
+            <div class="relative h-64 w-full">
+                <canvas id="spendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Trips by Cost Center Doughnut Chart -->
+        <div class="card-elevated rounded-2xl p-6 sm:p-7">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-sm font-extrabold text-white flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center">
+                        <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                    </div>
+                    Trips by Cost Center
+                </h3>
+                <span class="text-[11px] font-bold text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg">Departmental Mix</span>
+            </div>
+            <div class="relative h-64 w-full flex justify-center">
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Requests Section with Elevated Surface (Borderless) -->
+    <div class="card-elevated rounded-2xl p-6 sm:p-7">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4">
+            <div>
+                <h3 class="text-lg font-black text-white tracking-tight flex items-center gap-2.5">
+                    <i data-lucide="clock" class="w-5 h-5 text-[#8CC63F]"></i>
+                    Recent Transport Requests
+                </h3>
+                <p class="text-xs text-slate-400 font-medium mt-1">Live tracking and status overview for your corporate bookings.</p>
+            </div>
+            <a href="{% url 'portal_upcoming_trips' %}" class="btn-secondary px-4 py-2 rounded-xl text-xs font-extrabold text-[#8CC63F] flex items-center gap-1.5 hover:gap-2 transition-all">
+                <span>View All Requests</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
+        </div>
+
+        <!-- Table Container with Inset Well Style -->
+        <div class="overflow-x-auto rounded-2xl surface-well">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider bg-black/20">
+                        <th class="py-3.5 px-5">Booking Ref</th>
+                        <th class="py-3.5 px-5">Journey Route</th>
+                        <th class="py-3.5 px-5">Departure</th>
+                        <th class="py-3.5 px-5">Status</th>
+                        <th class="py-3.5 px-5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-xs">
+                    {% for req in requests %}
+                    <tr class="hover:bg-white/[0.04] transition-colors group">
+                        <td class="py-4 px-5 font-bold text-white">
+                            <a href="{% url 'portal_request_details' request_id=req.request_number %}" class="group-hover:text-[#8CC63F] transition-colors flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#8CC63F]"></span>
+                                <span>{{ req.request_number }}</span>
+                            </a>
+                        </td>
+                        <td class="py-4 px-5 text-slate-300">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-white truncate max-w-[140px]">{{ req.pickup_address }}</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                                <span class="font-medium text-slate-300 truncate max-w-[140px]">{{ req.destination_address }}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-5 text-slate-400 font-medium">
+                            {{ req.departure_datetime|date:"d M Y, H:i" }}
+                        </td>
+                        <td class="py-4 px-5">
+                            <span class="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-500/15 text-blue-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                {{ req.get_booking_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-5 text-right">
+                            <a href="{% url 'portal_request_details' request_id=req.request_number %}" class="inline-flex items-center gap-1 text-xs font-bold text-[#8CC63F] hover:text-white transition-colors bg-[#8CC63F]/10 hover:bg-[#8CC63F]/20 px-3 py-1.5 rounded-lg">
+                                <span>Details</span>
+                                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-slate-400">
+                            <div class="flex flex-col items-center justify-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500">
+                                    <i data-lucide="calendar-x-2" class="w-6 h-6"></i>
+                                </div>
+                                <p class="font-bold text-sm text-slate-300">No active transportation requests</p>
+                                <a href="{% url 'portal_new_request' %}" class="btn-brand px-4 py-2 rounded-xl text-xs font-extrabold mt-1">Create First Booking</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Chart Defaults for Dark Mode
+        Chart.defaults.color = '#9ca3af';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // 1. Monthly Spend Line Chart
+        const spendCtx = document.getElementById('spendChart').getContext('2d');
+        
+        // Create glowing gradient
+        let gradient = spendCtx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(140, 198, 63, 0.4)');
+        gradient.addColorStop(1, 'rgba(140, 198, 63, 0.0)');
+
+        new Chart(spendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                datasets: [{
+                    label: 'Spend (GHS)',
+                    data: [48000, 58000, 44000, 72000, 66000, 49800],
+                    borderColor: '#8CC63F',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    tension: 0.4, // smooth curves
+                    fill: true,
+                    pointBackgroundColor: '#121829',
+                    pointBorderColor: '#8CC63F',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(10, 15, 29, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#8CC63F',
+                        borderWidth: 0,
+                        padding: 12,
+                        cornerRadius: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'GHS ' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                        ticks: {
+                            callback: function(value) {
+                                return value / 1000000 + 'M'; // format as millions
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Trips by Cost Center Doughnut Chart
+        const deptCtx = document.getElementById('deptChart').getContext('2d');
+        new Chart(deptCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['IT', 'Sales', 'Executives', 'Operations', 'HR'],
+                datasets: [{
+                    data: [45, 25, 15, 10, 5],
+                    backgroundColor: [
+                        '#8CC63F', // Brand Green
+                        '#3b82f6', // Blue
+                        '#8b5cf6', // Purple
+                        '#f59e0b', // Amber
+                        '#ef4444'  // Red
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '72%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(10, 15, 29, 0.95)',
+                        borderWidth: 0,
+                        cornerRadius: 12,
+                        padding: 12
+                    }
+                }
+            }
+        });
+        
+        // Show a welcome toast just to demonstrate the feature!
+        setTimeout(() => {
+            if(window.showFlexyToast) {
+                window.showFlexyToast('Dashboard data loaded successfully.', 'success');
+            }
+        }, 1000);
+    });
+</script>
+{% endblock %}

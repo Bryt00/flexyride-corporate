@@ -1,0 +1,70 @@
+<div id="tab-content-dispatches" class="space-y-4">
+    <div class="flex items-center justify-between bg-[#121829] border border-white/10 rounded-2xl p-4">
+        <div>
+            <h2 class="text-base font-black text-white">Active Vehicle & Driver Dispatches</h2>
+            <p class="text-xs text-gray-400">Awarded bookings currently allocated to your fleet with live journey status controls.</p>
+        </div>
+        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-xs font-black">{{ active_dispatches|length }} Active Trips</span>
+    </div>
+
+    <div class="space-y-4">
+        {% for dispatch in active_dispatches %}
+        <div class="bg-[#121829] border border-white/10 rounded-2xl p-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-1 bg-blue-500 text-white text-xs font-black rounded-lg font-mono">Trip #{{ dispatch.request.request_number }}</span>
+                        <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-lg">{{ dispatch.get_status_display }}</span>
+                        <span class="text-xs text-gray-400">{{ dispatch.request.customer.company_name }}</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-white">{{ dispatch.request.pickup_address }} → {{ dispatch.request.destination_address }}</h3>
+                    
+                    <!-- Roster Allocation -->
+                    <div class="flex flex-wrap items-center gap-4 text-xs bg-white/5 p-3 rounded-xl border border-white/5">
+                        <div>
+                            <span class="block text-[10px] text-gray-400 uppercase font-bold">Assigned Vehicle</span>
+                            <span class="font-bold text-white">{{ dispatch.vehicle.registration_number }} • {{ dispatch.vehicle.make }} {{ dispatch.vehicle.model }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-gray-400 uppercase font-bold">Assigned Driver</span>
+                            <span class="font-bold text-white">{{ dispatch.driver.full_name }} ({{ dispatch.driver.phone_number }})</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-gray-400 uppercase font-bold">Schedule</span>
+                            <span class="font-bold text-white">{{ dispatch.request.departure_datetime|date:"M d, h:i A" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dispatch Controls -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <form method="POST" action="{% url 'portal_provider_workspace' %}" class="flex flex-wrap items-center gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_trip_status">
+                        <input type="hidden" name="assignment_id" value="{{ dispatch.id }}">
+
+                        <button type="submit" name="status" value="EN_ROUTE" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all {% if dispatch.status == 'EN_ROUTE' %}ring-2 ring-blue-500 bg-blue-500/20{% endif %}">
+                            En Route
+                        </button>
+                        <button type="submit" name="status" value="ARRIVED" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all {% if dispatch.status == 'ARRIVED' %}ring-2 ring-amber-500 bg-amber-500/20{% endif %}">
+                            Arrived
+                        </button>
+                        <button type="submit" name="status" value="TRIP_IN_PROGRESS" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all {% if dispatch.status == 'TRIP_IN_PROGRESS' %}ring-2 ring-purple-500 bg-purple-500/20{% endif %}">
+                            In Progress
+                        </button>
+                        <button type="submit" name="status" value="COMPLETED" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-[#0A0F1D] rounded-xl text-xs font-black transition-all shadow-md">
+                            Complete Trip
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12 bg-[#121829] border border-white/10 rounded-2xl text-gray-400">
+            <i data-lucide="send" class="w-8 h-8 mx-auto mb-2 text-gray-500"></i>
+            <p class="font-bold">No active dispatches currently on the road.</p>
+            <p class="text-xs text-gray-500 mt-1">Accepted quotes awarded by FlexyRide will automatically appear here for driver execution.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,208 @@
+{% extends 'portal/base_portal.html' %}
+
+{% block title %}Payment - {{ req.request_number }} | FlexyRide Corporate{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto space-y-8">
+
+    <!-- Header -->
+    <div class="text-center space-y-2">
+        <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-black uppercase tracking-widest">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i> Encrypted Corporate Gateway
+        </div>
+        <h1 class="text-3xl font-black text-white tracking-tight">Authorize Trip Payment</h1>
+        <p class="text-xs sm:text-sm text-slate-400 font-medium">Booking Reference: <span class="text-white font-bold font-mono">{{ req.request_number }}</span></p>
+    </div>
+
+    <!-- Payment Container Form with Elevated Depth -->
+    <form method="POST" action="{% url 'portal_payment' request_id=req.request_number %}" class="relative overflow-hidden card-elevated rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
+        <!-- Ambient corner lighting -->
+        <div class="absolute -top-16 -right-16 w-56 h-56 bg-[#8CC63F]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-56 h-56 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        {% csrf_token %}
+        <input type="hidden" id="payment_method" name="payment_method" value="MOBILE_MONEY">
+
+        <!-- Amount Inset Box with Glow -->
+        <div class="relative z-10 surface-well p-5 rounded-2xl flex justify-between items-center">
+            <div>
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Amount Due</span>
+                <span class="text-xs text-slate-300 font-medium">{{ req.get_journey_type_display }} • {{ req.pickup_address|truncatechars:24 }}</span>
+            </div>
+            <div class="text-right">
+                <span class="text-2xl sm:text-3xl font-black text-[#8CC63F] tracking-tight glow-brand">GHS {{ quote.final_customer_price|floatformat:0|default:"--" }}</span>
+            </div>
+        </div>
+
+        <!-- Payment Method Tabs -->
+        <div class="relative z-10">
+            <label class="form-label mb-2">Choose Payment Channel</label>
+            <div class="grid grid-cols-2 gap-2 surface-well p-1.5 rounded-2xl">
+                <!-- Mobile Money Tab -->
+                <button type="button" id="tab-momo" onclick="switchPayment('momo')" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-[#8CC63F] text-[#0A0F1D] flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95">
+                    <i data-lucide="smartphone" class="w-4 h-4"></i> Mobile Money
+                </button>
+
+                <!-- Card Tab -->
+                <button type="button" id="tab-card" onclick="switchPayment('card')" class="py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-center gap-2 transition-all active:scale-95">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> Corporate Card
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Money View -->
+        <div id="view-momo" class="relative z-10 space-y-5">
+            <div>
+                <label class="form-label mb-2">Select Telecom Network</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Network 1: MTN -->
+                    <div onclick="selectNetwork(this, 'MTN')" class="network-card p-4 rounded-2xl bg-amber-500/15 text-center cursor-pointer transition-all shadow-md shadow-amber-500/10 active:scale-95">
+                        <span class="block text-sm font-black text-amber-300">MTN MoMo</span>
+                        <span class="text-[10px] text-amber-300/80 font-medium">Prompt pushed to device</span>
+                    </div>
+
+                    <!-- Network 2: Telecel -->
+                    <div onclick="selectNetwork(this, 'Telecel')" class="network-card p-4 rounded-2xl surface-well hover:bg-white/5 text-center cursor-pointer transition-all active:scale-95">
+                        <span class="block text-sm font-black text-slate-300">Telecel Cash</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Direct PIN authorization</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Subscriber Mobile Number</label>
+                <div class="relative">
+                    <input type="text" name="phone_number" value="{{ user.phone_number|default:'+233 24 123 4567' }}" class="w-full px-4 py-3.5 surface-well rounded-xl text-white text-sm font-mono focus:ring-2 focus:ring-[#8CC63F]/40 focus:outline-none transition-all">
+                    <i data-lucide="phone" class="w-5 h-5 text-slate-500 absolute right-4 top-3.5"></i>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-[#8CC63F]"></i>
+                    A USSD prompt will be sent instantly to authorize with your mobile PIN.
+                </p>
+            </div>
+        </div>
+
+        <!-- Card View (Hidden by default) -->
+        <div id="view-card" class="relative z-10 space-y-4 hidden">
+            <div>
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Cardholder Name</label>
+                <input type="text" value="{{ user.get_full_name|default:user.username }}" class="w-full px-4 py-3.5 surface-well rounded-xl text-white text-sm focus:ring-2 focus:ring-[#8CC63F]/40 focus:outline-none transition-all">
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Card Number</label>
+                <input type="text" placeholder="4242 •••• •••• 4242" class="w-full px-4 py-3.5 surface-well rounded-xl text-white text-sm font-mono focus:ring-2 focus:ring-[#8CC63F]/40 focus:outline-none transition-all">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Expiry Date</label>
+                    <input type="text" placeholder="MM/YY" class="w-full px-4 py-3.5 surface-well rounded-xl text-white text-sm font-mono focus:ring-2 focus:ring-[#8CC63F]/40 focus:outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">CVC / CVV</label>
+                    <input type="password" placeholder="123" class="w-full px-4 py-3.5 surface-well rounded-xl text-white text-sm font-mono focus:ring-2 focus:ring-[#8CC63F]/40 focus:outline-none transition-all">
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden Paystack Reference Field -->
+        <input type="hidden" id="paystack_reference" name="paystack_reference" value="{{ payment_ref }}">
+
+        <!-- Submit Button -->
+        <button type="button" onclick="payWithPaystack()" class="relative z-10 btn-brand py-4 px-6 rounded-xl text-sm font-black flex items-center justify-center gap-2 w-full shadow-xl shadow-[#8CC63F]/25 active:scale-95">
+            <span id="btnPayText">Authorize GHS {{ quote.final_customer_price|floatformat:0|default:"--" }} with Paystack</span>
+            <i data-lucide="shield-check" class="w-4 h-4 stroke-[3]"></i>
+        </button>
+
+        <!-- Security Note -->
+        <div class="relative z-10 text-center space-y-1 text-xs text-slate-500 pt-3">
+            <p class="flex items-center justify-center gap-1.5 font-bold text-slate-300">
+                <i data-lucide="lock" class="w-4 h-4 text-[#8CC63F]"></i>
+                Secured by Paystack PCI-DSS Level 1 Gateway
+            </p>
+            <p class="text-[11px] text-slate-500">Official digital VAT receipt and booking confirmation issued immediately upon approval.</p>
+        </div>
+    </form>
+</div>
+
+<!-- Paystack Inline JS -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+<script>
+    let currentMethod = 'MOBILE_MONEY';
+
+    function switchPayment(type) {
+        const momoTab = document.getElementById('tab-momo');
+        const cardTab = document.getElementById('tab-card');
+        const momoView = document.getElementById('view-momo');
+        const cardView = document.getElementById('view-card');
+        const methodInput = document.getElementById('payment_method');
+
+        if (type === 'momo') {
+            momoTab.className = "py-2.5 px-4 rounded-xl text-xs font-bold bg-[#8CC63F] text-[#0A0F1D] flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95";
+            cardTab.className = "py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-center gap-2 transition-all active:scale-95";
+            momoView.classList.remove('hidden');
+            cardView.classList.add('hidden');
+            methodInput.value = 'MOBILE_MONEY';
+            currentMethod = 'MOBILE_MONEY';
+        } else {
+            cardTab.className = "py-2.5 px-4 rounded-xl text-xs font-bold bg-[#8CC63F] text-[#0A0F1D] flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95";
+            momoTab.className = "py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-center gap-2 transition-all active:scale-95";
+            cardView.classList.remove('hidden');
+            momoView.classList.add('hidden');
+            methodInput.value = 'CARD';
+            currentMethod = 'CARD';
+        }
+    }
+
+    function selectNetwork(el, net) {
+        document.querySelectorAll('.network-card').forEach(card => {
+            card.className = "network-card p-4 rounded-2xl surface-well hover:bg-white/5 text-center cursor-pointer transition-all active:scale-95";
+            const heading = card.querySelector('span:first-child');
+            if (heading) heading.className = "block text-sm font-black text-slate-300";
+        });
+        if (net === 'MTN') {
+            el.className = "network-card p-4 rounded-2xl bg-amber-500/15 text-center cursor-pointer transition-all shadow-md shadow-amber-500/10 active:scale-95";
+            const heading = el.querySelector('span:first-child');
+            if (heading) heading.className = "block text-sm font-black text-amber-300";
+        } else {
+            el.className = "network-card p-4 rounded-2xl bg-red-500/15 text-center cursor-pointer transition-all shadow-md shadow-red-500/10 active:scale-95";
+            const heading = el.querySelector('span:first-child');
+            if (heading) heading.className = "block text-sm font-black text-red-400";
+        }
+    }
+
+    function payWithPaystack() {
+        const form = document.querySelector('form');
+        const pubKey = "{{ paystack_public_key|default:'' }}";
+        const amountSubunits = parseInt("{{ paystack_amount_subunits|default:0 }}", 10) || 0;
+        const ref = document.getElementById('paystack_reference').value || '{{ payment_ref }}';
+
+        if (typeof PaystackPop !== 'undefined' && pubKey && !pubKey.includes('test_d3a8258b')) {
+            // Live or configured sandbox key
+            const handler = PaystackPop.setup({
+                key: pubKey,
+                email: '{{ user.email|default:"billing@flexyride.com" }}',
+                amount: amountSubunits,
+                currency: '{{ paystack_currency|default:"GHS" }}',
+                ref: ref,
+                channels: currentMethod === 'CARD' ? ['card'] : ['mobile_money', 'card'],
+                callback: function(response) {
+                    document.getElementById('paystack_reference').value = response.reference;
+                    form.submit();
+                },
+                onClose: function() {
+                    console.log('Payment window closed');
+                }
+            });
+            handler.openIframe();
+        } else {
+            // Instant sandbox fallback confirmation
+            document.getElementById('btnPayText').innerText = "Processing Authorization...";
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}
+
