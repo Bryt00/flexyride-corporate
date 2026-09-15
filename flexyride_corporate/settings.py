@@ -37,11 +37,31 @@ if env_file.is_file():
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-+yi0h8#m6kgfipb-tfeyy7iglz*xo_)2y9+o@3e5eq2j(^cxlg')
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '*')
-if allowed_hosts_env == '*':
-    ALLOWED_HOSTS = ['*']
-else:
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
+if allowed_hosts_env and allowed_hosts_env != '*':
     ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = ['*']
+
+# Ensure production domain is always included in allowed hosts
+for host in ['test-corporate.flexyridegh.com', '.flexyridegh.com', 'localhost', '127.0.0.1', '0.0.0.0']:
+    if '*' not in ALLOWED_HOSTS and host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
+
+# Reverse proxy SSL Header (tells Django requests are HTTPS through Nginx)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CSRF Trusted Origins for HTTPS
+csrf_trusted_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_trusted_origins_env:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_trusted_origins_env.split(',') if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://test-corporate.flexyridegh.com',
+        'https://*.flexyridegh.com',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
 
 
 
