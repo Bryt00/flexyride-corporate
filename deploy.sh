@@ -8,19 +8,12 @@
 set -e
 
 # Configuration
-PROJECT_NAME="flexyride_corporate"
+PROJECT_NAME="flexyride-corporate"
 DOMAIN="test-corporate.flexyridegh.com"
 USER="${SUDO_USER:-patmac}"
 [ "$USER" = "root" ] && USER="patmac"
 
-# Automatically detect current script directory or default to standard path
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/manage.py" ]; then
-    PROJECT_DIR="$SCRIPT_DIR"
-else
-    PROJECT_DIR="/home/$USER/sites/$PROJECT_NAME"
-fi
-
+PROJECT_DIR="/opt/$PROJECT_NAME"
 GUNICORN_WORKERS=3
 
 echo "========================================================="
@@ -38,9 +31,17 @@ sudo apt-get install -y python3 python3-pip python3-venv nginx curl ufw redis-se
 sudo systemctl enable redis-server
 sudo systemctl start redis-server
 
-# 2. Setup Project Directory
-echo "=> Setting up project directory..."
+# 2. Setup Project Directory in /opt
+echo "=> Setting up project directory in $PROJECT_DIR..."
 sudo mkdir -p "$PROJECT_DIR"
+
+# If script is run from a cloned repo folder outside /opt, copy files over
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ "$SCRIPT_DIR" != "$PROJECT_DIR" ] && [ -f "$SCRIPT_DIR/manage.py" ]; then
+    echo "=> Copying project files from $SCRIPT_DIR to $PROJECT_DIR..."
+    sudo cp -ru "$SCRIPT_DIR"/. "$PROJECT_DIR"/
+fi
+
 sudo chown -R "$USER:$USER" "$PROJECT_DIR"
 cd "$PROJECT_DIR"
 
