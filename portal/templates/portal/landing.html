@@ -48,15 +48,15 @@
         <!-- Trust Stats Ribbon -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 pt-8 max-w-3xl mx-auto">
             <div class="surface-well p-5 rounded-2xl text-center">
-                <div class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">{{ stats.completed_trips|default:"1,200" }}+</div>
+                <div class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">{{ stats.completed_trips }}</div>
                 <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">Corporate Trips Logged</div>
             </div>
             <div class="surface-well p-5 rounded-2xl text-center">
-                <div class="text-3xl sm:text-4xl font-black text-[#659424] font-mono">{{ stats.sla_on_time|default:"99.8%" }}</div>
+                <div class="text-3xl sm:text-4xl font-black text-[#659424] font-mono">{{ stats.sla_on_time|default:"100%" }}</div>
                 <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">SLA On-Time Fulfillment</div>
             </div>
             <div class="surface-well p-5 rounded-2xl text-center">
-                <div class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">{{ stats.total_vehicles|default:"150" }}+</div>
+                <div class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">{{ stats.total_vehicles }}</div>
                 <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">Vetted Partner Vehicles</div>
             </div>
         </div>
@@ -84,7 +84,7 @@
                     Transport Fleet Providers
                 </button>
                 <button onclick="switchRoleTab('broker')" id="rtab-broker" class="role-tab px-5 py-2.5 rounded-xl text-xs font-black transition-all text-slate-600 hover:text-slate-900 hover:bg-white">
-                    Broker & Control Desk
+                    FlexyRide Operations Desk
                 </button>
             </div>
         </div>
@@ -225,7 +225,7 @@
             <div class="lg:col-span-6 surface-card p-7 space-y-4">
                 <div class="flex items-center justify-between text-xs pb-3 border-b border-slate-100">
                     <span class="font-bold text-slate-900">Transport Provider Dashboard</span>
-                    <span class="text-blue-600 font-mono font-bold">Safari Transport Ltd</span>
+                    <span class="text-blue-600 font-mono font-bold">Commercial Fleet Partner</span>
                 </div>
                 <div class="space-y-3">
                     <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex justify-between items-center text-xs">
@@ -260,9 +260,9 @@
                     <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
                         Intelligent Logistics Control
                     </div>
-                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900">End-to-End SLA Monitoring & Automated Broker Matching</h3>
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900">End-to-End SLA Monitoring & Provider Orchestration</h3>
                     <p class="text-sm text-slate-600 leading-relaxed">
-                        FlexyRide brokers orchestrate complex ground movements, negotiate bulk wholesale rates with vetted operators, and safeguard on-time SLA metrics.
+                        FlexyRide Corporate orchestrates complex ground movements, negotiate bulk wholesale rates with vetted operators, and safeguard on-time SLA metrics.
                     </p>
                 </div>
 
@@ -306,7 +306,7 @@
 
             <div class="lg:col-span-6 surface-card p-7 space-y-4">
                 <div class="flex items-center justify-between text-xs pb-3 border-b border-slate-100">
-                    <span class="font-bold text-slate-900">FlexyRide Broker Terminal</span>
+                    <span class="font-bold text-slate-900">FlexyRide Corporate Terminal</span>
                     <span class="text-amber-700 font-mono font-bold">Desk ID: FLX-OPS-01</span>
                 </div>
                 <div class="space-y-3">

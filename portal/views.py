@@ -12,7 +12,7 @@ from django.contrib.auth import logout, login, update_session_auth_hash
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Avg
 from django.utils import timezone
 
 from accounts.models import User, ProviderCompany, CorporateCustomer
@@ -58,22 +58,11 @@ def _get_customer_company(user):
 def landing_page_view(request):
     """Screen 0: High-Converting Enterprise B2B Landing Page for FlexyRide Corporate."""
     total_clients = CorporateCustomer.objects.count()
-    if total_clients < 10:
-        total_clients = 24  # Display baseline for social proof
-
     total_vehicles = Vehicle.objects.count()
-    if total_vehicles < 15:
-        total_vehicles = 48
-
     total_drivers = Driver.objects.count()
-    if total_drivers < 15:
-        total_drivers = 56
-
     completed_trips = TransportationRequest.objects.filter(
         booking_status=TransportationRequest.BookingStatus.COMPLETED
     ).count()
-    if completed_trips < 20:
-        completed_trips = 1420
 
     context = {
         'hide_sidebar': True,
@@ -193,7 +182,7 @@ def customer_signup_view(request):
         form = CorporateCustomerSignUpForm(request.POST, request.FILES)
         if form.is_valid():
             user, customer = form.save()
-            login(request, user)
+            login(request, user, backend='accounts.backends.EmailOrUsernameModelBackend')
             messages.success(
                 request,
                 f"Welcome to FlexyRide Corporate, {user.first_name}! Your account has been created. Please complete your profile and upload your corporate brand logo below to personalize your navbar."
@@ -872,8 +861,8 @@ def get_broker_context(request):
     corporate_customers = CorporateCustomer.objects.all().prefetch_related('requests', 'invoices').order_by('company_name')
 
     # Financial & Margin Calculations
-    total_revenue = sum(cq.final_customer_price for cq in customer_quotes.filter(status='ACCEPTED')) or Decimal('65400.00')
-    total_provider_cost = sum(cq.provider_cost for cq in customer_quotes.filter(status='ACCEPTED')) or Decimal('49050.00')
+    total_revenue = sum(cq.final_customer_price for cq in customer_quotes.filter(status='ACCEPTED')) or Decimal('0.00')
+    total_provider_cost = sum(cq.provider_cost for cq in customer_quotes.filter(status='ACCEPTED')) or Decimal('0.00')
     gross_margin = total_revenue - total_provider_cost
 
     metrics = {
@@ -890,7 +879,7 @@ def get_broker_context(request):
     }
 
     return {
-        'role_title': 'FlexyRide Broker',
+        'role_title': 'FlexyRide Corporate',
         'metrics': metrics,
         'active_requests': active_requests,
         'pending_rfq_requests': pending_rfq_requests,
@@ -1438,7 +1427,8 @@ def get_provider_context(request):
             quote_request__request=trip.request,
             status='ACCEPTED_BY_BROKER'
         ).first()
-        if pq:
+        trip.provider_quote = pq
+        if pq and pq.offered_cost:
             mtd_total += pq.offered_cost
 
     # Pending = quotes submitted but not yet settled
@@ -1449,8 +1439,17 @@ def get_provider_context(request):
             quote_request__request=dispatch.request,
             status__in=['SUBMITTED', 'ACCEPTED_BY_BROKER']
         ).first()
-        if pq:
+        if pq and pq.offered_cost:
             pending_total += pq.offered_cost
+
+    # Dynamically compute average driver rating from database
+    driver_avg = drivers.aggregate(avg=Avg('rating'))['avg'] if drivers else None
+    if driver_avg is not None:
+        avg_driver_rating = round(driver_avg, 2)
+    elif provider_company and provider_company.overall_rating:
+        avg_driver_rating = provider_company.overall_rating
+    else:
+        avg_driver_rating = Decimal('0.00')
 
     # Aggregated metrics
     stats = {
@@ -1466,6 +1465,7 @@ def get_provider_context(request):
         'completed_count': completed_trips.count() if completed_trips else 0,
         'mtd_payout_raw': mtd_total,
         'pending_broker_raw': pending_total,
+        'avg_driver_rating': avg_driver_rating,
     }
 
     return {

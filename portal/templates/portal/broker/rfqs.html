@@ -97,7 +97,7 @@
                         <span>Broadcast RFQ</span>
                     </button>
                     <button type="button" 
-                            onclick="openMarginQuoteModal('{{ req.id }}', '{{ req.request_number }}', '{{ req.customer.company_name|escapejs }}', '{{ req.provider_quote_requests.first.provider.company_name|default:'Safari Transport'|escapejs }}', '{{ req.provider_quote_requests.first.quotes.first.offered_cost|default:'420' }}', '{{ req.provider_quote_requests.first.quotes.first.id|default:'' }}')" 
+                            onclick="openMarginQuoteModal('{{ req.id }}', '{{ req.request_number }}', '{{ req.customer.company_name|escapejs }}', '{{ req.provider_quote_requests.first.provider.company_name|escapejs }}' || 'Provider Partner', '{{ req.provider_quote_requests.first.quotes.first.offered_cost }}', '{{ req.provider_quote_requests.first.quotes.first.id }}')" 
                             class="flex-1 py-2 px-3 rounded-xl bg-[#8CC63F] hover:bg-[#78b330] text-[#080D18] font-black text-xs transition-all shadow-md shadow-[#8CC63F]/20 active:scale-95 flex items-center justify-center gap-1.5">
                         <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
                         <span>Set Margin</span>

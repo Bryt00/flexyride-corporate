@@ -313,20 +313,35 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Current Password</label>
-                            <input type="password" name="current_password" required placeholder="••••••••"
-                                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                            <div class="relative">
+                                <input type="password" name="current_password" id="cp_curr_pw" required placeholder="••••••••"
+                                    class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                                <button type="button" onclick="togglePasswordVisibility('cp_curr_pw', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 focus:outline-none p-1 transition-colors flex items-center justify-center cursor-pointer" title="Toggle password visibility">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">New Password</label>
-                            <input type="password" name="new_password" required placeholder="Min. 6 chars"
-                                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                            <div class="relative">
+                                <input type="password" name="new_password" id="cp_new_pw" required placeholder="Min. 6 chars"
+                                    class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                                <button type="button" onclick="togglePasswordVisibility('cp_new_pw', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 focus:outline-none p-1 transition-colors flex items-center justify-center cursor-pointer" title="Toggle password visibility">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Confirm New Password</label>
-                            <input type="password" name="confirm_new_password" required placeholder="••••••••"
-                                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                            <div class="relative">
+                                <input type="password" name="confirm_new_password" id="cp_confirm_pw" required placeholder="••••••••"
+                                    class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500">
+                                <button type="button" onclick="togglePasswordVisibility('cp_confirm_pw', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 focus:outline-none p-1 transition-colors flex items-center justify-center cursor-pointer" title="Toggle password visibility">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -386,7 +401,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="font-bold text-slate-900">Quote Finalization Email</p>
-                            <p class="text-[11px] text-slate-500">Instant notification when broker finalizes net pricing</p>
+                            <p class="text-[11px] text-slate-500">Instant notification when FlexyRide Corporate finalizes your quote</p>
                         </div>
                         <input type="checkbox" checked class="w-4 h-4 rounded text-[#8CC63F] focus:ring-[#8CC63F] border-slate-300">
                     </div>
@@ -413,15 +428,15 @@
             <div class="p-6 rounded-3xl bg-gradient-to-br from-[#8CC63F]/15 via-blue-500/10 to-slate-100 border border-[#8CC63F]/20 space-y-3">
                 <div class="flex items-center gap-2 text-xs font-black text-slate-900">
                     <i data-lucide="headset" class="w-4 h-4 text-[#8CC63F]"></i>
-                    <span>Dedicated Account Broker</span>
+                    <span>Dedicated FlexyRide Account Manager</span>
                 </div>
                 <p class="text-xs text-slate-600 leading-relaxed">
                     Have questions regarding custom vehicle requirements, cross-border charters, or SLA upgrades? Your dedicated account manager is available 24/7.
                 </p>
                 <div class="pt-1 text-xs space-y-1">
-                    <p class="font-bold text-slate-900">FlexyRide Broker Operations Desk</p>
+                    <p class="font-bold text-slate-900">FlexyRide Corporate Operations Desk</p>
                     <p class="text-slate-600 font-mono">+233 30 200 0000</p>
-                    <p class="text-blue-600 font-semibold">broker@flexyride.com</p>
+                    <p class="text-blue-600 font-semibold">corporate@flexyride.com</p>
                 </div>
             </div>
 
@@ -454,5 +469,18 @@
             });
         }
     });
+
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.innerHTML = isPassword 
+            ? '<i data-lucide="eye-off" class="w-4 h-4 text-purple-600"></i>' 
+            : '<i data-lucide="eye" class="w-4 h-4 text-slate-400"></i>';
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
 </script>
 {% endblock %}

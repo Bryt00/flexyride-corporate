@@ -57,13 +57,6 @@ class CorporateCustomerSignUpForm(forms.Form):
             'class': 'w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F] resize-none'
         })
     )
-    billing_preference = forms.ChoiceField(
-        choices=CorporateCustomer.BillingType.choices,
-        initial=CorporateCustomer.BillingType.INVOICE,
-        widget=forms.Select(attrs={
-            'class': 'w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]'
-        })
-    )
     company_logo = forms.ImageField(
         required=False,
         widget=forms.FileInput(attrs={
@@ -124,13 +117,13 @@ class CorporateCustomerSignUpForm(forms.Form):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'placeholder': 'Minimum 8 characters with letters & numbers',
-            'class': 'w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]'
+            'class': 'w-full pl-4 pr-11 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]'
         })
     )
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'placeholder': 'Repeat your password',
-            'class': 'w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]'
+            'class': 'w-full pl-4 pr-11 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]'
         })
     )
     terms_agreed = forms.BooleanField(
@@ -182,7 +175,7 @@ class CorporateCustomerSignUpForm(forms.Form):
             address=cd['company_address'].strip(),
             logo=cd.get('company_logo'),
             status=CorporateCustomer.Status.APPROVED,
-            billing_type=cd.get('billing_preference', CorporateCustomer.BillingType.INVOICE),
+            billing_type=CorporateCustomer.BillingType.INVOICE,
             payment_terms_days=30,
             preferred_currency='GHS'
         )

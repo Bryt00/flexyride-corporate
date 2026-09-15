@@ -43,8 +43,8 @@
                 <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=400&auto=format&fit=crop" alt="Assigned Vehicle" class="w-full sm:w-48 h-32 object-cover rounded-2xl shadow-lg">
                 <div class="space-y-2 text-xs">
                     {% if assignment and assignment.vehicle %}
-                    <h4 class="text-base font-black text-white">{{ assignment.vehicle.make }} {{ assignment.vehicle.model }} ({{ assignment.vehicle.year|default:"2024" }})</h4>
-                    <p class="text-slate-400 font-semibold">Color: <span class="text-white">{{ assignment.vehicle.color|default:"Executive Black" }}</span></p>
+                    <h4 class="text-base font-black text-white">{{ assignment.vehicle.make }} {{ assignment.vehicle.model }} {% if assignment.vehicle.year %}({{ assignment.vehicle.year }}){% endif %}</h4>
+                    <p class="text-slate-400 font-semibold">Color: <span class="text-white">{{ assignment.vehicle.color|default:"Standard" }}</span></p>
                     <p class="text-slate-400 font-semibold">Reg Plate: <span class="text-[#8CC63F] font-mono font-bold">{{ assignment.vehicle.registration_number }}</span></p>
                     <p class="text-slate-400 font-semibold">Status: <span class="text-emerald-400 font-bold">{{ assignment.vehicle.get_status_display }}</span></p>
                     {% else %}
@@ -83,7 +83,7 @@
                     </div>
                     <div>
                         <h4 class="text-lg font-black text-white">{{ assignment.driver.full_name }}</h4>
-                        <p class="text-xs text-slate-400 font-medium">Rating: ★ {{ assignment.driver.rating|default:"4.95" }} (Certified)</p>
+                        <p class="text-xs text-slate-400 font-medium">Rating: ★ {{ assignment.driver.rating|floatformat:1 }} (Certified)</p>
                         <p class="text-xs text-[#8CC63F] font-mono font-bold pt-1">{{ assignment.driver.phone_number }}</p>
                     </div>
                 </div>

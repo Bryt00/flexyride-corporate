@@ -1,6 +1,6 @@
 {% extends "portal/base_portal.html" %}
 
-{% block title %}Transport Provider Console | {{ company.company_name|default:"Gold Coast Express Logistics" }}{% endblock %}
+{% block title %}Transport Provider Console | {{ company.company_name|default:"Transport Provider" }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -13,11 +13,11 @@
                     <i data-lucide="truck" class="w-3 h-3"></i>
                     Transport Provider Console
                 </span>
-                <span class="text-xs text-slate-400 font-semibold">{{ company.company_name|default:"Gold Coast Express Logistics" }}</span>
+                <span class="text-xs text-slate-400 font-semibold">{{ company.company_name|default:"Transport Provider" }}</span>
             </div>
             <h1 class="text-2xl font-black text-white tracking-tight">{% block header_title %}Fleet, Dispatch & RFQ Operations Console{% endblock %}</h1>
             <p class="text-xs text-slate-400 mt-1 max-w-2xl">
-                {% block header_description %}Review and price wholesale RFQs from FlexyRide brokers, dispatch vehicles & drivers, track live journey execution, and manage fleet compliance.{% endblock %}
+                {% block header_description %}Review and price wholesale RFQs from FlexyRide, dispatch vehicles & drivers, track live journey execution, and manage fleet compliance.{% endblock %}
             </p>
         </div>
         

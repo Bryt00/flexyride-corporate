@@ -35,8 +35,8 @@ class ProviderQuote(models.Model):
     class Status(models.TextChoices):
         SUBMITTED = 'SUBMITTED', 'Submitted'
         UNDER_NEGOTIATION = 'UNDER_NEGOTIATION', 'Under Negotiation'
-        ACCEPTED_BY_BROKER = 'ACCEPTED_BY_BROKER', 'Accepted by Broker'
-        DECLINED_BY_BROKER = 'DECLINED_BY_BROKER', 'Declined by Broker'
+        ACCEPTED_BY_BROKER = 'ACCEPTED_BY_BROKER', 'Accepted by FlexyRide Corporate'
+        DECLINED_BY_BROKER = 'DECLINED_BY_BROKER', 'Declined by FlexyRide Corporate'
         SUPERSEDED = 'SUPERSEDED', 'Superseded by Revised Quote'
 
     quote_request = models.ForeignKey(

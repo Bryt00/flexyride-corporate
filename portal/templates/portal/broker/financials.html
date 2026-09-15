@@ -2,7 +2,7 @@
 {% load humanize %}
 
 {% block broker_page_title %}Commission Margins & Settlements Ledger{% endblock %}
-{% block broker_page_subtitle %}Consolidated corporate billing reconciliation, provider wholesale payables, net broker commissions, and official GRA tax audit tracking.{% endblock %}
+{% block broker_page_subtitle %}Consolidated corporate billing reconciliation, provider wholesale payables, net FlexyRide commissions, and official GRA tax audit tracking.{% endblock %}
 
 {% block broker_content %}
 <div class="space-y-6">
@@ -29,7 +29,7 @@
 
         <!-- Card 3: Gross Margin -->
         <div class="card-elevated p-5 rounded-2xl border border-[#8CC63F]/20 space-y-2 bg-[#8CC63F]/5">
-            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">FlexyRide Broker Margin</span>
+            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">FlexyRide Corporate Margin</span>
             <p class="text-2xl font-black text-[#8CC63F] font-mono">GHS {{ metrics.monthly_gross_margin|floatformat:0|intcomma }}</p>
             <span class="text-[11px] text-[#8CC63F] font-semibold flex items-center gap-1">
                 <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Net Retained Spread
@@ -51,7 +51,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h2 class="text-base font-black text-white">Commercial Settlement Ledger</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Itemized reconciliation of client billings, provider cost allocations, and broker spreads.</p>
+                <p class="text-xs text-slate-400 mt-0.5">Itemized reconciliation of client billings, provider cost allocations, and margin spreads.</p>
             </div>
             <div class="flex items-center gap-2">
                 <button type="button" onclick="exportFinancialsCSV()" class="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold transition-all border border-white/5 flex items-center gap-1.5 active:scale-95">
@@ -70,7 +70,7 @@
                         <th class="py-3.5 px-4">Assigned Partner</th>
                         <th class="py-3.5 px-4">Billed Revenue</th>
                         <th class="py-3.5 px-4">Provider Payable</th>
-                        <th class="py-3.5 px-4">Net Broker Spread</th>
+                        <th class="py-3.5 px-4">Net FlexyRide Margin</th>
                         <th class="py-3.5 px-4">Settlement Status</th>
                     </tr>
                 </thead>
@@ -88,7 +88,7 @@
                         </td>
 
                         <td class="py-4 px-4 whitespace-nowrap">
-                            <span class="font-semibold text-amber-300">{{ quote.selected_provider_quote.provider.company_name|default:"Safari Transport Ltd" }}</span>
+                            <span class="font-semibold text-amber-300">{{ quote.selected_provider_quote.provider.company_name|default:"Provider Partner" }}</span>
                         </td>
 
                         <td class="py-4 px-4 whitespace-nowrap font-mono font-bold text-white">
@@ -141,7 +141,7 @@
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement('a');
         link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `flexyride_broker_settlements_${new Date().toISOString().slice(0,10)}.csv`);
+        link.setAttribute('download', `flexyride_settlements_${new Date().toISOString().slice(0,10)}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

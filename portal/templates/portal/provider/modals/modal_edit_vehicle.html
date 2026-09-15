@@ -71,7 +71,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                            <span>Broker Fleet Category <span class="text-red-400">*</span></span>
+                            <span>FlexyRide Fleet Category <span class="text-red-400">*</span></span>
                             <span class="text-[9px] text-[#8CC63F] font-semibold">Rate Card</span>
                         </label>
                         <select id="editVehicleCategory" name="category" onchange="updateEditCategoryPreview()"
@@ -87,13 +87,13 @@
                                 </option>
                                 {% endfor %}
                             {% else %}
-                                <option value="SUV" data-base="450" data-km="12.00" data-charter="1200" data-seating="5">SUV / 4x4 (Base: GHS 450)</option>
-                                <option value="EXECUTIVE" data-base="380" data-km="10.00" data-charter="1000" data-seating="4">Executive Saloon (Base: GHS 380)</option>
-                                <option value="SEDAN" data-base="280" data-km="8.00" data-charter="800" data-seating="4">Standard Sedan (Base: GHS 280)</option>
-                                <option value="VAN" data-base="550" data-km="15.00" data-charter="1500" data-seating="8">Passenger Van (Base: GHS 550)</option>
-                                <option value="MINIBUS" data-base="750" data-km="18.00" data-charter="2000" data-seating="15">Minibus / Shuttle (Base: GHS 750)</option>
-                                <option value="COASTER_BUS" data-base="1200" data-km="25.00" data-charter="3200" data-seating="30">Coaster Bus (Base: GHS 1,200)</option>
-                                <option value="LUXURY" data-base="900" data-km="20.00" data-charter="2500" data-seating="4">VIP / Luxury (Base: GHS 900)</option>
+                                <option value="SUV">SUV / 4x4</option>
+                                <option value="EXECUTIVE">Executive Saloon</option>
+                                <option value="SEDAN">Standard Sedan</option>
+                                <option value="VAN">Passenger Van</option>
+                                <option value="MINIBUS">Minibus / Shuttle</option>
+                                <option value="COASTER_BUS">Coaster Bus</option>
+                                <option value="LUXURY">VIP / Luxury</option>
                             {% endif %}
                         </select>
                     </div>
@@ -103,9 +103,9 @@
                 <div id="editCategoryRatePreview" class="p-3 rounded-xl bg-white/[0.03] border border-blue-500/20 space-y-1.5 text-xs">
                     <div class="flex items-center justify-between">
                         <span class="text-[10px] font-extrabold uppercase text-blue-400 flex items-center gap-1.5">
-                            <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Broker Wholesale Schedule
+                            <i data-lucide="calculator" class="w-3.5 h-3.5"></i> FlexyRide Wholesale Schedule
                         </span>
-                        <span id="editRateBase" class="font-mono font-bold text-white">Base: GHS 450</span>
+                        <span id="editRateBase" class="font-mono font-bold text-white">Base: GHS --</span>
                     </div>
                     <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-400 gap-2 pt-1 border-t border-white/5">
                         <span id="editRateKm">Per KM: GHS 12.00/km</span>
@@ -210,10 +210,10 @@
         if (!sel) return;
         const opt = sel.options[sel.selectedIndex];
         if (!opt) return;
-        const base = opt.dataset.base || '450';
-        const km = opt.dataset.km || '12.00';
-        const charter = opt.dataset.charter || '1,200';
-        const seating = opt.dataset.seating || '5';
+        const base = opt.dataset.base || '--';
+        const km = opt.dataset.km || '--';
+        const charter = opt.dataset.charter || '--';
+        const seating = opt.dataset.seating || '--';
 
         const baseEl = document.getElementById('editRateBase');
         const kmEl = document.getElementById('editRateKm');

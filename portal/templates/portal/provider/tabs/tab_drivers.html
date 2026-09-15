@@ -25,13 +25,13 @@
                         </div>
                     </div>
                     <span class="px-2 py-1 bg-amber-400/20 text-amber-400 font-bold text-xs rounded-lg">
-                        ★ {{ d.rating|default:"4.90" }}
+                        ★ {{ d.rating|floatformat:1 }}
                     </span>
                 </div>
 
                 <div class="space-y-1.5 text-xs text-gray-400 mt-2">
                     <p><b class="text-gray-300">Driving Permit:</b> <span class="font-mono text-white">{{ d.license_number }}</span></p>
-                    <p><b class="text-gray-300">Languages:</b> {{ d.languages_spoken|default:"English, Twi, Ga" }}</p>
+                    <p><b class="text-gray-300">Languages:</b> {{ d.languages_spoken|default:"Not specified" }}</p>
                 </div>
             </div>
 
@@ -69,6 +69,12 @@
                     </button>
                 </form>
             </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12 bg-[#121829] border border-white/10 rounded-2xl text-gray-400">
+            <i data-lucide="users" class="w-8 h-8 mx-auto mb-2 text-gray-500"></i>
+            <p class="font-bold">No drivers enrolled yet.</p>
+            <p class="text-xs text-gray-500 mt-1">Click "Enroll New Driver" above to register your first chauffeur.</p>
         </div>
         {% endfor %}
     </div>

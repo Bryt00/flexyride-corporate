@@ -6,7 +6,7 @@
             <span class="text-[11px] text-gray-400">Completed & Settled Trips</span>
         </div>
         <div class="bg-[#121829] border border-white/10 rounded-2xl p-5">
-            <span class="text-xs font-semibold text-gray-400">Pending Broker Settlement</span>
+            <span class="text-xs font-semibold text-gray-400">Pending FlexyRide Settlement</span>
             <p class="text-2xl font-black text-amber-400 mt-1">{{ stats.pending_broker }}</p>
             <span class="text-[11px] text-gray-400">Net 14 settlement cycle</span>
         </div>
@@ -45,9 +45,11 @@
                         <td class="py-3 px-4">{{ trip.vehicle.registration_number }} • {{ trip.driver.full_name }}</td>
                         <td class="py-3 px-4">{{ trip.assigned_at|date:"M d, Y @ h:i A" }}</td>
                         <td class="py-3 px-4 text-right font-mono font-bold text-emerald-400">
-                            {% with pq=trip.request.provider_quote_requests.first.quotes.first %}
-                            GHS {{ pq.offered_cost|floatformat:0|default:"--" }}
-                            {% endwith %}
+                            {% if trip.provider_quote and trip.provider_quote.offered_cost %}
+                            GHS {{ trip.provider_quote.offered_cost|floatformat:0 }}
+                            {% else %}
+                            <span class="text-slate-500">--</span>
+                            {% endif %}
                         </td>
                         <td class="py-3 px-4 text-center"><span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-bold text-[10px]">Settled</span></td>
                     </tr>

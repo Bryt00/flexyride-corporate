@@ -46,8 +46,8 @@
         <div class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6">
             <div class="absolute top-0 right-0 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
             <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider block">Approved Credit Line</span>
-            <p class="text-2xl sm:text-3xl font-black text-white mt-2 tracking-tight">GHS {{ company.credit_limit|floatformat:0|default:"150,000" }}</p>
-            <span class="text-[11px] text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-md inline-block mt-2">{{ company.get_payment_terms_display|default:"Post-paid 30-day terms" }}</span>
+            <p class="text-2xl sm:text-3xl font-black text-white mt-2 tracking-tight">GHS {{ company.credit_limit|floatformat:0|default:"0" }}</p>
+            <span class="text-[11px] text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-md inline-block mt-2">{{ company.get_payment_terms_display|default:"Corporate Terms" }}</span>
         </div>
 
         <div class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6">

@@ -32,7 +32,7 @@
             <div class="flex items-center gap-2 mt-3 text-[11px] relative z-10">
                 <span class="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">{{ stats.available_drivers }} On Duty Ready</span>
                 <span class="text-slate-600">•</span>
-                <span class="text-amber-400 font-semibold">★ 4.90 Rating</span>
+                <span class="text-amber-400 font-semibold">★ {{ stats.avg_driver_rating|floatformat:2 }} Rating</span>
             </div>
         </a>
 
@@ -40,7 +40,7 @@
         <a href="{% url 'portal_provider_rfqs' %}" class="relative overflow-hidden card-elevated card-elevated-interactive rounded-2xl p-6 group border-amber-500/40 hover:border-amber-400/70 block transition-all hover:-translate-y-0.5">
             <div class="absolute top-0 right-0 w-28 h-28 bg-amber-500/15 rounded-full blur-2xl pointer-events-none group-hover:bg-amber-500/25 transition-all"></div>
             <div class="flex items-center justify-between text-slate-400 mb-3 relative z-10">
-                <span class="text-[11px] font-black text-amber-400 uppercase tracking-wider">Incoming Broker RFQs</span>
+                <span class="text-[11px] font-black text-amber-400 uppercase tracking-wider">Incoming FlexyRide RFQs</span>
                 <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-md shadow-amber-500/15">
                     <i data-lucide="inbox" class="w-4 h-4"></i>
                 </div>
@@ -134,7 +134,7 @@
             <div class="flex items-center justify-between border-b border-white/10 pb-4">
                 <h2 class="text-base font-black text-white flex items-center gap-2.5">
                     <i data-lucide="inbox" class="w-5 h-5 text-amber-400"></i>
-                    Pending Broker RFQs (Bidding)
+                    Pending FlexyRide RFQs (Bidding)
                 </h2>
                 <a href="{% url 'portal_provider_rfqs' %}" class="text-xs font-bold text-[#8CC63F] hover:underline flex items-center gap-1">
                     <span>View All</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>

@@ -966,7 +966,7 @@
                 </span>
                 {% elif user.role == 'BROKER' %}
                 <span class="px-2.5 py-1 rounded-full bg-amber-500/15 text-[9px] font-black text-amber-400 tracking-wider">
-                    BROKER
+                    FLEXYRIDE CORPORATE
                 </span>
                 {% elif user.role == 'SYSTEM_ADMIN' %}
                 <span class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-[9px] font-black text-emerald-400 tracking-wider">
@@ -1297,11 +1297,11 @@
             <div class="flex items-center justify-between p-2 rounded-xl {% if user.role == 'BROKER' or '/broker/' in request.path or active_tab|slice:':7' == 'broker_' %}bg-white/[0.03] hover:bg-white/[0.06]{% else %}bg-slate-50 hover:bg-slate-100 border border-slate-100{% endif %} transition-colors">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 aspect-square rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xs shadow-md shadow-blue-600/20 shrink-0 tracking-wider select-none leading-none">
-                        {{ company.company_name|slice:":2"|upper|default:"ST" }}
+                        {{ company.company_name|slice:":2"|upper|default:"PR" }}
                     </div>
                     <div class="min-w-0">
                         <p class="text-xs font-bold {% if user.role == 'BROKER' or '/broker/' in request.path or active_tab|slice:':7' == 'broker_' %}text-white{% else %}text-slate-900{% endif %} truncate leading-tight">
-                            {{ company.company_name|default:"Safari Transport Ltd" }}
+                            {{ company.company_name|default:"Provider Company" }}
                         </p>
                         <p class="text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -1364,7 +1364,7 @@
                     <div class="w-10 h-10 aspect-square rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-[#8CC63F] p-0.5 shadow-md shadow-blue-500/20 shrink-0 flex items-center justify-center">
                         {% if user.role == 'PROVIDER_ADMIN' %}
                         <div class="w-full h-full bg-slate-100 rounded-[10px] flex items-center justify-center font-black text-xs text-slate-900 tracking-widest select-none">
-                            {{ company.company_name|slice:":2"|upper|default:"ST" }}
+                            {{ company.company_name|slice:":2"|upper|default:"PR" }}
                         </div>
                         {% elif user.role == 'BROKER' %}
                         <div class="w-full h-full bg-[#0A0F1D] rounded-[10px] flex items-center justify-center text-amber-400">
@@ -1384,9 +1384,9 @@
                     <div>
                         <h2 class="text-sm font-bold {% if user.role == 'BROKER' or '/broker/' in request.path or active_tab|slice:':7' == 'broker_' %}text-white{% else %}text-slate-900{% endif %} leading-tight">
                             {% if user.role == 'PROVIDER_ADMIN' %}
-                            {{ company.company_name|default:"Safari Transport Ltd" }}
+                            {{ company.company_name|default:"Transport Provider" }}
                             {% elif user.role == 'BROKER' %}
-                            FlexyRide Broker Operations
+                            FlexyRide Corporate Operations
                             {% elif user.role == 'SYSTEM_ADMIN' %}
                             FlexyRide Corporate HQ
                             {% else %}
@@ -1395,7 +1395,7 @@
                         </h2>
                         <p class="text-xs {% if user.role == 'BROKER' or '/broker/' in request.path or active_tab|slice:':7' == 'broker_' %}text-gray-400{% else %}text-slate-500{% endif %} font-medium">
                             {% if user.role == 'PROVIDER_ADMIN' %}
-                            Transport Provider • Partner ID: PRV-SAF-8821
+                            Transport Provider • Partner ID: {{ company.registration_number|default:company.id }}
                             {% elif user.role == 'BROKER' %}
                             Dispatch & Quotations • Desk ID: FLX-OPS-01
                             {% elif user.role == 'SYSTEM_ADMIN' %}

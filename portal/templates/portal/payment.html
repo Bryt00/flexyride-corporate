@@ -72,7 +72,7 @@
             <div>
                 <label class="block text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Subscriber Mobile Number</label>
                 <div class="relative">
-                    <input type="text" name="phone_number" value="{{ user.phone_number|default:'+233 24 123 4567' }}" class="w-full px-4 py-3.5 surface-well rounded-xl text-white text-sm font-mono focus:ring-2 focus:ring-[#8CC63F]/40 focus:outline-none transition-all">
+                    <input type="text" name="phone_number" value="{{ user.phone_number|default:'' }}" placeholder="+233 24 000 0000" class="w-full px-4 py-3.5 surface-well rounded-xl text-white text-sm font-mono focus:ring-2 focus:ring-[#8CC63F]/40 focus:outline-none transition-all">
                     <i data-lucide="phone" class="w-5 h-5 text-slate-500 absolute right-4 top-3.5"></i>
                 </div>
                 <p class="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1.5">

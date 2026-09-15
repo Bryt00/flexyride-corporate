@@ -21,12 +21,12 @@
                         </div>
                         <div>
                             <h3 class="text-sm font-black text-white">{{ cust.company_name }}</h3>
-                            <span class="text-[10px] text-slate-400 font-mono">Account: {{ cust.account_number|default:"MTN-GH-9982" }}</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Reg: {{ cust.registration_number|default:cust.id }}</span>
                         </div>
                     </div>
 
                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/20">
-                        {{ cust.billing_terms|default:"Corporate Net-30" }}
+                        {{ cust.get_billing_type_display|default:"Corporate Terms" }}
                     </span>
                 </div>
 

@@ -67,13 +67,13 @@
                 <div>
                     <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Invoice Recipient (Billed Client)</span>
                     <p class="font-bold text-slate-900 text-base">{{ customer.company_name }}</p>
-                    <p class="text-slate-600 mt-1">{{ customer.address|default:"Corporate Headquarters" }}</p>
-                    <p class="text-slate-500">Tax ID / TIN: {{ customer.tax_id|default:"TIN-PENDING" }}</p>
-                    <p class="text-slate-500">Accounts Email: {{ customer.contact_email|default:"billing@corporate.com" }}</p>
+                    <p class="text-slate-600 mt-1">{{ customer.address|default:"Not Provided" }}</p>
+                    <p class="text-slate-500">Tax ID / TIN: {{ customer.tax_id|default:"Not Registered" }}</p>
+                    <p class="text-slate-500">Accounts Email: {{ customer.contact_email|default:"Not Provided" }}</p>
                 </div>
                 <div>
                     <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Payment Terms & Account Details</span>
-                    <p class="text-slate-600">Credit Limit: <span class="font-bold text-slate-800">GHS {{ customer.credit_limit|floatformat:0|default:"50,000" }}</span></p>
+                    <p class="text-slate-600">Credit Limit: <span class="font-bold text-slate-800">GHS {{ customer.credit_limit|floatformat:0|default:"0" }}</span></p>
                     <p class="text-slate-600">Payment Terms: <span class="font-bold text-slate-800">Net 30 Days</span></p>
                     <p class="text-slate-600 mt-2">Wire Settlement Bank: <span class="font-bold text-slate-800">Standard Chartered Bank</span></p>
                     <p class="text-slate-500 font-mono text-[11px]">Acc Number: 0100192837100 • Branch: High Street</p>
@@ -96,11 +96,9 @@
                         {% for item in line_items %}
                         <tr>
                             <td class="py-3 text-slate-600 font-medium">{{ item.service_date|date:"d M Y" }}</td>
-                            <td class="py-3 font-mono font-bold text-slate-800">{{ item.request.request_number|default:"FRC-TRIP" }}</td>
-                            <td class="py-3 text-slate-800">
-                                <span class="font-semibold">{{ item.description }}</span>
-                            </td>
-                            <td class="py-3 text-center text-slate-600">{{ item.request.get_requested_vehicle_category_display|default:"Executive" }}</td>
+                            <td class="py-3 font-mono font-bold text-slate-800">{{ item.request.request_number|default:item.id }}</td>
+                            <td class="py-3 text-slate-700 font-medium">{{ item.request.pickup_address }} → {{ item.request.destination_address }}</td>
+                            <td class="py-3 text-center text-slate-600">{{ item.request.get_requested_vehicle_category_display|default:"Transport" }}</td>
                             <td class="py-3 text-right font-mono font-bold text-slate-900">{{ invoice.currency }} {{ item.amount|floatformat:2 }}</td>
                         </tr>
                         {% empty %}

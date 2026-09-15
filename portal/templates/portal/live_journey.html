@@ -69,17 +69,17 @@
             <div class="card-elevated p-5 rounded-2xl space-y-4">
                 <div class="flex items-center gap-4">
                     <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#8CC63F] to-emerald-400 flex items-center justify-center text-[#0A0F1D] font-black text-xl shadow-md">
-                        {{ assignment.driver.full_name|slice:":2"|upper|default:"CH" }}
+                        {{ assignment.driver.full_name|slice:":2"|upper|default:"DR" }}
                     </div>
                     <div>
-                        <h4 class="text-sm font-black text-white">{{ assignment.driver.full_name|default:"Designated Chauffeur" }}</h4>
-                        <p class="text-xs text-[#8CC63F] font-bold">{{ assignment.vehicle.make|default:"Executive Fleet" }} {{ assignment.vehicle.model|default:"" }}</p>
-                        <p class="text-[11px] text-slate-400 font-mono">{{ assignment.vehicle.registration_number|default:"GS 4821-24" }}</p>
+                        <h4 class="text-sm font-black text-white">{{ assignment.driver.full_name|default:"Assigned Chauffeur" }}</h4>
+                        <p class="text-xs text-[#8CC63F] font-bold">{{ assignment.vehicle.make|default:"Vehicle" }} {{ assignment.vehicle.model|default:"" }}</p>
+                        <p class="text-[11px] text-slate-400 font-mono">{{ assignment.vehicle.registration_number|default:"" }}</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 w-full">
-                    <a href="tel:{{ assignment.driver.phone_number|default:'+233240000000' }}" class="btn-brand py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-[#8CC63F]/20">
+                    <a href="{% if assignment.driver.phone_number %}tel:{{ assignment.driver.phone_number }}{% else %}#{% endif %}" class="btn-brand py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-[#8CC63F]/20 {% if not assignment.driver.phone_number %}opacity-50 pointer-events-none{% endif %}">
                         <i data-lucide="phone" class="w-3.5 h-3.5"></i> Call
                     </a>
                     <button type="button" onclick="openSupportModal()" class="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/25 transition-all active:scale-95">

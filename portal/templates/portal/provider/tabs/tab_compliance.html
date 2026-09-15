@@ -19,10 +19,14 @@
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-white">{{ doc.get_document_type_display }}</h3>
-                    <p class="text-xs text-gray-400 font-mono mt-0.5">Ref: {{ doc.document_number|default:"DVLA-2026-GH" }}</p>
+                    <p class="text-xs text-gray-400 font-mono mt-0.5">Ref: {{ doc.document_number|default:"N/A" }}</p>
                     <div class="flex items-center gap-2 text-[11px] text-gray-400 mt-2">
-                        <span>Issued: {{ doc.issue_date|default:"Jan 15, 2026" }}</span> •
-                        <span class="text-emerald-400 font-semibold">Valid through {{ doc.expiry_date|default:"Dec 31, 2027" }}</span>
+                        {% if doc.issue_date %}<span>Issued: {{ doc.issue_date|date:"M d, Y" }}</span> •{% endif %}
+                        {% if doc.expiry_date %}
+                        <span class="{% if doc.is_expired %}text-red-400{% else %}text-emerald-400{% endif %} font-semibold">Valid through {{ doc.expiry_date|date:"M d, Y" }}</span>
+                        {% else %}
+                        <span class="text-slate-400">No expiration date</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>

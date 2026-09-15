@@ -50,10 +50,9 @@
             const d = btnOrId.dataset;
             document.getElementById('editVehicleId').value = d.id || '';
             document.getElementById('editVehicleMake').value = d.make || '';
-            document.getElementById('editVehicleModel').value = d.model || '';
-            document.getElementById('editVehicleYear').value = d.year || '2024';
-            document.getElementById('editVehicleCategory').value = d.category || 'SUV';
-            document.getElementById('editVehicleSeats').value = d.seats || '5';
+            document.getElementById('editVehicleYear').value = d.year || '';
+            document.getElementById('editVehicleCategory').value = d.category || '';
+            document.getElementById('editVehicleSeats').value = d.seats || '';
             document.getElementById('editVehicleColor').value = d.color || '';
             document.getElementById('editVehicleLuggage').value = d.luggage || '';
             document.getElementById('editVehicleWifi').checked = d.wifi === '1' || d.wifi === 'true';
@@ -64,9 +63,9 @@
             document.getElementById('editVehicleId').value = btnOrId || '';
             document.getElementById('editVehicleMake').value = make || '';
             document.getElementById('editVehicleModel').value = model || '';
-            document.getElementById('editVehicleYear').value = year || '2024';
-            document.getElementById('editVehicleCategory').value = category || 'SUV';
-            document.getElementById('editVehicleSeats').value = seats || '5';
+            document.getElementById('editVehicleYear').value = year || '';
+            document.getElementById('editVehicleCategory').value = category || '';
+            document.getElementById('editVehicleSeats').value = seats || '';
             document.getElementById('editVehicleColor').value = color || '';
             document.getElementById('editVehicleLuggage').value = luggage || '';
             document.getElementById('editVehicleWifi').checked = Boolean(wifi);

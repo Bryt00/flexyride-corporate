@@ -20,8 +20,8 @@
                     <i data-lucide="tag" class="w-4 h-4"></i>
                 </div>
                 <div>
-                    <h3 class="text-xs font-black text-white uppercase tracking-wider">Broker Approved Fleet Categories & Wholesale Rates</h3>
-                    <p class="text-[11px] text-slate-400">FlexyRide Broker establishes these category specifications and wholesale payout benchmarks for dispatched corporate missions.</p>
+                    <h3 class="text-xs font-black text-white uppercase tracking-wider">FlexyRide Corporate Fleet Categories & Wholesale Rates</h3>
+                    <p class="text-[11px] text-slate-400">FlexyRide Corporate establishes these category specifications and wholesale payout benchmarks for dispatched corporate missions.</p>
                 </div>
             </div>
             <button type="button" onclick="document.getElementById('brokerRateCardTable').classList.toggle('hidden')" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-bold border border-white/5 transition-all flex items-center gap-1.5 self-start sm:self-auto">
@@ -55,11 +55,7 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr><td class="py-2 px-3 font-bold text-white">SUV / 4x4</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 450</td><td class="py-2 px-3 font-mono">GHS 12.00/km</td><td class="py-2 px-3 font-mono">GHS 1,200</td><td class="py-2 px-3">5 Passengers</td><td class="py-2 px-3 text-slate-400">Prado, Fortuner, Pajero</td></tr>
-                        <tr><td class="py-2 px-3 font-bold text-white">Executive Saloon</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 380</td><td class="py-2 px-3 font-mono">GHS 10.00/km</td><td class="py-2 px-3 font-mono">GHS 1,000</td><td class="py-2 px-3">4 Passengers</td><td class="py-2 px-3 text-slate-400">Mercedes E-Class, BMW 5, Camry</td></tr>
-                        <tr><td class="py-2 px-3 font-bold text-white">Standard Sedan</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 280</td><td class="py-2 px-3 font-mono">GHS 8.00/km</td><td class="py-2 px-3 font-mono">GHS 800</td><td class="py-2 px-3">4 Passengers</td><td class="py-2 px-3 text-slate-400">Corolla, Elantra, Civic</td></tr>
-                        <tr><td class="py-2 px-3 font-bold text-white">Passenger Van</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 550</td><td class="py-2 px-3 font-mono">GHS 15.00/km</td><td class="py-2 px-3 font-mono">GHS 1,500</td><td class="py-2 px-3">8 Passengers</td><td class="py-2 px-3 text-slate-400">Toyota HiAce, Hyundai H1</td></tr>
-                        <tr><td class="py-2 px-3 font-bold text-white">Coaster Bus</td><td class="py-2 px-3 font-mono font-bold text-[#8CC63F]">GHS 1,200</td><td class="py-2 px-3 font-mono">GHS 25.00/km</td><td class="py-2 px-3 font-mono">GHS 3,200</td><td class="py-2 px-3">30 Passengers</td><td class="py-2 px-3 text-slate-400">Toyota Coaster, Rosa</td></tr>
+                        <tr><td colspan="6" class="py-4 text-center text-slate-500">No benchmark category rates configured in database.</td></tr>
                     {% endif %}
                 </tbody>
             </table>
@@ -221,7 +217,7 @@
                         </td>
                         <td class="py-3 px-3">
                             <div class="font-bold text-white leading-tight">{{ v.make }} {{ v.model }}</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">{{ v.year|default:"2024" }} · {{ v.color|default:"Black" }}</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">{% if v.year %}{{ v.year }}{% endif %}{% if v.color %}{% if v.year %} · {% endif %}{{ v.color }}{% endif %}</div>
                         </td>
                         <td class="py-3 px-3 hidden sm:table-cell">
                             <span class="text-slate-300 text-[11px]">{{ v.get_category_display }}</span>

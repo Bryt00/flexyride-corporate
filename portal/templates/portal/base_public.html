@@ -217,7 +217,7 @@
                     </a>
                     {% elif user_role == 'BROKER' %}
                     <a href="{% url 'portal_broker_workspace' %}" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 group">
-                        <i data-lucide="shield-alert" class="w-4 h-4 text-[#8CC63F] group-hover:scale-110 transition-transform"></i> Broker Operations →
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-[#8CC63F] group-hover:scale-110 transition-transform"></i> FlexyRide Corporate Operations →
                     </a>
                     {% else %}
                     <a href="{% url 'portal_dashboard' %}" class="px-4 py-2.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-xs btn-glow flex items-center gap-2">
@@ -272,7 +272,7 @@
                         <span class="text-base font-black text-slate-900">Flexy<span class="text-[#8CC63F]">Ride</span> Corporate</span>
                     </div>
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        Ghana's premier enterprise B2B ground transportation platform. Connecting corporate organizations, vetted vehicle operators, and dispatch brokers.
+                        Ghana's premier enterprise B2B ground transportation platform. Connecting corporate organizations with vetted vehicle operators.
                     </p>
                     <div class="flex items-center gap-2 text-[11px] text-[#73A233] font-bold">
                         <span class="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse"></span>
@@ -298,7 +298,7 @@
                     <ul class="space-y-2.5">
                         <li><a href="{% url 'portal_dashboard' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Corporate Client Portal</a></li>
                         <li><a href="{% url 'portal_provider_workspace' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Fleet Provider Console</a></li>
-                        <li><a href="{% url 'portal_broker_workspace' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Broker Operations Terminal</a></li>
+                        <li><a href="{% url 'portal_broker_workspace' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">FlexyRide Corporate Operations</a></li>
                         <li><a href="{% url 'portal_login' %}" class="hover:text-[#73A233] hover:translate-x-1 inline-block transition-transform duration-200 font-semibold">Employee Sign In</a></li>
                     </ul>
                 </div>
