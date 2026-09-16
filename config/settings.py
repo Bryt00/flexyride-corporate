@@ -282,11 +282,6 @@ UNFOLD = {
                         "link": reverse_lazy("admin:accounts_corporatecustomer_changelist"),
                     },
                     {
-                        "title": _("Company Employees"),
-                        "icon": "badge",
-                        "link": reverse_lazy("admin:accounts_companyemployee_changelist"),
-                    },
-                    {
                         "title": _("Provider Companies"),
                         "icon": "storefront",
                         "link": reverse_lazy("admin:accounts_providercompany_changelist"),
