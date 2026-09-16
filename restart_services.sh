@@ -45,6 +45,7 @@ cd "$PROJECT_DIR"
 if [ "$1" == "--pull" ] || [ "$1" == "-p" ]; then
     if [ -d ".git" ]; then
         echo -e "${YELLOW}1. Pulling latest updates from Git...${NC}"
+        git config --global --add safe.directory "$PROJECT_DIR" 2>/dev/null || true
         sudo -u "$USER" git pull || echo -e "${RED}Git pull encountered an issue, proceeding with restart...${NC}"
         echo -e "${GREEN}✓ Git repository updated${NC}"
     fi
@@ -84,10 +85,10 @@ sudo mkdir -p "$PROJECT_DIR/staticfiles" "$PROJECT_DIR/media"
 sudo chown -R "$USER:www-data" "$PROJECT_DIR/staticfiles" "$PROJECT_DIR/media"
 sudo chmod -R 755 "$PROJECT_DIR/staticfiles"
 sudo chmod -R 775 "$PROJECT_DIR/media"
-if [ -f "$PROJECT_DIR/db.sqlite3" ]; then
-    sudo chown "$USER:$USER" "$PROJECT_DIR/db.sqlite3"
-    sudo chmod 660 "$PROJECT_DIR/db.sqlite3"
-fi
+sudo chown "$USER:$USER" "$PROJECT_DIR"/db.sqlite3* 2>/dev/null || true
+sudo chmod 664 "$PROJECT_DIR"/db.sqlite3* 2>/dev/null || true
+sudo chown "$USER:www-data" "$PROJECT_DIR"
+sudo chmod 775 "$PROJECT_DIR"
 echo -e "${GREEN}✓ Permissions verified${NC}"
 
 # 8. Restart Redis
@@ -110,6 +111,7 @@ fi
 
 # 10. Restart Celery Worker & Beat
 echo -e "${YELLOW}9. Restarting Celery background workers and scheduler...${NC}"
+rm -f "$PROJECT_DIR/celerybeat.pid" "/tmp/celerybeat_${PROJECT_NAME}.pid"
 # Systemd mode
 if systemctl list-unit-files | grep -q "celery_${PROJECT_NAME}"; then
     systemctl restart "celery_${PROJECT_NAME}"
@@ -140,11 +142,16 @@ echo "========================================================="
 echo -e "${GREEN}🎉 All services updated & restarted successfully!${NC}"
 echo "========================================================="
 echo "Status Summary:"
-for svc in "gunicorn_${PROJECT_NAME}" "celery_${PROJECT_NAME}" "celerybeat_${PROJECT_NAME}" "redis-server" "nginx"; do
+for svc in "gunicorn_${PROJECT_NAME}" "celery_${PROJECT_NAME}" "celerybeat_${PROJECT_NAME}" "nginx"; do
     if systemctl is-active --quiet "$svc" 2>/dev/null; then
         echo -e "  - $svc: ${GREEN}Active (Running)${NC}"
     else
         echo -e "  - $svc: ${YELLOW}Inactive / Not configured${NC}"
     fi
 done
+if systemctl is-active --quiet "redis-server" 2>/dev/null || systemctl is-active --quiet "redis" 2>/dev/null; then
+    echo -e "  - redis: ${GREEN}Active (Running)${NC}"
+else
+    echo -e "  - redis: ${YELLOW}Inactive / Not configured${NC}"
+fi
 echo "========================================================="

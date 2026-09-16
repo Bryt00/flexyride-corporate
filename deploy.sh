@@ -25,7 +25,7 @@ echo "========================================================="
 # 1. Update system and install system dependencies
 echo "=> Updating system and installing dependencies..."
 sudo apt-get update -y
-sudo apt-get install -y python3 python3-pip python3-venv nginx curl ufw redis-server
+sudo apt-get install -y python3 python3-pip python3-venv nginx curl ufw redis-server rsync
 
 # Ensure Redis is running for Celery and caching
 sudo systemctl enable redis-server
@@ -35,11 +35,31 @@ sudo systemctl start redis-server
 echo "=> Setting up project directory in $PROJECT_DIR..."
 sudo mkdir -p "$PROJECT_DIR"
 
-# If script is run from a cloned repo folder outside /opt, copy files over
+# If script is run from a cloned repo folder outside /opt, sync files safely without overwriting db or .env
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ "$SCRIPT_DIR" != "$PROJECT_DIR" ] && [ -f "$SCRIPT_DIR/manage.py" ]; then
-    echo "=> Copying project files from $SCRIPT_DIR to $PROJECT_DIR..."
-    sudo cp -ru "$SCRIPT_DIR"/. "$PROJECT_DIR"/
+    echo "=> Safely synchronizing project files from $SCRIPT_DIR to $PROJECT_DIR..."
+    sudo rsync -av \
+        --exclude='db.sqlite3*' \
+        --exclude='.env' \
+        --exclude='media/' \
+        --exclude='staticfiles/' \
+        --exclude='venv/' \
+        --exclude='__pycache__/' \
+        --exclude='*.pyc' \
+        --exclude='celerybeat.pid' \
+        "$SCRIPT_DIR"/ "$PROJECT_DIR"/
+
+    # Initialize .env if it does not exist yet in $PROJECT_DIR
+    if [ ! -f "$PROJECT_DIR/.env" ]; then
+        if [ -f "$SCRIPT_DIR/.env" ]; then
+            echo "=> Initializing .env in $PROJECT_DIR from $SCRIPT_DIR/.env..."
+            sudo cp "$SCRIPT_DIR/.env" "$PROJECT_DIR/.env"
+        elif [ -f "$SCRIPT_DIR/.env.example" ]; then
+            echo "=> Initializing .env in $PROJECT_DIR from $SCRIPT_DIR/.env.example..."
+            sudo cp "$SCRIPT_DIR/.env.example" "$PROJECT_DIR/.env"
+        fi
+    fi
 fi
 
 sudo chown -R "$USER:$USER" "$PROJECT_DIR"
@@ -64,7 +84,6 @@ pip install gunicorn uvicorn[standard] daphne setproctitle redis celery django-r
 # 4. Django setup (Migrations, Static files)
 echo "=> Running Django setup tasks..."
 sudo mkdir -p "$PROJECT_DIR/staticfiles"
-python manage.py makemigrations --noinput || true
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
@@ -80,15 +99,13 @@ sudo mkdir -p "$PROJECT_DIR/media"
 sudo chown -R "$USER:www-data" "$PROJECT_DIR/media"
 sudo chmod -R 775 "$PROJECT_DIR/media"
 
-# -- db.sqlite3 (if using SQLite): readable/writable by app user
-if [ -f "$PROJECT_DIR/db.sqlite3" ]; then
-    sudo chown "$USER:$USER" "$PROJECT_DIR/db.sqlite3"
-    sudo chmod 660 "$PROJECT_DIR/db.sqlite3"
-fi
+# -- db.sqlite3 (if using SQLite): readable/writable by app user, including WAL & SHM journal files
+sudo chown "$USER:$USER" "$PROJECT_DIR"/db.sqlite3* 2>/dev/null || true
+sudo chmod 664 "$PROJECT_DIR"/db.sqlite3* 2>/dev/null || true
 
-# Ensure project directory is traversable by Gunicorn and Nginx
+# Ensure project directory is traversable and writable for SQLite lock/WAL creation
 sudo chown "$USER:www-data" "$PROJECT_DIR"
-sudo chmod 750 "$PROJECT_DIR"
+sudo chmod 775 "$PROJECT_DIR"
 
 # 5. Setup Gunicorn Systemd Service (ASGI / Uvicorn for WebSockets + HTTP)
 echo "=> Configuring Gunicorn ASGI service..."
@@ -144,7 +161,7 @@ User=$USER
 Group=www-data
 WorkingDirectory=$PROJECT_DIR
 Environment=\"PATH=$PROJECT_DIR/venv/bin\"
-ExecStart=$PROJECT_DIR/venv/bin/celery -A config beat -l info
+ExecStart=$PROJECT_DIR/venv/bin/celery -A config beat -l info --pidfile=/tmp/celerybeat_${PROJECT_NAME}.pid
 Restart=always
 RestartSec=5
 
@@ -155,6 +172,7 @@ EOF"
 sudo systemctl daemon-reload
 sudo systemctl enable "celery_${PROJECT_NAME}"
 sudo systemctl restart "celery_${PROJECT_NAME}"
+sudo rm -f "$PROJECT_DIR/celerybeat.pid" "/tmp/celerybeat_${PROJECT_NAME}.pid"
 sudo systemctl enable "celerybeat_${PROJECT_NAME}"
 sudo systemctl restart "celerybeat_${PROJECT_NAME}"
 
