@@ -217,7 +217,7 @@
                     </a>
                     {% elif user_role == 'BROKER' %}
                     <a href="{% url 'portal_broker_workspace' %}" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 group">
-                        <i data-lucide="shield-alert" class="w-4 h-4 text-[#8CC63F] group-hover:scale-110 transition-transform"></i> FlexyRide Corporate Operations →
+                        <i data-lucide="shield-check" class="w-4 h-4 text-[#8CC63F] group-hover:scale-110 transition-transform"></i> Customer Rep Portal →
                     </a>
                     {% elif user_role == 'SYSTEM_ADMIN' %}
                     <a href="{% url 'portal_admin_metrics' %}" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md transition-all flex items-center gap-2 group">
@@ -256,7 +256,7 @@
                 {% if user_role == 'PROVIDER_ADMIN' %}
                 <a href="{% url 'portal_provider_workspace' %}" class="block w-full text-center py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-900 border border-slate-200">Transport Provider Console →</a>
                 {% elif user_role == 'BROKER' %}
-                <a href="{% url 'portal_broker_workspace' %}" class="block w-full text-center py-2.5 rounded-xl text-xs font-bold bg-slate-900 text-white">Broker Operations Console →</a>
+                <a href="{% url 'portal_broker_workspace' %}" class="block w-full text-center py-2.5 rounded-xl text-xs font-bold bg-slate-900 text-white">Customer Rep Portal →</a>
                 {% elif user_role == 'SYSTEM_ADMIN' %}
                 <a href="{% url 'portal_admin_metrics' %}" class="block w-full text-center py-2.5 rounded-xl text-xs font-black bg-emerald-500 text-white">System Admin Console →</a>
                 {% else %}
@@ -314,7 +314,7 @@
                     <ul class="space-y-2.5">
                         <li><a href="{% url 'portal_dashboard' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Corporate Client Portal</a></li>
                         <li><a href="{% url 'portal_provider_workspace' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Fleet Provider Console</a></li>
-                        <li><a href="{% url 'portal_broker_workspace' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">FlexyRide Corporate Operations</a></li>
+                        <li><a href="{% url 'portal_broker_workspace' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Customer Rep Portal</a></li>
                         <li><a href="{% url 'portal_login' %}" class="hover:text-[#73A233] hover:translate-x-1 inline-block transition-transform duration-200 font-semibold">Employee Sign In</a></li>
                     </ul>
                 </div>
