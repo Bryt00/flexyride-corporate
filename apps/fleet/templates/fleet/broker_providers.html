@@ -1,0 +1,836 @@
+{% extends "portal/broker/broker_base.html" %}
+{% load humanize %}
+
+{% block broker_page_title %}Transport Provider Network{% endblock %}
+{% block broker_page_subtitle %}Commercial fleet operator registry, fleet capacity, DVLA compliance certifications, and SLA fulfillment metrics.{% endblock %}
+
+{% block broker_content %}
+<div class="space-y-6">
+
+    <!-- Top Network Overview Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Metric 1: Total Providers -->
+        <div class="card-elevated rounded-2xl p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Operators</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400">
+                    <i data-lucide="building-2" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-white mt-2 font-mono">{{ total_providers_count|default:providers.count }}</p>
+            <span class="text-[11px] text-slate-400 font-medium flex items-center gap-1 mt-1">
+                Registered Transport Partners
+            </span>
+        </div>
+
+        <!-- Metric 2: Verified & Active -->
+        <div class="card-elevated rounded-2xl p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Verified Partners</span>
+                <div class="w-8 h-8 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-emerald-400 mt-2 font-mono">{{ approved_providers_count|default:"0" }}</p>
+            <span class="text-[11px] text-emerald-400/80 font-medium flex items-center gap-1 mt-1">
+                <i data-lucide="check-circle" class="w-3 h-3"></i> Eligible for RFQ Broadcasts
+            </span>
+        </div>
+
+        <!-- Metric 3: Pending Review -->
+        <div class="card-elevated rounded-2xl p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Pending Review</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-amber-400 mt-2 font-mono">{{ pending_providers_count|default:"0" }}</p>
+            <span class="text-[11px] text-amber-400/80 font-medium flex items-center gap-1 mt-1">
+                <i data-lucide="alert-circle" class="w-3 h-3"></i> Awaiting DVLA Vetting
+            </span>
+        </div>
+
+        <!-- Metric 4: Aggregate Fleet & Drivers -->
+        <div class="card-elevated rounded-2xl p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Network Capacity</span>
+                <div class="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center text-blue-400">
+                    <i data-lucide="car" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-white mt-2 font-mono">{{ total_network_vehicles|default:"0" }} <span class="text-xs text-slate-400 font-sans font-normal">Units</span> / {{ total_network_drivers|default:"0" }} <span class="text-xs text-slate-400 font-sans font-normal">Drivers</span></p>
+            <span class="text-[11px] text-blue-400/80 font-medium flex items-center gap-1 mt-1">
+                <i data-lucide="users" class="w-3 h-3"></i> Aggregate Fleet Capacity
+            </span>
+        </div>
+    </div>
+
+    <!-- Action & Filter Toolbar -->
+    <div class="card-elevated p-4 rounded-2xl border border-white/5 bg-[#0d1424] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        <!-- Left: Status Filters & Search Bar -->
+        <div class="flex flex-wrap items-center gap-3 flex-1">
+            <!-- Search Form -->
+            <form method="GET" action="{% url 'portal_broker_providers' %}" class="relative flex-1 sm:max-w-xs">
+                {% if status_filter and status_filter != 'ALL' %}
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                {% endif %}
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input type="text" name="q" value="{{ search_query|default:'' }}" 
+                       placeholder="Search company, permit, contact..." 
+                       class="w-full pl-9 pr-8 py-2 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                {% if search_query %}
+                <a href="{% url 'portal_broker_providers' %}{% if status_filter and status_filter != 'ALL' %}?status={{ status_filter }}{% endif %}" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </a>
+                {% endif %}
+            </form>
+
+            <!-- Status Pill Filter Tabs -->
+            <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 text-xs">
+                <a href="{% url 'portal_broker_providers' %}{% if search_query %}?q={{ search_query }}{% endif %}" 
+                   class="px-3 py-1.5 rounded-lg font-bold transition-all {% if not status_filter or status_filter == 'ALL' %}bg-amber-400 text-[#080D18] shadow-sm{% else %}text-slate-400 hover:text-white{% endif %}">
+                    All ({{ total_providers_count|default:providers.count }})
+                </a>
+                <a href="{% url 'portal_broker_providers' %}?status=APPROVED{% if search_query %}&q={{ search_query }}{% endif %}" 
+                   class="px-3 py-1.5 rounded-lg font-bold transition-all {% if status_filter == 'APPROVED' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-400 hover:text-emerald-400{% endif %}">
+                    Verified ({{ approved_providers_count|default:"0" }})
+                </a>
+                <a href="{% url 'portal_broker_providers' %}?status=PENDING{% if search_query %}&q={{ search_query }}{% endif %}" 
+                   class="px-3 py-1.5 rounded-lg font-bold transition-all {% if status_filter == 'PENDING' %}bg-amber-400 text-[#080D18] shadow-sm{% else %}text-slate-400 hover:text-amber-400{% endif %}">
+                    Pending ({{ pending_providers_count|default:"0" }})
+                </a>
+                <a href="{% url 'portal_broker_providers' %}?status=SUSPENDED{% if search_query %}&q={{ search_query }}{% endif %}" 
+                   class="px-3 py-1.5 rounded-lg font-bold transition-all {% if status_filter == 'SUSPENDED' %}bg-rose-500 text-white shadow-sm{% else %}text-slate-400 hover:text-rose-400{% endif %}">
+                    Suspended ({{ suspended_providers_count|default:"0" }})
+                </a>
+            </div>
+        </div>
+
+        <!-- Right: Primary Call to Action -->
+        <button type="button" onclick="openOnboardModal()" class="px-4 py-2.5 rounded-xl text-xs font-black bg-amber-400 text-[#080D18] hover:bg-amber-300 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 active:scale-95 shrink-0">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>Onboard Provider</span>
+        </button>
+
+    </div>
+
+    <!-- Provider Network Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for prov in providers %}
+        <div class="card-elevated p-6 rounded-2xl border border-white/5 hover:border-amber-400/30 transition-all space-y-5 bg-[#0d1424] flex flex-col justify-between group">
+            
+            <div class="space-y-4">
+                <!-- Header with Monogram & Status Badge -->
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-2xl {% if prov.status == 'APPROVED' %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/25{% elif prov.status == 'SUSPENDED' %}bg-rose-500/15 text-rose-400 border border-rose-500/25{% else %}bg-amber-400/15 text-amber-400 border border-amber-400/25{% endif %} flex items-center justify-center font-black text-sm tracking-wider shadow-inner">
+                            {{ prov.company_name|slice:":2"|upper }}
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-white leading-tight group-hover:text-amber-300 transition-colors">{{ prov.company_name }}</h3>
+                            <span class="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
+                                <i data-lucide="badge-check" class="w-3 h-3 text-amber-400"></i>
+                                Permit: <span class="text-slate-300 font-bold">{{ prov.registration_number|default:"DVLA-GH-COMM-048" }}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        {% if prov.status == 'APPROVED' %}
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
+                            <i data-lucide="shield-check" class="w-3 h-3"></i> Verified
+                        </span>
+                        {% elif prov.status == 'SUSPENDED' %}
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/25 flex items-center gap-1">
+                            <i data-lucide="ban" class="w-3 h-3"></i> Suspended
+                        </span>
+                        {% else %}
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400/15 text-amber-400 border border-amber-400/25 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i> Pending
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Coverage Areas & Specializations -->
+                <div class="space-y-1.5 text-[11px]">
+                    {% if prov.service_area %}
+                    <div class="flex items-center gap-1.5 text-slate-300">
+                        <i data-lucide="map" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                        <span class="truncate font-medium">{{ prov.service_area }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if prov.specializations %}
+                    <div class="flex flex-wrap gap-1 pt-1">
+                        <span class="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[10px] text-slate-300 font-medium">
+                            {{ prov.specializations }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Metrics Pill Bar -->
+                <div class="grid grid-cols-4 gap-1.5 text-center p-3 surface-well rounded-xl border border-white/5">
+                    <div>
+                        <span class="text-[9px] text-slate-500 uppercase font-bold block">Fleet</span>
+                        <span class="font-mono font-black text-white text-xs">{{ prov.vehicles.count }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] text-slate-500 uppercase font-bold block">Drivers</span>
+                        <span class="font-mono font-black text-white text-xs">{{ prov.drivers.count }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] text-slate-500 uppercase font-bold block">Rating</span>
+                        <span class="font-mono font-black text-amber-400 text-xs">{{ prov.overall_rating|default:"5.0" }}★</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] text-slate-500 uppercase font-bold block">Bids</span>
+                        <span class="font-mono font-black text-blue-400 text-xs">{{ prov.quotes.count }}</span>
+                    </div>
+                </div>
+
+                <!-- Contact & Dispatch Desk -->
+                <div class="space-y-1.5 text-xs text-slate-300 pt-1 border-t border-white/5">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="user" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                        <span class="truncate font-medium text-white">{{ prov.contact_person|default:"Operations Lead" }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                        <a href="mailto:{{ prov.email }}" class="truncate hover:text-amber-400 transition-colors">{{ prov.email|default:"dispatch@provider.com" }}</a>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                        <a href="tel:{{ prov.phone }}" class="hover:text-amber-400 transition-colors font-mono">{{ prov.phone|default:"+233 24 000 0000" }}</a>
+                    </div>
+                    {% if prov.address %}
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+                        <span class="truncate text-slate-400">{{ prov.address }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Strip -->
+            <div class="pt-4 border-t border-white/5 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <!-- View Fleet & Drivers Button -->
+                    <button type="button" onclick="openFleetModal({{ prov.id }})" 
+                            class="px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-bold transition-all border border-blue-500/20 inline-flex items-center gap-1.5 active:scale-95">
+                        <i data-lucide="car" class="w-3.5 h-3.5"></i>
+                        <span>Fleet & Drivers ({{ prov.vehicles.count }})</span>
+                    </button>
+
+                    <!-- Quick Actions Group -->
+                    <div class="flex items-center gap-1.5">
+                        <!-- Quick Status Toggle -->
+                        {% if prov.status == 'APPROVED' %}
+                        <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_provider_status">
+                            <input type="hidden" name="provider_id" value="{{ prov.id }}">
+                            <input type="hidden" name="new_status" value="SUSPENDED">
+                            <button type="submit" title="Suspend Operator" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-all border border-rose-500/20 active:scale-95">
+                                <i data-lucide="ban" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_provider_status">
+                            <input type="hidden" name="provider_id" value="{{ prov.id }}">
+                            <input type="hidden" name="new_status" value="APPROVED">
+                            <button type="submit" title="Verify & Approve" class="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold transition-all border border-emerald-500/20 active:scale-95">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <!-- Edit Button -->
+                        <button type="button" onclick="openEditModal({{ prov.id }})" title="Edit Provider" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold transition-all border border-white/5 active:scale-95">
+                            <i data-lucide="pencil" class="w-3.5 h-3.5 text-amber-400"></i>
+                        </button>
+
+                        <!-- Delete Button -->
+                        <button type="button" onclick="openDeleteModal({{ prov.id }}, '{{ prov.company_name|escapejs }}', {{ prov.vehicles.count }}, {{ prov.quotes.count }})" title="Deactivate / Delete" class="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-xs font-bold transition-all border border-white/5 active:scale-95">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JSON Data Script for Modals -->
+            <script type="application/json" id="prov-data-{{ prov.id }}">
+            {
+                "id": {{ prov.id }},
+                "company_name": "{{ prov.company_name|escapejs }}",
+                "registration_number": "{{ prov.registration_number|default:''|escapejs }}",
+                "contact_person": "{{ prov.contact_person|escapejs }}",
+                "phone": "{{ prov.phone|escapejs }}",
+                "email": "{{ prov.email|escapejs }}",
+                "address": "{{ prov.address|default:''|escapejs }}",
+                "service_area": "{{ prov.service_area|default:''|escapejs }}",
+                "specializations": "{{ prov.specializations|default:''|escapejs }}",
+                "status": "{{ prov.status }}",
+                "overall_rating": "{{ prov.overall_rating|default:'5.00' }}",
+                "vehicles": [
+                    {% for v in prov.vehicles.all %}
+                    {
+                        "make": "{{ v.make|escapejs }}",
+                        "model": "{{ v.model|escapejs }}",
+                        "year": "{{ v.year|default:'' }}",
+                        "category": "{{ v.get_category_display|escapejs }}",
+                        "registration_number": "{{ v.registration_number|escapejs }}",
+                        "seating_capacity": {{ v.seating_capacity }},
+                        "compliance_status": "{{ v.get_compliance_status_display|escapejs }}"
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                "drivers": [
+                    {% for d in prov.drivers.all %}
+                    {
+                        "full_name": "{{ d.full_name|escapejs }}",
+                        "phone_number": "{{ d.phone_number|escapejs }}",
+                        "license_number": "{{ d.license_number|escapejs }}",
+                        "status": "{{ d.get_status_display|escapejs }}",
+                        "compliance_status": "{{ d.get_compliance_status_display|escapejs }}"
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }
+            </script>
+
+        </div>
+        {% empty %}
+        <div class="col-span-full py-16 text-center card-elevated rounded-2xl p-8 border border-white/5 bg-[#0d1424]">
+            <div class="w-16 h-16 rounded-3xl bg-amber-400/10 text-amber-400 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="building-2" class="w-8 h-8"></i>
+            </div>
+            <h3 class="font-black text-white text-base">No Transport Providers Found</h3>
+            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                {% if search_query or status_filter != 'ALL' %}
+                No operators matched your filter criteria. Try adjusting or clearing your filters.
+                {% else %}
+                No commercial fleet operators are currently registered. Onboard your first provider to activate the wholesale network.
+                {% endif %}
+            </p>
+            <div class="mt-5 flex items-center justify-center gap-3">
+                {% if search_query or status_filter != 'ALL' %}
+                <a href="{% url 'portal_broker_providers' %}" class="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 text-white transition-all border border-white/10">
+                    Clear Filters
+                </a>
+                {% endif %}
+                <button type="button" onclick="openOnboardModal()" class="px-4 py-2 rounded-xl text-xs font-black bg-amber-400 text-[#080D18] hover:bg-amber-300 transition-all flex items-center gap-1.5 shadow-lg shadow-amber-400/20">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span>Onboard Provider</span>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 1: Onboard Provider Modal -->
+<!-- ========================================================================= -->
+<div id="onboardModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#10172A] rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-6 relative border border-white/10 my-8" onclick="event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-400/15 text-amber-400 flex items-center justify-center font-black">
+                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-white">Onboard Transport Provider</h3>
+                    <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Register commercial fleet partner & provision dispatcher access</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeOnboardModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'portal_broker_providers' %}" class="space-y-5">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="onboard_provider">
+
+            <!-- Section 1: Company & Legal Registration -->
+            <div class="space-y-3">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    <span>1. Commercial Entity & Regulatory Registration</span>
+                </h4>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Company Legal Name *</label>
+                        <input type="text" name="company_name" required placeholder="e.g. Safari Luxury Tours & Transport Ltd" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">DVLA / Commercial Permit No.</label>
+                        <input type="text" name="registration_number" placeholder="e.g. DVLA-GH-COMM-048 (Leave blank to auto-generate)" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Contact Person *</label>
+                        <input type="text" name="contact_person" required placeholder="e.g. Samuel Darko" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Dispatch Email *</label>
+                        <input type="email" name="email" required placeholder="dispatch@provider.gh" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Phone Number *</label>
+                        <input type="text" name="phone" required placeholder="+233 24 000 0000" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Depot & Operations Address</label>
+                    <input type="text" name="address" placeholder="e.g. Plot 4, Spintex Road, Accra" 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+            </div>
+
+            <!-- Section 2: Fleet Operating Scope -->
+            <div class="space-y-3 pt-2 border-t border-white/10">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                    <span>2. Operational Coverage & Capabilities</span>
+                </h4>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Service Coverage Areas</label>
+                        <input type="text" name="service_area" value="Greater Accra, Tema, Kumasi, Takoradi" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Specializations</label>
+                        <input type="text" name="specializations" value="Executive VIP, Airport Transfers, Corporate Shuttles" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Initial Network Status</label>
+                        <select name="status" class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                            <option value="APPROVED" selected>Approved & Verified (Immediate Tender Broadcasts)</option>
+                            <option value="PENDING">Pending Review (Awaiting DVLA Verification)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Initial Rating (0.00 - 5.00)</label>
+                        <input type="number" step="0.1" min="1" max="5" name="overall_rating" value="5.0" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Provider Admin Portal Credentials -->
+            <div class="space-y-3 pt-2 border-t border-white/10">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="key" class="w-3.5 h-3.5"></i>
+                        <span>3. Provider Portal Dispatcher Access</span>
+                    </h4>
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 font-bold">
+                        <input type="checkbox" name="create_admin_account" value="true" checked class="rounded text-amber-400 focus:ring-amber-400 bg-black/40 border-white/10">
+                        <span>Provision Admin Account</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black/40 p-4 rounded-2xl border border-white/5">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Portal Username</label>
+                        <input type="text" name="admin_username" placeholder="e.g. safari_dispatch (Leave blank to auto-generate)" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-300">Temporary Password</label>
+                        <input type="text" name="admin_password" placeholder="Leave blank to auto-generate secure password" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Strip -->
+            <div class="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
+                <button type="button" onclick="closeOnboardModal()" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#080D18] rounded-xl text-xs font-black shadow-lg shadow-amber-400/25 transition-all active:scale-95 flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    <span>Confirm Onboarding</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 2: Edit Provider Modal -->
+<!-- ========================================================================= -->
+<div id="editModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#10172A] rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-6 relative border border-white/10 my-8" onclick="event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-400/15 text-amber-400 flex items-center justify-center font-black">
+                    <i data-lucide="pencil" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-white" id="editModalHeaderTitle">Edit Provider Profile</h3>
+                    <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Update commercial registry credentials & operational parameters</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'portal_broker_providers' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_provider">
+            <input type="hidden" name="provider_id" id="editProviderId" value="">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Company Legal Name</label>
+                    <input type="text" name="company_name" id="editCompanyName" required 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">DVLA / Permit Registration</label>
+                    <input type="text" name="registration_number" id="editRegistrationNumber" 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Contact Person</label>
+                    <input type="text" name="contact_person" id="editContactPerson" required 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Dispatch Email</label>
+                    <input type="email" name="email" id="editEmail" required 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Phone</label>
+                    <input type="text" name="phone" id="editPhone" required 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-300">Depot Address</label>
+                <input type="text" name="address" id="editAddress" 
+                       class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Service Coverage Area</label>
+                    <input type="text" name="service_area" id="editServiceArea" 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Specializations</label>
+                    <input type="text" name="specializations" id="editSpecializations" 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Operating Status</label>
+                    <select name="status" id="editStatus" class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                        <option value="APPROVED">Approved & Verified</option>
+                        <option value="PENDING">Pending Review</option>
+                        <option value="SUSPENDED">Suspended</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-300">Overall Rating (★)</label>
+                    <input type="number" step="0.1" min="1" max="5" name="overall_rating" id="editRating" 
+                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                </div>
+            </div>
+
+            <div class="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#080D18] rounded-xl text-xs font-black shadow-lg shadow-amber-400/25 transition-all active:scale-95 flex items-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 3: Fleet & Driver Directory Drilldown Modal -->
+<!-- ========================================================================= -->
+<div id="fleetModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#10172A] rounded-3xl max-w-3xl w-full p-6 sm:p-7 shadow-2xl space-y-6 relative border border-white/10 my-8" onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-400 flex items-center justify-center font-black">
+                    <i data-lucide="car" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-white" id="fleetModalTitle">Transport Provider Fleet</h3>
+                    <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider" id="fleetModalSubtitle">Commercial vehicles and vetted chauffeurs</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeFleetModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Content Container -->
+        <div class="space-y-6 max-h-[60vh] overflow-y-auto pr-1">
+            
+            <!-- Vehicles Section -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="truck" class="w-4 h-4 text-blue-400"></i>
+                        <span>Registered Vehicles</span>
+                    </h4>
+                    <span class="text-[10px] text-slate-400 font-mono" id="fleetVehicleCount">0 units</span>
+                </div>
+
+                <div id="fleetVehicleList" class="space-y-2">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Drivers Section -->
+            <div class="space-y-3 pt-4 border-t border-white/10">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Vetted Chauffeurs & Drivers</span>
+                    </h4>
+                    <span class="text-[10px] text-slate-400 font-mono" id="fleetDriverCount">0 drivers</span>
+                </div>
+
+                <div id="fleetDriverList" class="space-y-2">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="pt-4 flex items-center justify-end border-t border-white/10">
+            <button type="button" onclick="closeFleetModal()" class="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all">
+                Close Inspector
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 4: Delete / Suspend Confirmation Modal -->
+<!-- ========================================================================= -->
+<div id="deleteModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#10172A] rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-5 relative border border-white/10" onclick="event.stopPropagation()">
+        
+        <div class="flex items-center gap-3 pb-3 border-b border-white/10">
+            <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-400 flex items-center justify-center font-black">
+                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-black text-white">Deactivate Provider</h3>
+                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Audit & Data Protection Guard</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'portal_broker_providers' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_provider">
+            <input type="hidden" name="provider_id" id="deleteProviderId" value="">
+
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Are you sure you want to deactivate <span class="font-bold text-white" id="deleteProviderName"></span>?
+            </p>
+
+            <div id="deleteWarningBox" class="p-3.5 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-300 text-xs leading-relaxed space-y-1">
+                <p class="font-bold flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                    <span>Relational Data Protection:</span>
+                </p>
+                <p class="text-[11px] text-amber-200/90" id="deleteWarningMessage">
+                    If this provider has linked fleet units or historical quotes, they will be safely <strong>SUSPENDED</strong> to protect historical audit data.
+                </p>
+            </div>
+
+            <div class="pt-3 flex items-center justify-end gap-3 border-t border-white/10">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black shadow-lg shadow-rose-600/25 transition-all active:scale-95 flex items-center gap-1.5">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>Confirm Action</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- JAVASCRIPT MODAL & DATA CONTROLLERS -->
+<!-- ========================================================================= -->
+<script>
+    // 1. Onboard Modal
+    function openOnboardModal() {
+        document.getElementById('onboardModal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+    function closeOnboardModal() {
+        document.getElementById('onboardModal').classList.add('hidden');
+    }
+
+    // 2. Edit Modal
+    function openEditModal(provId) {
+        const scriptEl = document.getElementById('prov-data-' + provId);
+        if (!scriptEl) return;
+        const data = JSON.parse(scriptEl.textContent);
+
+        document.getElementById('editProviderId').value = data.id;
+        document.getElementById('editModalHeaderTitle').textContent = 'Edit: ' + data.company_name;
+        document.getElementById('editCompanyName').value = data.company_name;
+        document.getElementById('editRegistrationNumber').value = data.registration_number;
+        document.getElementById('editContactPerson').value = data.contact_person;
+        document.getElementById('editEmail').value = data.email;
+        document.getElementById('editPhone').value = data.phone;
+        document.getElementById('editAddress').value = data.address;
+        document.getElementById('editServiceArea').value = data.service_area;
+        document.getElementById('editSpecializations').value = data.specializations;
+        document.getElementById('editStatus').value = data.status;
+        document.getElementById('editRating').value = parseFloat(data.overall_rating) || 5.0;
+
+        document.getElementById('editModal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+    function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+    }
+
+    // 3. Fleet & Driver Drilldown Modal
+    function openFleetModal(provId) {
+        const scriptEl = document.getElementById('prov-data-' + provId);
+        if (!scriptEl) return;
+        const data = JSON.parse(scriptEl.textContent);
+
+        document.getElementById('fleetModalTitle').textContent = data.company_name;
+        document.getElementById('fleetModalSubtitle').textContent = 'Permit: ' + (data.registration_number || 'DVLA-GH-COMM-048') + ' • ' + (data.service_area || 'National Network');
+
+        // Render Vehicles
+        const vList = document.getElementById('fleetVehicleList');
+        document.getElementById('fleetVehicleCount').textContent = data.vehicles.length + ' registered units';
+        if (data.vehicles.length === 0) {
+            vList.innerHTML = '<div class="p-4 rounded-xl surface-well text-xs text-slate-400 text-center">No vehicles registered yet by this provider.</div>';
+        } else {
+            vList.innerHTML = data.vehicles.map(v => `
+                <div class="p-3.5 rounded-xl surface-well border border-white/5 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs">
+                            ${v.seating_capacity}p
+                        </div>
+                        <div>
+                            <span class="font-bold text-white">${v.year ? v.year + ' ' : ''}${v.make} ${v.model}</span>
+                            <span class="text-[10px] text-slate-400 block font-mono">Plate: <strong class="text-amber-400">${v.registration_number}</strong> • ${v.category}</span>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${v.compliance_status.includes('Compliant') ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-amber-400/15 text-amber-400 border border-amber-400/20'}">
+                        ${v.compliance_status}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        // Render Drivers
+        const dList = document.getElementById('fleetDriverList');
+        document.getElementById('fleetDriverCount').textContent = data.drivers.length + ' vetted drivers';
+        if (data.drivers.length === 0) {
+            dList.innerHTML = '<div class="p-4 rounded-xl surface-well text-xs text-slate-400 text-center">No drivers registered yet by this provider.</div>';
+        } else {
+            dList.innerHTML = data.drivers.map(d => `
+                <div class="p-3.5 rounded-xl surface-well border border-white/5 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-white">${d.full_name}</span>
+                            <span class="text-[10px] text-slate-400 block font-mono">License: ${d.license_number} • ${d.phone_number}</span>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${d.compliance_status.includes('Compliant') ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-amber-400/15 text-amber-400 border border-amber-400/20'}">
+                        ${d.compliance_status}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('fleetModal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+    function closeFleetModal() {
+        document.getElementById('fleetModal').classList.add('hidden');
+    }
+
+    // 4. Delete Modal
+    function openDeleteModal(provId, name, vehCount, quoteCount) {
+        document.getElementById('deleteProviderId').value = provId;
+        document.getElementById('deleteProviderName').textContent = name;
+        const msg = (vehCount > 0 || quoteCount > 0)
+            ? `This provider has ${vehCount} vehicle(s) and ${quoteCount} quotation(s). To preserve transactional audits, this operator will be set to SUSPENDED.`
+            : `This provider has no active fleet or quotations and will be permanently removed from the system.`;
+        document.getElementById('deleteWarningMessage').innerHTML = msg;
+
+        document.getElementById('deleteModal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    // Dismiss on backdrop click or ESC key
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeOnboardModal();
+            closeEditModal();
+            closeFleetModal();
+            closeDeleteModal();
+        }
+    });
+</script>
+{% endblock %}

@@ -102,7 +102,7 @@ User=$USER
 Group=www-data
 WorkingDirectory=$PROJECT_DIR
 Environment=\"PATH=$PROJECT_DIR/venv/bin\"
-ExecStart=$PROJECT_DIR/venv/bin/gunicorn -k uvicorn.workers.UvicornWorker --access-logfile - --workers $GUNICORN_WORKERS --bind unix:$PROJECT_DIR/$PROJECT_NAME.sock flexyride_corporate.asgi:application
+ExecStart=$PROJECT_DIR/venv/bin/gunicorn -k uvicorn.workers.UvicornWorker --access-logfile - --workers $GUNICORN_WORKERS --bind unix:$PROJECT_DIR/$PROJECT_NAME.sock config.asgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -124,7 +124,7 @@ User=$USER
 Group=www-data
 WorkingDirectory=$PROJECT_DIR
 Environment=\"PATH=$PROJECT_DIR/venv/bin\"
-ExecStart=$PROJECT_DIR/venv/bin/celery -A flexyride_corporate worker -l info --concurrency=4 -Q default,high_priority,celery
+ExecStart=$PROJECT_DIR/venv/bin/celery -A config worker -l info --concurrency=4 -Q default,high_priority,celery
 Restart=always
 RestartSec=5
 
@@ -144,7 +144,7 @@ User=$USER
 Group=www-data
 WorkingDirectory=$PROJECT_DIR
 Environment=\"PATH=$PROJECT_DIR/venv/bin\"
-ExecStart=$PROJECT_DIR/venv/bin/celery -A flexyride_corporate beat -l info
+ExecStart=$PROJECT_DIR/venv/bin/celery -A config beat -l info
 Restart=always
 RestartSec=5
 

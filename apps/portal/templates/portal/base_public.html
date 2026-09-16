@@ -1,0 +1,361 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth bg-[#F8FAFC]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FlexyRide Corporate | B2B Ground Mobility & Fleet Operations{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'portal/img/logo_icon.png' %}">
+
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#8CC63F',
+                            light: '#A3D959',
+                            dark: '#73A233',
+                            accent: '#FFC107',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #F1F5F9; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8CC63F; }
+        
+        body {
+            color: #334155;
+            background-color: #F8FAFC;
+        }
+
+        /* Unified Light Mesh */
+        .bg-mesh {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(140, 198, 63, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 10%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(140, 198, 63, 0.06) 0px, transparent 60%);
+        }
+
+        /* Crisp Light Surface Cards */
+        .surface-card {
+            background: #FFFFFF !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .surface-card:hover {
+            transform: translateY(-3px);
+            border-color: #CBD5E1 !important;
+            box-shadow: 0 20px 35px -8px rgba(15, 23, 42, 0.08), 0 0 25px -4px rgba(140, 198, 63, 0.2) !important;
+        }
+
+        .surface-subtle {
+            background: #F8FAFC !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 1rem;
+        }
+
+        .surface-well {
+            background: #FFFFFF !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+        }
+
+        .surface-hover {
+            transition: all 0.25s ease-out;
+        }
+        .surface-hover:hover {
+            background: #F1F5F9 !important;
+            transform: translateY(-2px);
+        }
+
+        /* Smooth Glow Button */
+        .btn-glow {
+            box-shadow: 0 4px 20px rgba(140, 198, 63, 0.25);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glow:hover {
+            box-shadow: 0 8px 30px rgba(140, 198, 63, 0.4);
+            transform: translateY(-1.5px);
+        }
+
+        /* Light Theme Mappings for Public Pages */
+        .bg-\[\#0A0F1D\],
+        .bg-\[\#070B14\],
+        .bg-\[\#070A14\],
+        .bg-\[\#05080F\],
+        .bg-\[\#0D1322\],
+        .bg-\[\#111728\],
+        .bg-\[\#18233C\],
+        .bg-\[\#121829\],
+        .bg-\[\#10172A\] {
+            background-color: #F8FAFC !important;
+        }
+
+        .surface-card .bg-\[\#0A0F1D\],
+        .surface-card .bg-\[\#111728\] {
+            background-color: #F1F5F9 !important;
+            border: 1px solid #E2E8F0 !important;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #0F172A !important;
+        }
+
+        .text-white:not(.btn-glow):not(.btn-brand):not([class*="bg-[#8CC63F]"]):not([class*="bg-blue-"]):not([class*="bg-purple-"]):not([class*="bg-emerald-"]):not([class*="bg-slate-900"]):not([class*="bg-slate-900"] *) {
+            color: #0F172A !important;
+        }
+
+        .text-gray-100, .text-gray-200, .text-gray-300,
+        .text-slate-100, .text-slate-200, .text-slate-300 {
+            color: #334155 !important;
+        }
+
+        .text-gray-400, .text-slate-400 {
+            color: #64748B !important;
+        }
+
+        .border-white\/5, .border-white\/10, .border-white\/15, .border-white\/20 {
+            border-color: #E2E8F0 !important;
+        }
+
+        .bg-white\/\[0\.04\], .bg-white\/\[0\.05\], .bg-white\/\[0\.06\], .bg-white\/\[0\.08\], .bg-white\/\[0\.1\] {
+            background-color: #F1F5F9 !important;
+            color: #334155 !important;
+        }
+
+        .hover\:bg-white\/\[0\.06\]:hover, .hover\:bg-white\/\[0\.08\]:hover, .hover\:bg-white\/\[0\.1\]:hover {
+            background-color: #E2E8F0 !important;
+        }
+
+        /* Input Icon & Avatar Container Overlap Prevention */
+        .relative > i.absolute[class*="right-"] ~ input,
+        .relative > svg.absolute[class*="right-"] ~ input,
+        .relative > [data-lucide].absolute[class*="right-"] ~ input,
+        .relative:has(> i.absolute[class*="right-"]) > input,
+        .relative:has(> svg.absolute[class*="right-"]) > input,
+        .relative:has(> [data-lucide].absolute[class*="right-"]) > input {
+            padding-right: 2.75rem !important;
+        }
+
+        .relative > i.absolute:not([class*="right-"]) ~ input,
+        .relative > svg.absolute:not([class*="right-"]) ~ input,
+        .relative > [data-lucide].absolute:not([class*="right-"]) ~ input,
+        .relative:has(> i.absolute:not([class*="right-"])) > input,
+        .relative:has(> svg.absolute:not([class*="right-"])) > input,
+        .relative:has(> [data-lucide].absolute:not([class*="right-"])) > input {
+            padding-left: 2.75rem !important;
+        }
+
+        .relative > i.absolute,
+        .relative > svg.absolute,
+        .relative > [data-lucide].absolute {
+            pointer-events: none !important;
+            z-index: 10 !important;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="font-sans antialiased text-slate-800 bg-[#F8FAFC] min-h-screen flex flex-col selection:bg-[#8CC63F] selection:text-[#0A0F1D]">
+
+    <!-- ==================== STICKY TOP NAVBAR (LIGHT & ELEVATED) ==================== -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-2xl border-b border-slate-200/80 shadow-sm shadow-slate-900/5 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="{% url 'landing_page' %}" class="flex items-center gap-3.5 group">
+                <div class="relative">
+                    <img src="{% static 'portal/img/logo_icon.png' %}" alt="FlexyRide" class="w-12 h-8 object-contain rounded-lg group-hover:scale-105 transition-transform duration-300">
+                    <span class="absolute -top-1 -right-1 flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8CC63F] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#8CC63F]"></span>
+                    </span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5 leading-none">
+                        <span class="text-xl font-black text-slate-900 tracking-tight">Flexy<span class="text-[#8CC63F]">Ride</span></span>
+                    </div>
+                    <span class="block text-[9px] font-black uppercase tracking-widest text-[#8CC63F] mt-0.5">Corporate Mobility</span>
+                </div>
+            </a>
+
+            <!-- Nav Links (Desktop - Tactile Pill Group) -->
+            <nav class="hidden md:flex items-center gap-1.5 text-xs font-semibold p-1.5 rounded-full bg-slate-100/90 border border-slate-200/80">
+                <a href="{% url 'portal_solutions' %}" class="px-4 py-2 rounded-full transition-all duration-200 {% if active_nav == 'solutions' %}bg-[#8CC63F] text-[#0A0F1D] font-bold shadow-sm{% else %}text-slate-600 hover:text-slate-900 hover:bg-white{% endif %}">Solutions</a>
+                <a href="{% url 'portal_how_it_works' %}" class="px-4 py-2 rounded-full transition-all duration-200 {% if active_nav == 'how_it_works' %}bg-[#8CC63F] text-[#0A0F1D] font-bold shadow-sm{% else %}text-slate-600 hover:text-slate-900 hover:bg-white{% endif %}">How It Works</a>
+                <a href="{% url 'portal_fleet_categories' %}" class="px-4 py-2 rounded-full transition-all duration-200 {% if active_nav == 'fleet' %}bg-[#8CC63F] text-[#0A0F1D] font-bold shadow-sm{% else %}text-slate-600 hover:text-slate-900 hover:bg-white{% endif %}">Fleet Categories</a>
+                <a href="{% url 'portal_compliance_safety' %}" class="px-4 py-2 rounded-full transition-all duration-200 {% if active_nav == 'compliance' %}bg-[#8CC63F] text-[#0A0F1D] font-bold shadow-sm{% else %}text-slate-600 hover:text-slate-900 hover:bg-white{% endif %}">Compliance & Safety</a>
+            </nav>
+
+            <!-- Action CTAs -->
+            <div class="flex items-center gap-3">
+                {% if user_is_auth %}
+                    {% if user_role == 'PROVIDER_ADMIN' %}
+                    <a href="{% url 'portal_provider_workspace' %}" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs border border-slate-200 shadow-sm transition-all flex items-center gap-2 group">
+                        <i data-lucide="truck" class="w-4 h-4 text-[#8CC63F] group-hover:scale-110 transition-transform"></i> Provider Console →
+                    </a>
+                    {% elif user_role == 'BROKER' %}
+                    <a href="{% url 'portal_broker_workspace' %}" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 group">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-[#8CC63F] group-hover:scale-110 transition-transform"></i> FlexyRide Corporate Operations →
+                    </a>
+                    {% elif user_role == 'SYSTEM_ADMIN' %}
+                    <a href="{% url 'portal_admin_metrics' %}" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md transition-all flex items-center gap-2 group">
+                        <i data-lucide="shield" class="w-4 h-4"></i> Admin Console →
+                    </a>
+                    {% else %}
+                    <a href="{% url 'portal_dashboard' %}" class="px-4 py-2.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-xs btn-glow flex items-center gap-2">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Enter Workspace →
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'portal_login' %}" class="hidden md:inline-flex px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 transition-all">
+                        Sign In
+                    </a>
+                    <a href="{% url 'portal_signup' %}" class="hidden md:inline-flex px-5 py-2.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-xs btn-glow items-center gap-1.5 shadow-md shadow-[#8CC63F]/25">
+                        <span>Open Account</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5 stroke-[3]"></i>
+                    </a>
+                {% endif %}
+
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="md:hidden p-2.5 rounded-xl text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 focus:outline-none transition-all">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white px-4 pt-3 pb-5 space-y-1.5 border-b border-slate-200 shadow-xl">
+            <a href="{% url 'portal_solutions' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_nav == 'solutions' %}bg-[#8CC63F] text-[#0A0F1D]{% else %}text-slate-700 hover:bg-slate-100 hover:text-slate-900{% endif %}">Solutions</a>
+            <a href="{% url 'portal_how_it_works' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_nav == 'how_it_works' %}bg-[#8CC63F] text-[#0A0F1D]{% else %}text-slate-700 hover:bg-slate-100 hover:text-slate-900{% endif %}">How It Works</a>
+            <a href="{% url 'portal_fleet_categories' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_nav == 'fleet' %}bg-[#8CC63F] text-[#0A0F1D]{% else %}text-slate-700 hover:bg-slate-100 hover:text-slate-900{% endif %}">Fleet Categories</a>
+            <a href="{% url 'portal_compliance_safety' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_nav == 'compliance' %}bg-[#8CC63F] text-[#0A0F1D]{% else %}text-slate-700 hover:bg-slate-100 hover:text-slate-900{% endif %}">Compliance & Safety</a>
+            {% if user_is_auth %}
+            <div class="pt-3">
+                {% if user_role == 'PROVIDER_ADMIN' %}
+                <a href="{% url 'portal_provider_workspace' %}" class="block w-full text-center py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-900 border border-slate-200">Transport Provider Console →</a>
+                {% elif user_role == 'BROKER' %}
+                <a href="{% url 'portal_broker_workspace' %}" class="block w-full text-center py-2.5 rounded-xl text-xs font-bold bg-slate-900 text-white">Broker Operations Console →</a>
+                {% elif user_role == 'SYSTEM_ADMIN' %}
+                <a href="{% url 'portal_admin_metrics' %}" class="block w-full text-center py-2.5 rounded-xl text-xs font-black bg-emerald-500 text-white">System Admin Console →</a>
+                {% else %}
+                <a href="{% url 'portal_dashboard' %}" class="block w-full text-center py-2.5 rounded-xl text-xs font-black bg-[#8CC63F] text-[#0A0F1D]">Enter Corporate Workspace →</a>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="pt-3 flex gap-2">
+                <a href="{% url 'portal_login' %}" class="flex-1 text-center py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200">Sign In</a>
+                <a href="{% url 'portal_signup' %}" class="flex-1 text-center py-2.5 rounded-xl text-xs font-black bg-[#8CC63F] text-[#0A0F1D]">Open Account</a>
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- ==================== MAIN PAGE CONTENT ==================== -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ==================== SHARED ENTERPRISE FOOTER (LIGHT & REFINED) ==================== -->
+    <footer class="bg-white text-slate-600 py-16 text-xs border-t border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Brand Info -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <img src="{% static 'portal/img/logo_icon.png' %}" alt="FlexyRide Logo" class="w-10 h-7 object-contain rounded-lg">
+                        <span class="text-base font-black text-slate-900">Flexy<span class="text-[#8CC63F]">Ride</span> Corporate</span>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Ghana's premier enterprise B2B ground transportation platform. Connecting corporate organizations with vetted vehicle operators.
+                    </p>
+                    <div class="flex items-center gap-2 text-[11px] text-[#73A233] font-bold">
+                        <span class="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse"></span>
+                        24/7 Operations Desk Online
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="space-y-3">
+                    <div class="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Solutions & Hub</div>
+                    <ul class="space-y-2.5">
+                        <li><a href="{% url 'portal_solutions' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Executive Travel & Chauffeur</a></li>
+                        <li><a href="{% url 'portal_solutions' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Daily Employee Commute</a></li>
+                        <li><a href="{% url 'portal_fleet_categories' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Kotoka VIP Airport Transfers</a></li>
+                        <li><a href="{% url 'portal_how_it_works' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">How The Orchestration Works</a></li>
+                        <li><a href="{% url 'portal_compliance_safety' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Enterprise Safety Standards</a></li>
+                    </ul>
+                </div>
+
+                <!-- Platform Portals -->
+                <div class="space-y-3">
+                    <div class="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Platform Portals</div>
+                    <ul class="space-y-2.5">
+                        <li><a href="{% url 'portal_dashboard' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Corporate Client Portal</a></li>
+                        <li><a href="{% url 'portal_provider_workspace' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">Fleet Provider Console</a></li>
+                        <li><a href="{% url 'portal_broker_workspace' %}" class="hover:text-slate-900 hover:translate-x-1 inline-block transition-transform duration-200">FlexyRide Corporate Operations</a></li>
+                        <li><a href="{% url 'portal_login' %}" class="hover:text-[#73A233] hover:translate-x-1 inline-block transition-transform duration-200 font-semibold">Employee Sign In</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact / Headquarters -->
+                <div class="space-y-3">
+                    <div class="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Operations Headquarters</div>
+                    <p class="leading-relaxed text-slate-600">
+                        Liberation Road, Airport City<br>
+                        Accra, Ghana
+                    </p>
+                    <p class="font-mono text-slate-900 text-[11px] pt-1">
+                        Dispatch Desk: +233 30 200 0000<br>
+                        Operations: ops@flexyride.com
+                    </p>
+                </div>
+            </div>
+
+            <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500 border-t border-slate-100">
+                <p>&copy; 2026 FlexyRide Corporate Ltd. All rights reserved. Registered in Ghana.</p>
+                <div class="flex items-center gap-6">
+                    <a href="{% url 'portal_compliance_safety' %}" class="hover:text-slate-900 transition-colors">Safety & Compliance</a>
+                    <a href="{% url 'portal_how_it_works' %}" class="hover:text-slate-900 transition-colors">SLA Guarantee</a>
+                    <a href="{% url 'portal_solutions' %}" class="hover:text-slate-900 transition-colors">Enterprise Solutions</a>
+                    <a href="{% url 'portal_login' %}" class="text-[#73A233] hover:underline font-semibold">Portal Access</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+        const menuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (menuBtn && mobileMenu) {
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

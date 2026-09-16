@@ -1,10 +1,15 @@
 import os
+import sys
+from pathlib import Path
 import django
 from decimal import Decimal
 from django.utils import timezone
 from datetime import timedelta
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'flexyride_corporate.settings')
+BASE_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(BASE_DIR / 'apps'))
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from accounts.models import User, CorporateCustomer, CompanyEmployee, ProviderCompany

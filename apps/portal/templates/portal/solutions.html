@@ -1,0 +1,340 @@
+{% extends 'portal/base_public.html' %}
+{% load static %}
+
+{% block title %}Enterprise Mobility Solutions | FlexyRide Corporate Ghana{% endblock %}
+
+{% block content %}
+<!-- Hero Section (Borderless) -->
+<section class="relative overflow-hidden pt-14 pb-20 lg:pt-24 lg:pb-32 bg-mesh">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold tracking-wide uppercase mb-6 shadow-sm shadow-[#8CC63F]/10">
+                <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+                Tailored B2B Mobility Programs
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
+                Enterprise Ground Mobility Built for <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#8CC63F] to-[#A3D959]">Scale & Governance</span>.
+            </h1>
+            <p class="mt-6 text-base sm:text-lg text-slate-300 leading-relaxed">
+                Empower your organization with flexible corporate chauffeuring, daily employee shuttles, VIP airport protocols, and upcountry field operations—backed by automated approvals, real-time telemetry, and consolidated VAT billing.
+            </p>
+            <div class="mt-8 flex flex-wrap gap-4 items-center">
+                {% if user_is_auth %}
+                <a href="{% url 'portal_new_request' %}" class="px-6 py-3.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-sm btn-glow flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Transportation Request
+                </a>
+                {% else %}
+                <a href="{% url 'portal_login' %}" class="px-6 py-3.5 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-sm btn-glow flex items-center gap-2">
+                    <span>Deploy Corporate Account</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 stroke-[3]"></i>
+                </a>
+                <a href="#solutions-catalog" class="px-6 py-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-black/20">
+                    <i data-lucide="compass" class="w-4 h-4 text-[#8CC63F]"></i> Explore Solutions Catalog
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Metrics Strip (Borderless) -->
+        <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 p-8 rounded-3xl bg-[#111728] shadow-2xl shadow-black/50 backdrop-blur-md">
+            <div class="space-y-1">
+                <div class="text-3xl sm:text-4xl font-black text-white">99.4%</div>
+                <div class="text-xs text-slate-400 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#8CC63F]"></span> SLA On-Time Punctuality
+                </div>
+            </div>
+            <div class="space-y-1">
+                <div class="text-3xl sm:text-4xl font-black text-[#8CC63F]">40%</div>
+                <div class="text-xs text-slate-400 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#8CC63F]"></span> Transport Cost Reduction
+                </div>
+            </div>
+            <div class="space-y-1">
+                <div class="text-3xl sm:text-4xl font-black text-white">100%</div>
+                <div class="text-xs text-slate-400 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#8CC63F]"></span> Digital EFRIS Invoicing
+                </div>
+            </div>
+            <div class="space-y-1">
+                <div class="text-3xl sm:text-4xl font-black text-white">24/7</div>
+                <div class="text-xs text-slate-400 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#8CC63F]"></span> Dedicated Corporate Desk
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Solutions Deep-Dive (Borderless Cards with subtle lift) -->
+<section id="solutions-catalog" class="py-24 bg-[#0A0F1D]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <div class="text-center max-w-2xl mx-auto">
+            <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">Enterprise Mobility Catalog</span>
+            <h2 class="text-3xl sm:text-4xl font-black text-white mt-2">Comprehensive Solutions for Every Department</h2>
+            <p class="mt-4 text-sm text-slate-400 leading-relaxed">
+                Whether moving executive leadership, whole operational shifts, or overseas partners, FlexyRide provides tailored workflows.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Solution 1: Executive Chauffeur -->
+            <div class="surface-card p-8 group flex flex-col justify-between">
+                <div class="space-y-5">
+                    <div class="w-12 h-12 rounded-2xl bg-[#8CC63F]/15 flex items-center justify-center text-[#8CC63F] group-hover:scale-110 transition-transform duration-300">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Executive & C-Suite Chauffeuring</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Pristine luxury sedans and premium SUVs chauffeured by vetted, NDA-bound drivers. Designed for board members, international visiting dignitaries, and confidential business engagements.
+                    </p>
+                    <ul class="space-y-2.5 pt-4 text-xs text-slate-400">
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Chilled water, onboard Wi-Fi & phone chargers</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Hourly, daily, or multi-day executive standby</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Direct flight tracking & VIP airside coordination</li>
+                    </ul>
+                </div>
+                <div class="mt-8 pt-4">
+                    <a href="{% url 'portal_fleet_categories' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#8CC63F] group-hover:translate-x-1 transition-transform">
+                        View Executive Vehicles <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Solution 2: Staff Commute & Shuttles -->
+            <div class="surface-card p-8 group flex flex-col justify-between">
+                <div class="space-y-5">
+                    <div class="w-12 h-12 rounded-2xl bg-[#8CC63F]/15 flex items-center justify-center text-[#8CC63F] group-hover:scale-110 transition-transform duration-300">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Daily Employee Commute & Shuttles</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Scheduled fixed-route and flex-zone staff transport for corporate offices, call centers, industrial sites, and late-night shifts. Maximize team punctuality and employee safety.
+                    </p>
+                    <ul class="space-y-2.5 pt-4 text-xs text-slate-400">
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> QR code passenger boarding verification</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Route optimization to cut travel times by 30%</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Fleet sizes from 14-seater vans to 50-seater buses</li>
+                    </ul>
+                </div>
+                <div class="mt-8 pt-4">
+                    <a href="{% url 'portal_how_it_works' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#8CC63F] group-hover:translate-x-1 transition-transform">
+                        How Shuttle Routing Works <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Solution 3: Airport Meet & Greet -->
+            <div class="surface-card p-8 group flex flex-col justify-between">
+                <div class="space-y-5">
+                    <div class="w-12 h-12 rounded-2xl bg-[#8CC63F]/15 flex items-center justify-center text-[#8CC63F] group-hover:scale-110 transition-transform duration-300">
+                        <i data-lucide="plane" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Kotoka VIP Airport Transfers</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Seamless airport transfers with automated flight arrival synchronization. Chauffeurs adjust pickup times automatically if flights are delayed or land early, ensuring zero waiting time.
+                    </p>
+                    <ul class="space-y-2.5 pt-4 text-xs text-slate-400">
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Personalized arrivals terminal nameboard greeting</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Express Kotoka Airport & Motorway transit protocols</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Generous luggage allowances & luggage assistance</li>
+                    </ul>
+                </div>
+                <div class="mt-8 pt-4">
+                    <a href="{% url 'portal_fleet_categories' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#8CC63F] group-hover:translate-x-1 transition-transform">
+                        Explore Airport Fleet <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Solution 4: Conferences & Events -->
+            <div class="surface-card p-8 group flex flex-col justify-between">
+                <div class="space-y-5">
+                    <div class="w-12 h-12 rounded-2xl bg-[#8CC63F]/15 flex items-center justify-center text-[#8CC63F] group-hover:scale-110 transition-transform duration-300">
+                        <i data-lucide="calendar-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Corporate Events & Summits</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        End-to-end multi-vehicle ground logistics for annual general meetings, regional retreats, diplomatic summits, and investor roadshows across Accra, Kumasi, and regional venues.
+                    </p>
+                    <ul class="space-y-2.5 pt-4 text-xs text-slate-400">
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> On-site FlexyRide ground dispatch coordinator</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Real-time multi-vehicle convoy live telemetry</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Rapid contingency vehicle dispatch in &lt; 15 mins</li>
+                    </ul>
+                </div>
+                <div class="mt-8 pt-4">
+                    <a href="{% url 'portal_how_it_works' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#8CC63F] group-hover:translate-x-1 transition-transform">
+                        Event Choreography <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Solution 5: Field & Upcountry Operations -->
+            <div class="surface-card p-8 group flex flex-col justify-between">
+                <div class="space-y-5">
+                    <div class="w-12 h-12 rounded-2xl bg-[#8CC63F]/15 flex items-center justify-center text-[#8CC63F] group-hover:scale-110 transition-transform duration-300">
+                        <i data-lucide="map-pin" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Upcountry & Field Operations</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Heavy-duty 4WD Land Cruisers and Safari-ready commercial vehicles for NGO field audits, telecom tower inspections, agricultural monitoring, and energy infrastructure projects.
+                    </p>
+                    <ul class="space-y-2.5 pt-4 text-xs text-slate-400">
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Drivers trained in defensive off-road handling</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Full emergency kit, recovery gear & satellite beacons</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Coverage across Kumasi, Takoradi, Tamale, Sunyani</li>
+                    </ul>
+                </div>
+                <div class="mt-8 pt-4">
+                    <a href="{% url 'portal_compliance_safety' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#8CC63F] group-hover:translate-x-1 transition-transform">
+                        Safety & Upcountry Protocols <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Solution 6: Enterprise Fleet Outsourcing -->
+            <div class="surface-card p-8 group flex flex-col justify-between">
+                <div class="space-y-5">
+                    <div class="w-12 h-12 rounded-2xl bg-[#8CC63F]/15 flex items-center justify-center text-[#8CC63F] group-hover:scale-110 transition-transform duration-300">
+                        <i data-lucide="sliders-horizontal" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white group-hover:text-[#8CC63F] transition-colors">Full Fleet Outsourcing & Policy</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Eliminate capital expenditure, vehicle depreciation, and driver management overhead. Replace owned fleets with on-demand SLA-guaranteed corporate capacity.
+                    </p>
+                    <ul class="space-y-2.5 pt-4 text-xs text-slate-400">
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Zero fleet maintenance liability for your company</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Flexible monthly invoicing with cost-center coding</li>
+                        <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-3.5 h-3.5 text-[#8CC63F]"></i> Customized corporate travel policies & limits</li>
+                    </ul>
+                </div>
+                <div class="mt-8 pt-4">
+                    <a href="{% url 'portal_how_it_works' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#8CC63F] group-hover:translate-x-1 transition-transform">
+                        Explore Billing Architecture <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Financial & Administrative Control Features (Borderless) -->
+<section class="py-24 bg-[#070B14]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div class="space-y-6">
+                <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">Enterprise Financial Controls</span>
+                <h2 class="text-3xl sm:text-4xl font-black text-white leading-tight">
+                    Total Visibility Over Every Kilometer & Ghana Cedi Spent.
+                </h2>
+                <p class="text-sm text-slate-300 leading-relaxed">
+                    Corporate travel desks shouldn't have to chase paper receipts, verify inflated fuel claims, or reconcile dozens of petty cash vouchers. FlexyRide centralizes your entire enterprise transportation ledger.
+                </p>
+
+                <div class="space-y-4 pt-2">
+                    <div class="flex gap-4 p-5 rounded-2xl bg-[#111728] shadow-lg hover:-translate-y-0.5 transition-transform">
+                        <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center shrink-0">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">Cost-Center & Project Code Tagging</h4>
+                            <p class="text-xs text-slate-400 mt-1">Assign trips directly to specific client projects, grants, or departments for instant internal chargebacks.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 p-5 rounded-2xl bg-[#111728] shadow-lg hover:-translate-y-0.5 transition-transform">
+                        <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center shrink-0">
+                            <i data-lucide="shield-check" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">Configurable Multi-Tier Approval Workflows</h4>
+                            <p class="text-xs text-slate-400 mt-1">Require line-manager or finance sign-off before trips are dispatched based on spend threshold or distance.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 p-5 rounded-2xl bg-[#111728] shadow-lg hover:-translate-y-0.5 transition-transform">
+                        <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center shrink-0">
+                            <i data-lucide="receipt" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">Consolidated Tax Invoicing (GRA E-VAT Compatible)</h4>
+                            <p class="text-xs text-slate-400 mt-1">Receive unified bi-weekly or monthly itemized invoices with full VAT breakdown and digital journey receipts.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UI Feature Card (Borderless) -->
+            <div class="p-7 rounded-3xl bg-[#111728] shadow-2xl shadow-black/70 space-y-5">
+                <div class="flex items-center justify-between pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#8CC63F]"></span>
+                        <span class="text-xs font-bold text-white">Billing Telemetry Console</span>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400">FlexyRide Corporate</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-5 rounded-2xl bg-[#0A0F1D] flex items-center justify-between shadow-inner">
+                        <div>
+                            <div class="text-xs text-slate-400 font-medium">Monthly Transportation Spend</div>
+                            <div class="text-2xl sm:text-3xl font-black text-white mt-1">GH₵ 115,000</div>
+                        </div>
+                        <span class="px-3 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold flex items-center gap-1">
+                            <i data-lucide="trending-down" class="w-3.5 h-3.5"></i> -18.4% vs Budget
+                        </span>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div class="text-xs font-bold text-slate-300 uppercase tracking-wider">Department Allocation</div>
+                        
+                        <div class="p-3.5 rounded-xl bg-[#0A0F1D] flex items-center justify-between text-xs">
+                            <span class="text-slate-300 font-medium">Executive & Board Mobility</span>
+                            <span class="font-mono text-white font-semibold">GH₵ 44,850 (39%)</span>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-[#0A0F1D] flex items-center justify-between text-xs">
+                            <span class="text-slate-300 font-medium">Operations & Daily Shift Shuttles</span>
+                            <span class="font-mono text-white font-semibold">GH₵ 43,700 (38%)</span>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-[#0A0F1D] flex items-center justify-between text-xs">
+                            <span class="text-slate-300 font-medium">Field Visits & Project Audits</span>
+                            <span class="font-mono text-white font-semibold">GH₵ 26,450 (23%)</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2 text-slate-400">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-[#8CC63F]"></i> Automated 30-Day Credit Line Active
+                        </div>
+                        <span class="text-xs font-bold text-[#8CC63F]">GRA E-VAT Compliant</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action (Borderless) -->
+<section class="py-24 bg-[#0A0F1D] relative overflow-hidden">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8CC63F]/15 text-[#8CC63F] text-xs font-bold uppercase">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Modernize Your Ground Mobility
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight">
+            Elevate Your Corporate Transportation Today
+        </h2>
+        <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            Join leading organizations across Ghana that trust FlexyRide for on-time, compliant, and cost-effective ground operations.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4 pt-2">
+            <a href="{% url 'portal_login' %}" class="px-8 py-4 rounded-xl bg-[#8CC63F] hover:bg-[#73A233] text-[#0A0F1D] font-black text-sm btn-glow flex items-center gap-2">
+                <span>Open Corporate Account</span>
+                <i data-lucide="arrow-right" class="w-4 h-4 stroke-[3]"></i>
+            </a>
+            <a href="{% url 'portal_how_it_works' %}" class="px-8 py-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold text-sm transition-all shadow-lg">
+                <span>See How It Works</span>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
