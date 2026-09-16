@@ -8,14 +8,14 @@
 <div class="space-y-6">
 
     <!-- Sourcing Controls & Stats -->
-    <div class="card-elevated p-6 rounded-2xl border border-white/5 space-y-4">
+    <div class="card-elevated p-6 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h2 class="text-base font-black text-white">Active Corporate Sourcing Pipeline</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Corporate requests awaiting provider wholesale bids or ready for margin clearing.</p>
+                <h2 class="text-base font-black text-slate-900">Active Corporate Sourcing Pipeline</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Corporate requests awaiting provider wholesale bids or ready for margin clearing.</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="px-3 py-1.5 rounded-xl bg-amber-400/10 text-amber-400 text-xs font-bold border border-amber-400/20">
+                <span class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200">
                     {{ pending_rfq_requests|length }} Requests In Market
                 </span>
             </div>
@@ -24,81 +24,81 @@
         <!-- RFQ Pipeline Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
             {% for req in pending_rfq_requests %}
-            <div class="card-elevated p-5 rounded-2xl border border-white/5 hover:border-amber-400/30 transition-all space-y-4 bg-[#0d1424] flex flex-col justify-between">
+            <div class="card-elevated p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-amber-500/40 hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
                 
                 <!-- Card Header -->
                 <div>
                     <div class="flex items-center justify-between">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/5 text-slate-300 border border-white/5">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
                             {{ req.request_number }}
                         </span>
                         {% if req.provider_quote_requests.all %}
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                             {{ req.provider_quote_requests.count }} Tenders Sent
                         </span>
                         {% else %}
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/15 text-amber-400 border border-amber-400/20 animate-pulse">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
                             Needs Tender
                         </span>
                         {% endif %}
                     </div>
 
                     <div class="mt-3">
-                        <h3 class="text-sm font-bold text-white">{{ req.customer.company_name }}</h3>
-                        <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <h3 class="text-sm font-bold text-slate-900">{{ req.customer.company_name }}</h3>
+                        <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
                             <span>{{ req.departure_datetime|date:"d M Y, h:i A" }}</span>
                         </div>
                     </div>
 
                     <!-- Route Details -->
-                    <div class="mt-3 p-3 surface-well rounded-xl border border-white/5 space-y-1.5 text-xs">
+                    <div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1.5 text-xs">
                         <div class="flex items-start gap-2">
                             <span class="w-2 h-2 rounded-full bg-[#8CC63F] mt-1 shrink-0"></span>
-                            <span class="text-slate-300 truncate" title="{{ req.pickup_address }}">{{ req.pickup_address|truncatechars:28 }}</span>
+                            <span class="text-slate-700 truncate" title="{{ req.pickup_address }}">{{ req.pickup_address|truncatechars:28 }}</span>
                         </div>
                         <div class="flex items-start gap-2">
-                            <span class="w-2 h-2 rounded-full bg-blue-400 mt-1 shrink-0"></span>
-                            <span class="text-slate-300 truncate" title="{{ req.destination_address }}">{{ req.destination_address|truncatechars:28 }}</span>
+                            <span class="w-2 h-2 rounded-full bg-blue-500 mt-1 shrink-0"></span>
+                            <span class="text-slate-700 truncate" title="{{ req.destination_address }}">{{ req.destination_address|truncatechars:28 }}</span>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between text-[11px] text-slate-400 mt-3">
+                    <div class="flex items-center justify-between text-[11px] text-slate-500 mt-3">
                         <span>{{ req.get_requested_vehicle_category_display }}</span>
                         <span>{{ req.passenger_count }} Passenger{{ req.passenger_count|pluralize }}</span>
                     </div>
 
                     <!-- Provider Tender Bids Summary -->
-                    <div class="mt-3 pt-3 border-t border-white/5 space-y-1.5">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Provider Responses</span>
+                    <div class="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Provider Responses</span>
                         {% for pqr in req.provider_quote_requests.all %}
                             {% with pq=pqr.quotes.first %}
-                            <div class="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-white/[0.02]">
-                                <span class="text-slate-300 font-medium">{{ pqr.provider.company_name }}</span>
+                            <div class="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-slate-50 border border-slate-100">
+                                <span class="text-slate-700 font-medium">{{ pqr.provider.company_name }}</span>
                                 {% if pq %}
-                                <span class="font-mono font-bold text-amber-400">GHS {{ pq.offered_cost|floatformat:0|intcomma }}</span>
+                                <span class="font-mono font-bold text-amber-600">GHS {{ pq.offered_cost|floatformat:0|intcomma }}</span>
                                 {% else %}
-                                <span class="text-[10px] text-slate-500 italic">Awaiting Bid</span>
+                                <span class="text-[10px] text-slate-400 italic">Awaiting Bid</span>
                                 {% endif %}
                             </div>
                             {% endwith %}
                         {% empty %}
-                            <p class="text-[11px] text-slate-500 italic">No tenders broadcasted yet.</p>
+                            <p class="text-[11px] text-slate-400 italic">No tenders broadcasted yet.</p>
                         {% endfor %}
                     </div>
                 </div>
 
                 <!-- Action Strip -->
-                <div class="pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                     <button type="button" 
                             onclick="openBroadcastRfqModal('{{ req.id }}', '{{ req.request_number }}', '{{ req.customer.company_name|escapejs }}', '{{ req.get_requested_vehicle_category_display|escapejs }}')" 
-                            class="flex-1 py-2 px-3 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/20 font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5">
-                        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                            class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5">
+                        <i data-lucide="send" class="w-3.5 h-3.5 text-amber-500"></i>
                         <span>Broadcast RFQ</span>
                     </button>
                     <button type="button" 
                             onclick="openMarginQuoteModal('{{ req.id }}', '{{ req.request_number }}', '{{ req.customer.company_name|escapejs }}', '{{ req.provider_quote_requests.first.provider.company_name|escapejs }}' || 'Provider Partner', '{{ req.provider_quote_requests.first.quotes.first.offered_cost }}', '{{ req.provider_quote_requests.first.quotes.first.id }}')" 
-                            class="flex-1 py-2 px-3 rounded-xl bg-[#8CC63F] hover:bg-[#78b330] text-[#080D18] font-black text-xs transition-all shadow-md shadow-[#8CC63F]/20 active:scale-95 flex items-center justify-center gap-1.5">
+                            class="flex-1 py-2 px-3 rounded-xl bg-[#8CC63F] hover:bg-[#7cb333] text-[#080D18] font-black text-xs transition-all shadow-md shadow-[#8CC63F]/20 active:scale-95 flex items-center justify-center gap-1.5">
                         <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
                         <span>Set Margin</span>
                     </button>
@@ -106,8 +106,8 @@
 
             </div>
             {% empty %}
-            <div class="col-span-3 py-12 text-center text-slate-500 card-elevated rounded-2xl p-6">
-                <p class="font-bold text-white text-sm">No pending corporate requests in the RFQ pipeline</p>
+            <div class="col-span-3 py-12 text-center text-slate-500 card-elevated rounded-2xl p-6 bg-white border border-slate-200/90">
+                <p class="font-bold text-slate-900 text-sm">No pending corporate requests in the RFQ pipeline</p>
                 <p class="text-xs text-slate-400 mt-1">All current transport requests have active quotes or completed bookings.</p>
             </div>
             {% endfor %}

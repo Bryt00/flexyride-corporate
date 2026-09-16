@@ -905,7 +905,6 @@
     
     {% block extra_head %}{% endblock %}
 </head>
-{% if user.role == 'BROKER' or '/broker/' in request.path or active_tab|slice:':7' == 'broker_' %}
 <body class="h-full font-sans antialiased text-slate-800 bg-[#F8FAFC] flex overflow-hidden theme-light">
 
     {% if not hide_sidebar and user.role != 'CUSTOMER' and user.role != 'EMPLOYEE_REQUESTER' %}
