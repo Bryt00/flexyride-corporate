@@ -202,12 +202,22 @@
                 </thead>
                 <tbody id="fleetTableBody" class="divide-y divide-white/[0.04]">
                     {% for v in vehicles %}
-                    <tr class="fleet-row text-xs hover:bg-white/[0.03] transition-colors group"
-                        data-plate="{{ v.registration_number|lower }}"
-                        data-vehicle="{{ v.make|lower }} {{ v.model|lower }} {{ v.color|default:''|lower }}"
-                        data-category="{{ v.category }}"
+                    <tr class="fleet-row text-xs hover:bg-white/[0.03] transition-colors group cursor-pointer"
+                        onclick="if(!event.target.closest('button') && !event.target.closest('input') && !event.target.closest('select')) openViewVehiclePanel(this)"
+                        data-plate="{{ v.registration_number }}"
+                        data-vehicle="{{ v.make }} {{ v.model }}"
+                        data-year="{{ v.year|default:'' }}"
+                        data-color="{{ v.color|default:'' }}"
+                        data-category="{{ v.get_category_display }}"
+                        data-seats="{{ v.seating_capacity }}"
+                        data-luggage="{{ v.luggage_capacity|default:'N/A' }}"
                         data-status="{{ v.status }}"
                         data-compliance="{{ v.compliance_status }}"
+                        data-wifi="{{ v.wifi_available|yesno:'1,0' }}"
+                        data-water="{{ v.water_provided|yesno:'1,0' }}"
+                        data-access="{{ v.has_accessibility|yesno:'1,0' }}"
+                        data-child="{{ v.has_child_seat|yesno:'1,0' }}"
+                        {% with primary_photo=v.photos.all|dictsort:"is_primary"|last %}{% if primary_photo %}data-photo-url="{{ primary_photo.image.url }}"{% endif %}{% endwith %}
                         data-id="{{ v.id }}">
                         <td class="py-3 pl-4 pr-2">
                             <input type="checkbox" class="fleet-check w-3.5 h-3.5 rounded bg-[#0A0F1D] accent-[#8CC63F] cursor-pointer" value="{{ v.id }}" onchange="fleetUpdateBulkCount()">
@@ -242,16 +252,16 @@
                         <td class="py-3 px-3 hidden lg:table-cell">
                             <div class="flex items-center gap-1.5">
                                 {% if v.wifi_available %}
-                                <span class="w-5 h-5 rounded bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center" title="WiFi"><i data-lucide="wifi" class="w-3 h-3"></i></span>
+                                <span class="w-5 h-5 rounded bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center" title="In-vehicle internet (WiFi Hotspot)"><i data-lucide="wifi" class="w-3 h-3"></i></span>
                                 {% endif %}
                                 {% if v.water_provided %}
-                                <span class="w-5 h-5 rounded bg-blue-500/15 text-blue-400 flex items-center justify-center" title="Water"><i data-lucide="droplet" class="w-3 h-3"></i></span>
+                                <span class="w-5 h-5 rounded bg-blue-500/15 text-blue-400 flex items-center justify-center" title="Complimentary Bottled Water"><i data-lucide="droplet" class="w-3 h-3"></i></span>
                                 {% endif %}
                                 {% if v.has_accessibility %}
-                                <span class="w-5 h-5 rounded bg-purple-500/15 text-purple-400 flex items-center justify-center" title="Accessible"><i data-lucide="accessibility" class="w-3 h-3"></i></span>
+                                <span class="w-5 h-5 rounded bg-purple-500/15 text-purple-400 flex items-center justify-center" title="Wheelchair Accessible (ADA-compliant)"><i data-lucide="accessibility" class="w-3 h-3"></i></span>
                                 {% endif %}
                                 {% if v.has_child_seat %}
-                                <span class="w-5 h-5 rounded bg-amber-500/15 text-amber-400 flex items-center justify-center" title="Child Seat"><i data-lucide="baby" class="w-3 h-3"></i></span>
+                                <span class="w-5 h-5 rounded bg-amber-500/15 text-amber-400 flex items-center justify-center" title="Child Safety Seat (ISOFIX)"><i data-lucide="baby" class="w-3 h-3"></i></span>
                                 {% endif %}
                                 {% if not v.wifi_available and not v.water_provided and not v.has_accessibility and not v.has_child_seat %}
                                 <span class="text-[10px] text-slate-600">—</span>
@@ -259,14 +269,15 @@
                             </div>
                         </td>
                         <td class="py-3 px-3">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold cursor-help
                                 {% if v.status == 'AVAILABLE' %}bg-emerald-500/15 text-emerald-400
                                 {% elif v.status == 'ASSIGNED' %}bg-blue-500/15 text-blue-400
                                 {% elif v.status == 'MAINTENANCE' %}bg-amber-500/15 text-amber-400
-                                {% else %}bg-slate-500/15 text-slate-400{% endif %}">
+                                {% else %}bg-slate-500/15 text-slate-400{% endif %}"
+                                {% if v.status == 'ASSIGNED' %}title="Currently dispatched on an active journey"{% endif %}>
                                 <span class="w-1.5 h-1.5 rounded-full
                                     {% if v.status == 'AVAILABLE' %}bg-emerald-400
-                                    {% elif v.status == 'ASSIGNED' %}bg-blue-400
+                                    {% elif v.status == 'ASSIGNED' %}bg-blue-400 animate-pulse
                                     {% elif v.status == 'MAINTENANCE' %}bg-amber-400
                                     {% else %}bg-slate-400{% endif %}"></span>
                                 {{ v.get_status_display }}
@@ -289,12 +300,12 @@
                         </td>
                         <td class="py-3 px-3 text-right pr-5">
                             <div class="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                <button type="button"
+                                <button type="button" class="edit-btn-trigger hidden"
                                     onclick="openEditVehicleModal(this)"
                                     data-id="{{ v.id }}"
                                     data-make="{{ v.make }}"
                                     data-model="{{ v.model }}"
-                                    data-year="{{ v.year }}"
+                                    data-year="{{ v.year|default:'' }}"
                                     data-category="{{ v.category }}"
                                     data-seats="{{ v.seating_capacity }}"
                                     data-wifi="{{ v.wifi_available|yesno:'1,0' }}"
@@ -305,9 +316,9 @@
                                     data-child="{{ v.has_child_seat|yesno:'1,0' }}"
                                     {% with primary_photo=v.photos.all|dictsort:"is_primary"|last %}
                                     data-photo-url="{% if primary_photo and primary_photo.image %}{{ primary_photo.image.url }}{% endif %}"
-                                    {% endwith %}
-                                    class="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition-all"
-                                    title="Edit Vehicle">
+                                    {% endwith %}>
+                                </button>
+                                <button type="button" onclick="const b = this.parentElement.querySelector('.edit-btn-trigger'); if(b) b.click();" class="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition-all" title="Edit Vehicle">
                                     <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                                 </button>
                                 <form method="POST" action="{% url 'portal_provider_workspace' %}" class="inline fleet-inline-status">

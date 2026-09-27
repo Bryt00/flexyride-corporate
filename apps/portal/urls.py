@@ -39,6 +39,7 @@ urlpatterns = [
     path('provider/dispatches/', views.provider_dispatches_view, name='portal_provider_dispatches'),
     path('provider/rfqs/', views.provider_rfqs_view, name='portal_provider_rfqs'),
     path('provider/fleet/', views.provider_fleet_view, name='portal_provider_fleet'),
+    path('provider/fleet/<int:vehicle_id>/', views.provider_vehicle_detail_view, name='portal_provider_vehicle_detail'),
     path('provider/drivers/', views.provider_drivers_view, name='portal_provider_drivers'),
     path('provider/compliance/', views.provider_compliance_view, name='portal_provider_compliance'),
     path('provider/payouts/', views.provider_payouts_view, name='portal_provider_payouts'),

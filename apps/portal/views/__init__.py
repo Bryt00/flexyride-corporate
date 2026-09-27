@@ -24,6 +24,7 @@ from portal.views.portal_views import (
     provider_workspace_view,
     admin_seed_ecosystem_view,
 )
+from portal.views.provider import provider_vehicle_detail_view
 
 # Accounts app views
 from accounts.views import (
@@ -163,6 +164,7 @@ __all__ = [
     'provider_dispatches_view',
     'provider_rfqs_view',
     'provider_fleet_view',
+    'provider_vehicle_detail_view',
     'provider_drivers_view',
     'provider_compliance_view',
     'provider_payouts_view',

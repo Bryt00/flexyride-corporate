@@ -1,0 +1,137 @@
+<!-- ==================== SLIDE-OUT PANEL: VIEW VEHICLE DETAILS ==================== -->
+<div id="viewVehiclePanel" class="fixed inset-y-0 right-0 z-50 w-full max-w-md transform translate-x-full transition-transform duration-300 ease-in-out flex">
+    <!-- Backdrop (clickable to close) -->
+    <div id="viewVehiclePanelBackdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm -z-10 opacity-0 transition-opacity duration-300 pointer-events-none" onclick="closeViewVehiclePanel()"></div>
+    
+    <div class="h-full w-full bg-[#121829] shadow-2xl shadow-black/80 flex flex-col border-l border-white/5">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-white/5 flex items-center justify-between shrink-0 bg-[#0A0F1D]/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center">
+                    <i data-lucide="info" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-white tracking-tight">Vehicle Profile</h3>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Fleet detailed specifications</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeViewVehiclePanel()" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-all">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+            
+            <!-- Hero Photo & Title -->
+            <div class="space-y-4">
+                <div class="relative w-full h-48 rounded-2xl overflow-hidden bg-[#0A0F1D] border border-white/5 shadow-lg group">
+                    <img id="panelVehiclePhoto" src="" alt="Vehicle photo" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 hidden">
+                    <div id="panelVehiclePhotoPlaceholder" class="absolute inset-0 flex items-center justify-center">
+                        <i data-lucide="camera-off" class="w-8 h-8 text-slate-600"></i>
+                    </div>
+                    <div class="absolute bottom-3 right-3">
+                        <span id="panelVehicleStatusBadge" class="px-3 py-1 bg-emerald-500/90 text-white text-[10px] font-black rounded-full shadow-lg backdrop-blur-md">AVAILABLE</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 id="panelVehicleName" class="text-xl font-black text-white leading-tight">Toyota Land Cruiser</h2>
+                            <p id="panelVehicleYearColor" class="text-xs text-slate-400 mt-1">2023 · Onyx Black</p>
+                        </div>
+                        <span id="panelVehiclePlate" class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 font-mono text-sm font-black text-white shadow-sm shrink-0">GR-1234-24</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specs Grid -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-4 rounded-xl bg-[#0A0F1D] border border-white/5">
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Category</div>
+                    <div id="panelVehicleCategory" class="text-sm font-semibold text-blue-400">SUV / 4x4</div>
+                </div>
+                <div class="p-4 rounded-xl bg-[#0A0F1D] border border-white/5">
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Compliance</div>
+                    <div id="panelVehicleCompliance" class="text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> Compliant
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-[#0A0F1D] border border-white/5">
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Seating</div>
+                    <div class="text-sm font-semibold text-white flex items-center gap-1.5">
+                        <i data-lucide="users" class="w-4 h-4 text-slate-400"></i> <span id="panelVehicleSeats">5</span> Pax
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-[#0A0F1D] border border-white/5">
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Luggage</div>
+                    <div class="text-sm font-semibold text-white flex items-center gap-1.5">
+                        <i data-lucide="briefcase" class="w-4 h-4 text-slate-400"></i> <span id="panelVehicleLuggage" class="truncate max-w-[100px]">3 Bags</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amenities List -->
+            <div>
+                <h4 class="text-xs font-bold text-slate-300 mb-3 uppercase tracking-wider">Onboard Amenities</h4>
+                <div class="space-y-2">
+                    <div id="panelAmenityWifi" class="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hidden">
+                        <div class="w-8 h-8 rounded-lg bg-[#8CC63F]/10 text-[#8CC63F] flex items-center justify-center shrink-0"><i data-lucide="wifi" class="w-4 h-4"></i></div>
+                        <div>
+                            <div class="text-xs font-bold text-white">WiFi Hotspot</div>
+                            <div class="text-[10px] text-slate-400">In-vehicle internet available</div>
+                        </div>
+                    </div>
+                    <div id="panelAmenityWater" class="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hidden">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0"><i data-lucide="droplet" class="w-4 h-4"></i></div>
+                        <div>
+                            <div class="text-xs font-bold text-white">Bottled Water</div>
+                            <div class="text-[10px] text-slate-400">Complimentary refreshment</div>
+                        </div>
+                    </div>
+                    <div id="panelAmenityAccess" class="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hidden">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0"><i data-lucide="accessibility" class="w-4 h-4"></i></div>
+                        <div>
+                            <div class="text-xs font-bold text-white">Wheelchair Accessible</div>
+                            <div class="text-[10px] text-slate-400">ADA-compliant entry</div>
+                        </div>
+                    </div>
+                    <div id="panelAmenityChild" class="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hidden">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0"><i data-lucide="baby" class="w-4 h-4"></i></div>
+                        <div>
+                            <div class="text-xs font-bold text-white">Child Safety Seat</div>
+                            <div class="text-[10px] text-slate-400">ISOFIX compatible</div>
+                        </div>
+                    </div>
+                    <div id="panelAmenityNone" class="p-4 text-center rounded-xl bg-white/[0.02] border border-white/5 border-dashed">
+                        <p class="text-xs text-slate-500">No premium amenities listed</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance & History Teaser -->
+            <div class="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                <div class="flex items-start gap-3">
+                    <i data-lucide="activity" class="w-5 h-5 text-blue-400 shrink-0 mt-0.5"></i>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">Condition & Log</h4>
+                        <p class="text-[10px] text-slate-400 mt-1 mb-2 leading-relaxed">View maintenance records, compliance renewals, and past dispatch history on the dedicated vehicle page.</p>
+                        <a href="#" id="panelVehicleDetailLink" class="text-[10px] font-black text-blue-400 hover:text-blue-300 flex items-center gap-1 group">
+                            Open Full Vehicle Record <i data-lucide="arrow-right" class="w-3 h-3 group-hover:translate-x-0.5 transition-transform"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Footer Actions -->
+        <div class="p-5 border-t border-white/5 bg-[#0A0F1D]/50 flex items-center justify-end gap-3 shrink-0">
+            <button type="button" onclick="closeViewVehiclePanel()" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold transition-colors">Close</button>
+            <button type="button" id="panelEditBtn" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-lg shadow-blue-500/20 flex items-center gap-1.5 transition-all">
+                <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit Details
+            </button>
+        </div>
+    </div>
+</div>

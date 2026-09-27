@@ -135,10 +135,100 @@
         });
     }
 
-    // Escape key closes modals
+    // --- SLIDE-OUT PANEL LOGIC ---
+    function openViewVehiclePanel(btnOrRow) {
+        const d = btnOrRow.dataset;
+        if (!d || !d.id) return;
+        
+        // Populate Panel
+        document.getElementById('panelVehiclePlate').textContent = (d.plate || '').toUpperCase();
+        document.getElementById('panelVehicleName').textContent = d.vehicle || 'Unknown Vehicle';
+        const yearColor = [];
+        if (d.year) yearColor.push(d.year);
+        if (d.color) yearColor.push(d.color);
+        document.getElementById('panelVehicleYearColor').textContent = yearColor.join(' · ');
+        
+        document.getElementById('panelVehicleCategory').textContent = d.category || 'Standard';
+        document.getElementById('panelVehicleSeats').textContent = d.seats || '0';
+        document.getElementById('panelVehicleLuggage').textContent = d.luggage || 'N/A';
+        
+        // Status Badge
+        const sb = document.getElementById('panelVehicleStatusBadge');
+        sb.textContent = d.status || 'UNKNOWN';
+        sb.className = 'px-3 py-1 text-[10px] font-black rounded-full shadow-lg backdrop-blur-md ' + 
+            (d.status === 'AVAILABLE' ? 'bg-emerald-500/90 text-white' : 
+            (d.status === 'ASSIGNED' ? 'bg-blue-500/90 text-white' : 
+            (d.status === 'MAINTENANCE' ? 'bg-amber-500/90 text-white' : 'bg-slate-500/90 text-white')));
+        
+        // Compliance
+        const cb = document.getElementById('panelVehicleCompliance');
+        cb.innerHTML = '';
+        if (d.compliance === 'COMPLIANT') {
+            cb.className = 'text-sm font-semibold text-emerald-400 flex items-center gap-1.5';
+            cb.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4"></i> Compliant';
+        } else if (d.compliance === 'NON_COMPLIANT') {
+            cb.className = 'text-sm font-semibold text-red-400 flex items-center gap-1.5';
+            cb.innerHTML = '<i data-lucide="shield-x" class="w-4 h-4"></i> Non-Compliant';
+        } else {
+            cb.className = 'text-sm font-semibold text-amber-400 flex items-center gap-1.5';
+            cb.innerHTML = '<i data-lucide="clock" class="w-4 h-4"></i> Pending';
+        }
+
+        // Amenities
+        const hasWifi = d.wifi === '1' || d.wifi === 'true';
+        const hasWater = d.water === '1' || d.water === 'true';
+        const hasAccess = d.access === '1' || d.access === 'true';
+        const hasChild = d.child === '1' || d.child === 'true';
+        
+        document.getElementById('panelAmenityWifi').classList.toggle('hidden', !hasWifi);
+        document.getElementById('panelAmenityWater').classList.toggle('hidden', !hasWater);
+        document.getElementById('panelAmenityAccess').classList.toggle('hidden', !hasAccess);
+        document.getElementById('panelAmenityChild').classList.toggle('hidden', !hasChild);
+        document.getElementById('panelAmenityNone').classList.toggle('hidden', hasWifi || hasWater || hasAccess || hasChild);
+
+        // Photo
+        const photoEl = document.getElementById('panelVehiclePhoto');
+        const placeholder = document.getElementById('panelVehiclePhotoPlaceholder');
+        if (d.photoUrl) {
+            photoEl.src = d.photoUrl;
+            photoEl.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+        } else {
+            photoEl.src = '';
+            photoEl.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+        }
+        
+        // Dynamic Link
+        document.getElementById('panelVehicleDetailLink').href = `/provider/fleet/${d.id}/`;
+        
+        // Edit Button link
+        const editBtn = document.getElementById('panelEditBtn');
+        editBtn.onclick = () => {
+            closeViewVehiclePanel();
+            setTimeout(() => {
+                const rowEditBtn = document.querySelector(`tr[data-id="${d.id}"] .edit-btn-trigger`);
+                if (rowEditBtn) { rowEditBtn.click(); }
+            }, 300);
+        };
+
+        if (window.lucide) window.lucide.createIcons();
+
+        // Show panel
+        document.getElementById('viewVehiclePanel').classList.remove('translate-x-full');
+        document.getElementById('viewVehiclePanelBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeViewVehiclePanel() {
+        document.getElementById('viewVehiclePanel').classList.add('translate-x-full');
+        document.getElementById('viewVehiclePanelBackdrop').classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    // Escape key closes modals and panels
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.querySelectorAll('[id$="Modal"]').forEach(m => m.classList.add('hidden'));
+            closeViewVehiclePanel();
         }
     });
 </script>
