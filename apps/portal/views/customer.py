@@ -116,6 +116,7 @@ def new_request_view(request):
 
             step2_fields = {'pickup_address', 'destination_address', 'departure_datetime', 'return_datetime', 'flight_datetime', 'flight_number', 'airport_name'}
             step3_fields = {'full_name', 'phone_number', 'email'}
+            step5_fields = {'accessibility_required', 'executive_vehicle_required', 'additional_stops_notes', 'child_seats_count'}
             if any(f in request_form.errors for f in ['journey_type']):
                 error_step = 1
             elif any(f in request_form.errors for f in step2_fields):
@@ -124,8 +125,10 @@ def new_request_view(request):
                 error_step = 3
             elif any(f in request_form.errors for f in ['requested_vehicle_category']):
                 error_step = 4
+            elif any(f in request_form.errors for f in step5_fields):
+                error_step = 5
             else:
-                error_step = 2
+                error_step = 6
     else:
         tomorrow = timezone.now() + timezone.timedelta(days=1)
         initial_departure = tomorrow.replace(hour=9, minute=0, second=0, microsecond=0)

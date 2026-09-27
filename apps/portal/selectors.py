@@ -145,7 +145,7 @@ def get_provider_context(request):
             .prefetch_related('quotes', 'quotes__proposed_vehicle')
             .order_by('-requested_at')
         )
-        vehicles = Vehicle.objects.filter(provider=provider_company).order_by('-created_at')
+        vehicles = Vehicle.objects.filter(provider=provider_company).prefetch_related('photos').order_by('-created_at')
         drivers = Driver.objects.filter(provider=provider_company).order_by('-rating')
 
         active_dispatches = (

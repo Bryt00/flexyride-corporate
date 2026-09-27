@@ -216,8 +216,22 @@
                             <span class="font-mono font-black text-white text-[11px] bg-white/[0.06] px-2 py-1 rounded-md tracking-wider">{{ v.registration_number }}</span>
                         </td>
                         <td class="py-3 px-3">
-                            <div class="font-bold text-white leading-tight">{{ v.make }} {{ v.model }}</div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">{% if v.year %}{{ v.year }}{% endif %}{% if v.color %}{% if v.year %} · {% endif %}{{ v.color }}{% endif %}</div>
+                            <div class="flex items-center gap-3">
+                                {% with primary_photo=v.photos.all|dictsort:"is_primary"|last %}
+                                {% if primary_photo and primary_photo.image %}
+                                <img src="{{ primary_photo.image.url }}" alt="{{ v.make }} {{ v.model }}"
+                                     class="w-12 h-9 rounded-lg object-cover border border-white/10 shadow-md shrink-0">
+                                {% else %}
+                                <div class="w-12 h-9 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0">
+                                    <i data-lucide="car" class="w-4 h-4 text-slate-600"></i>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                                <div>
+                                    <div class="font-bold text-white leading-tight">{{ v.make }} {{ v.model }}</div>
+                                    <div class="text-[10px] text-slate-500 mt-0.5">{% if v.year %}{{ v.year }}{% endif %}{% if v.color %}{% if v.year %} · {% endif %}{{ v.color }}{% endif %}</div>
+                                </div>
+                            </div>
                         </td>
                         <td class="py-3 px-3 hidden sm:table-cell">
                             <span class="text-slate-300 text-[11px]">{{ v.get_category_display }}</span>
@@ -289,6 +303,9 @@
                                     data-luggage="{{ v.luggage_capacity|default:'' }}"
                                     data-access="{{ v.has_accessibility|yesno:'1,0' }}"
                                     data-child="{{ v.has_child_seat|yesno:'1,0' }}"
+                                    {% with primary_photo=v.photos.all|dictsort:"is_primary"|last %}
+                                    data-photo-url="{% if primary_photo and primary_photo.image %}{{ primary_photo.image.url }}{% endif %}"
+                                    {% endwith %}
                                     class="p-1.5 rounded-lg hover:bg-white/10 text-blue-400 hover:text-blue-300 transition-all"
                                     title="Edit Vehicle">
                                     <i data-lucide="pencil" class="w-3.5 h-3.5"></i>

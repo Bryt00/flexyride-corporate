@@ -311,3 +311,58 @@ class BrokerProviderCRUDTests(TestCase):
         self.assertEqual(req.journey_type, 'AIRPORT_TRANSFER')
         self.assertEqual(req.customer, self.corporate_company)
 
+    def test_fleet_categories_page_renders_with_search_bar(self):
+        """Test fleet categories / marketplace page renders with vehicle search bar and filter controls."""
+        response = self.client.get(reverse('portal_fleet_categories'))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn('fleetSearchInput', content)
+        self.assertIn('Vehicle Marketplace', content)
+        self.assertIn('visibleFleetCount', content)
+        self.assertIn('noFleetFound', content)
+        self.assertIn('Executive & VIP', content)
+
+    def test_new_request_wizard_renders_with_consolidated_review(self):
+        """Test new request wizard renders with consolidated Step 6 review cards."""
+        self.client.login(username='corporate_requester', password='TestPassword123!')
+        response = self.client.get(reverse('portal_new_request'))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        self.assertIn('step-content-6', content)
+        self.assertIn('review-journey-type', content)
+        self.assertIn('review-pickup', content)
+        self.assertIn('review-dest', content)
+        self.assertIn('review-passenger', content)
+        self.assertIn('review-category', content)
+        self.assertIn('review-badge-accessibility', content)
+        self.assertIn('review-badge-executive', content)
+        self.assertIn('Submit Request', content)
+
+    def test_new_request_submission_with_special_requirements(self):
+        """Test submitting a full request including accessibility and executive vehicle flags."""
+        self.client.login(username='corporate_requester', password='TestPassword123!')
+        dep_time = (timezone.now() + timezone.timedelta(days=2)).strftime('%Y-%m-%dT%H:%M')
+        post_data = {
+            'journey_type': 'ONE_WAY',
+            'requested_vehicle_category': 'EXECUTIVE',
+            'pickup_address': 'Ridge Hospital, Accra',
+            'destination_address': 'Accra Financial Centre, Ridge',
+            'departure_datetime': dep_time,
+            'passenger_count': 1,
+            'full_name': 'Dr. Kojo Boateng',
+            'phone_number': '+233 24 555 1234',
+            'email': 'kojo.boateng@apexenergy.gh',
+            'accessibility_required': 'on',
+            'executive_vehicle_required': 'on',
+            'additional_stops_notes': 'Wheelchair ramp required, VIP chauffeur attire requested.',
+        }
+        response = self.client.post(reverse('portal_new_request'), post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        req = TransportationRequest.objects.filter(pickup_address='Ridge Hospital, Accra').first()
+        self.assertIsNotNone(req)
+        self.assertTrue(req.accessibility_required)
+        self.assertTrue(req.executive_vehicle_required)
+        self.assertEqual(req.additional_stops_notes, 'Wheelchair ramp required, VIP chauffeur attire requested.')
+        self.assertEqual(req.customer, self.corporate_company)
+

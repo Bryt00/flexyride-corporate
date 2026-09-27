@@ -11,7 +11,7 @@ from django.contrib.auth import update_session_auth_hash
 
 from accounts.models import User, ProviderCompany
 from bookings.models import TransportationRequest, VehicleAssignment
-from fleet.models import Vehicle, Driver
+from fleet.models import Vehicle, VehiclePhoto, Driver
 from quotations.models import ProviderQuoteRequest, ProviderQuote, CustomerQuote, CommissionTier
 from notifications.email_service import send_quote_ready_email
 from notifications.models import Notification
@@ -391,7 +391,7 @@ def handle_provider_post(request):
         child_seat = bool(request.POST.get('has_child_seat'))
 
         if plate and make and model_name:
-            Vehicle.objects.create(
+            veh = Vehicle.objects.create(
                 provider=provider_company,
                 registration_number=plate,
                 make=make,
@@ -408,6 +408,15 @@ def handle_provider_post(request):
                 status=Vehicle.Status.AVAILABLE,
                 compliance_status=Vehicle.ComplianceStatus.COMPLIANT
             )
+            # Handle vehicle photo upload
+            photo_file = request.FILES.get('vehicle_photo')
+            if photo_file:
+                VehiclePhoto.objects.create(
+                    vehicle=veh,
+                    image=photo_file,
+                    is_primary=True,
+                    caption=f"{make} {model_name} — primary photo"
+                )
             messages.success(request, f"Vehicle {plate} ({make} {model_name}) added to fleet!")
         return redirect(redirect_target)
 
@@ -427,6 +436,17 @@ def handle_provider_post(request):
             veh.has_accessibility = bool(request.POST.get('has_accessibility'))
             veh.has_child_seat = bool(request.POST.get('has_child_seat'))
             veh.save()
+            # Handle vehicle photo upload / replacement
+            photo_file = request.FILES.get('vehicle_photo')
+            if photo_file:
+                # Mark any existing primary photos as non-primary
+                veh.photos.filter(is_primary=True).update(is_primary=False)
+                VehiclePhoto.objects.create(
+                    vehicle=veh,
+                    image=photo_file,
+                    is_primary=True,
+                    caption=f"{veh.make} {veh.model} — updated photo"
+                )
             messages.success(request, f"Vehicle {veh.registration_number} updated!")
         return redirect(redirect_target)
 

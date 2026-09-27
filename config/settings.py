@@ -157,13 +157,58 @@ SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+database_url = os.environ.get('DATABASE_URL', '').strip()
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if database_url:
+    from urllib.parse import urlparse, unquote
+    parsed_url = urlparse(database_url)
+    engine_scheme = parsed_url.scheme.split('+')[0]
+    
+    engine_map = {
+        'postgres': 'django.db.backends.postgresql',
+        'postgresql': 'django.db.backends.postgresql',
+        'sqlite': 'django.db.backends.sqlite3',
     }
-}
+    
+    if engine_scheme in ('sqlite', 'sqlite3'):
+        db_path = parsed_url.path.lstrip('/')
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / db_path if db_path else BASE_DIR / 'db.sqlite3',
+            }
+        }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': engine_map.get(engine_scheme, 'django.db.backends.postgresql'),
+                'NAME': unquote(parsed_url.path.lstrip('/')),
+                'USER': unquote(parsed_url.username or ''),
+                'PASSWORD': unquote(parsed_url.password or ''),
+                'HOST': parsed_url.hostname or 'localhost',
+                'PORT': str(parsed_url.port or 5432),
+                'CONN_MAX_AGE': int(os.environ.get('DB_CONN_MAX_AGE', 600)),
+            }
+        }
+elif os.environ.get('DB_NAME'):
+    DATABASES = {
+        'default': {
+            'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
+            'NAME': os.environ.get('DB_NAME', 'flexyride_corporate'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': str(os.environ.get('DB_PORT', '5432')),
+            'CONN_MAX_AGE': int(os.environ.get('DB_CONN_MAX_AGE', 600)),
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

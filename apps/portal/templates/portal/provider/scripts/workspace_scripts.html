@@ -59,6 +59,10 @@
             document.getElementById('editVehicleWater').checked = d.water === '1' || d.water === 'true';
             document.getElementById('editVehicleAccess').checked = d.access === '1' || d.access === 'true';
             document.getElementById('editVehicleChild').checked = d.child === '1' || d.child === 'true';
+            // Show existing photo if available
+            if (window._editVehicleShowExistingPhoto) {
+                window._editVehicleShowExistingPhoto(d.photoUrl || '');
+            }
         } else {
             document.getElementById('editVehicleId').value = btnOrId || '';
             document.getElementById('editVehicleMake').value = make || '';
@@ -72,6 +76,9 @@
             document.getElementById('editVehicleWater').checked = Boolean(water);
             document.getElementById('editVehicleAccess').checked = Boolean(access);
             document.getElementById('editVehicleChild').checked = Boolean(child);
+            if (window._editVehicleShowExistingPhoto) {
+                window._editVehicleShowExistingPhoto('');
+            }
         }
         openModal('editVehicleModal');
     }

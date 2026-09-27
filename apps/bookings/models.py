@@ -97,11 +97,11 @@ class TransportationRequest(models.Model):
 
     # Location details
     pickup_address = models.TextField()
-    pickup_latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    pickup_longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    pickup_latitude = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    pickup_longitude = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     destination_address = models.TextField()
-    destination_latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    destination_longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    destination_latitude = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    destination_longitude = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
 
     # Schedule details
     departure_datetime = models.DateTimeField()

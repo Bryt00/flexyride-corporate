@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt: {{ receipt.receipt_number|default:payment.transaction_reference }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #080D18;
+            color: #E2E8F0;
+            margin: 0;
+            padding: 24px 12px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #10172A;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .header {
+            background: linear-gradient(135deg, #141C33 0%, #0F1626 100%);
+            padding: 32px 28px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+        .badge {
+            display: inline-block;
+            background-color: rgba(140, 198, 63, 0.15);
+            color: #8CC63F;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(140, 198, 63, 0.25);
+        }
+        .title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin: 0 0 6px;
+            letter-spacing: -0.02em;
+        }
+        .ref-text {
+            font-size: 13px;
+            color: #94A3B8;
+            margin: 0;
+        }
+        .ref-code {
+            font-family: monospace;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+        .body {
+            padding: 28px;
+        }
+        .receipt-card {
+            background: linear-gradient(135deg, rgba(140, 198, 63, 0.08) 0%, rgba(140, 198, 63, 0.02) 100%);
+            border: 1px solid rgba(140, 198, 63, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .receipt-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94A3B8;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .receipt-amount {
+            font-size: 36px;
+            font-weight: 900;
+            color: #8CC63F;
+            font-family: monospace;
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+        .receipt-status {
+            font-size: 12px;
+            font-weight: 700;
+            color: #8CC63F;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .section-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #8CC63F;
+            margin: 0 0 12px;
+        }
+        .details-table {
+            width: 100%;
+            background-color: #0A0F1D;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .details-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 13px;
+        }
+        .details-table tr:last-child td {
+            border-bottom: none;
+        }
+        .label-col {
+            color: #64748B;
+            font-weight: 600;
+            width: 40%;
+        }
+        .val-col {
+            color: #F8FAFC;
+            font-weight: 600;
+            text-align: right;
+            font-family: monospace;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 28px 0 16px;
+        }
+        .btn-cta {
+            display: inline-block;
+            background-color: #8CC63F;
+            color: #080D18 !important;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .footer {
+            padding: 24px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            background-color: #090E1A;
+            font-size: 12px;
+            color: #64748B;
+        }
+        .footer a {
+            color: #8CC63F;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="badge">Official Receipt</span>
+            <h1 class="title">Payment Confirmed</h1>
+            <p class="ref-text">Receipt No: <span class="ref-code">#{{ receipt.receipt_number|default:payment.transaction_reference }}</span></p>
+        </div>
+
+        <div class="body">
+            <div class="receipt-card">
+                <span class="receipt-label">Total Amount Paid</span>
+                <p class="receipt-amount">{{ payment.currency }} {{ payment.amount|floatformat:2 }}</p>
+                <div class="receipt-status">&bull; Transaction Complete &bull;</div>
+            </div>
+
+            <div class="section-title">Payment Breakdown</div>
+            <table class="details-table">
+                <tr>
+                    <td class="label-col">Customer / Company</td>
+                    <td class="val-col" style="font-family: inherit;">{{ request.customer.company_name|default:recipient_name }}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Booking Reference</td>
+                    <td class="val-col">#{{ request.request_number }}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Payment Method</td>
+                    <td class="val-col" style="font-family: inherit;">{{ payment.get_payment_method_display }}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Transaction Reference</td>
+                    <td class="val-col">{{ payment.transaction_reference }}</td>
+                </tr>
+                {% if payment.gateway_reference %}
+                <tr>
+                    <td class="label-col">Gateway / Paystack Ref</td>
+                    <td class="val-col">{{ payment.gateway_reference }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td class="label-col">Date &amp; Time</td>
+                    <td class="val-col">{{ payment.payment_date|default:payment.created_at|date:"Y-m-d H:i" }} GMT</td>
+                </tr>
+            </table>
+
+            <div class="section-title">Trip Overview</div>
+            <table class="details-table">
+                <tr>
+                    <td class="label-col">Pickup Address</td>
+                    <td class="val-col" style="font-family: inherit; font-size: 12px;">{{ request.pickup_address }}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Destination</td>
+                    <td class="val-col" style="font-family: inherit; font-size: 12px;">{{ request.destination_address }}</td>
+                </tr>
+                <tr>
+                    <td class="label-col">Scheduled Date</td>
+                    <td class="val-col" style="font-family: inherit;">{{ request.departure_datetime|date:"l, F j, Y — H:i" }} GMT</td>
+                </tr>
+            </table>
+
+            <div class="btn-container">
+                <a href="{{ receipt_url }}" class="btn-cta">Access Online Receipt</a>
+            </div>
+
+            <p style="font-size: 12px; color: #64748B; text-align: center; margin-top: 16px;">
+                This document serves as an electronic proof of payment for accounting &amp; tax records.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p style="margin: 0 0 6px;">FlexyRide Corporate Logistics &bull; Enterprise Mobility Portal</p>
+            <p style="margin: 0;">Invoicing inquiries? Contact billing at <a href="mailto:{{ support_email|default:'corporate@flexyridegh.com' }}">{{ support_email|default:'corporate@flexyridegh.com' }}</a></p>
+        </div>
+    </div>
+</body>
+</html>

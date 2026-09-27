@@ -135,7 +135,7 @@
     </div>
 
     <!-- Wizard Form Body -->
-    <form method="POST" id="wizard-form" novalidate class="card-elevated rounded-[2rem] p-8 sm:p-10 relative overflow-hidden">
+    <form method="POST" action="" id="wizard-form" novalidate class="card-elevated rounded-[2rem] p-8 sm:p-10 relative overflow-hidden">
         <!-- Decorative Glow -->
         <div class="absolute top-0 right-0 w-64 h-64 bg-[#8CC63F]/5 blur-[100px] rounded-full pointer-events-none"></div>
         {% csrf_token %}
@@ -368,50 +368,181 @@
 
         <!-- STEP 6: REVIEW -->
         <div id="step-content-6" class="step-pane hidden space-y-6">
-            <div>
-                <h2 class="text-xl font-black text-white">Review Your Request</h2>
-                <p class="text-xs text-slate-400">Please check your details before submitting to FlexyRide Corporate.</p>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+                <div>
+                    <h2 class="text-xl font-black text-white flex items-center gap-2">
+                        <span>Review Your Transport Order</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#8CC63F]/20 text-[#8CC63F] uppercase tracking-wider">Final Step</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Please verify all journey details and specifications before broadcasting to transport partners.</p>
+                </div>
             </div>
 
-            <!-- Dynamic Review Summary Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 surface-well p-5 rounded-2xl border border-white/5 text-xs">
-                <div class="space-y-3">
-                    <div>
-                        <span class="text-[10px] text-slate-400 uppercase font-bold block">Journey Route</span>
-                        <div class="mt-1 space-y-1">
-                            <div class="flex items-center gap-1.5 text-white font-medium">
-                                <span class="w-2 h-2 rounded-full bg-[#8CC63F] shrink-0"></span>
-                                <span id="review-pickup" class="truncate">Select pickup</span>
+            <!-- Review Summary Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- 1. Route & Schedule Card -->
+                <div class="surface-well p-5 rounded-2xl border border-white/5 space-y-4 relative group">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-xl bg-[#8CC63F]/15 text-[#8CC63F] flex items-center justify-center">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
                             </div>
-                            <div class="flex items-center gap-1.5 text-slate-300 font-medium">
-                                <span class="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>
-                                <span id="review-dest" class="truncate">Select destination</span>
+                            <span class="text-xs font-bold text-white uppercase tracking-wider">Route & Schedule</span>
+                        </div>
+                        <button type="button" onclick="goToStep(2)" class="text-[11px] font-bold text-[#8CC63F] hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all flex items-center gap-1">
+                            <i data-lucide="edit-3" class="w-3 h-3"></i> Edit
+                        </button>
+                    </div>
+
+                    <div class="space-y-2.5 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] uppercase font-bold text-slate-400">Journey Type:</span>
+                            <span id="review-journey-type" class="px-2 py-0.5 rounded-md bg-white/10 text-white font-bold text-[11px]">One-Way Journey</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-black/20 space-y-2">
+                            <div class="flex items-start gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#8CC63F] mt-1 shrink-0"></span>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block font-semibold">Pickup Address</span>
+                                    <span id="review-pickup" class="text-white font-medium break-words">Select pickup</span>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-400 mt-1 shrink-0"></span>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block font-semibold">Destination Address</span>
+                                    <span id="review-dest" class="text-white font-medium break-words">Select destination</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <div class="p-2.5 rounded-xl bg-black/20">
+                                <span class="text-[10px] text-slate-400 block font-semibold">Departure Time</span>
+                                <span id="review-departure" class="font-bold text-white font-mono text-xs">—</span>
+                            </div>
+                            <div id="review-return-container" class="p-2.5 rounded-xl bg-black/20 hidden">
+                                <span class="text-[10px] text-slate-400 block font-semibold">Return Time</span>
+                                <span id="review-return" class="font-bold text-white font-mono text-xs">—</span>
+                            </div>
+                        </div>
+
+                        <!-- Flight Details (Airport Journeys) -->
+                        <div id="review-flight-container" class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-slate-300 space-y-1 hidden">
+                            <div class="flex items-center gap-1.5 text-blue-400 font-bold text-[11px]">
+                                <i data-lucide="plane" class="w-3.5 h-3.5"></i> Flight Details
+                            </div>
+                            <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+                                <div><span class="text-slate-400">Airport:</span> <b id="review-airport" class="text-white">—</b></div>
+                                <div><span class="text-slate-400">Flight:</span> <b id="review-flight-num" class="text-white font-mono">—</b></div>
+                                <div id="review-flight-time-row"><span class="text-slate-400">Flight Time:</span> <b id="review-flight-time" class="text-white font-mono">—</b></div>
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <span class="text-[10px] text-slate-400 uppercase font-bold block">Pickup Schedule</span>
-                        <span id="review-departure" class="font-bold text-white font-mono">—</span>
+                </div>
+
+                <!-- 2. Passenger & Contact Card -->
+                <div class="surface-well p-5 rounded-2xl border border-white/5 space-y-4 relative group">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center">
+                                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-white uppercase tracking-wider">Passenger Details</span>
+                        </div>
+                        <button type="button" onclick="goToStep(3)" class="text-[11px] font-bold text-[#8CC63F] hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all flex items-center gap-1">
+                            <i data-lucide="edit-3" class="w-3 h-3"></i> Edit
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="p-3 rounded-xl bg-black/20 space-y-2">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-semibold">Lead Passenger</span>
+                                <span id="review-passenger" class="font-bold text-white text-sm">—</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block font-semibold">Mobile Phone</span>
+                                    <span id="review-phone" class="text-slate-300 font-mono text-xs">—</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block font-semibold">Email</span>
+                                    <span id="review-email" class="text-slate-300 text-xs truncate block">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-black/20">
+                            <span class="text-slate-300 font-medium">Party Size</span>
+                            <span id="review-count" class="px-2.5 py-0.5 rounded-full bg-[#8CC63F]/20 text-[#8CC63F] font-black text-xs">1 Passenger</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="space-y-3">
-                    <div>
-                        <span class="text-[10px] text-slate-400 uppercase font-bold block">Lead Passenger</span>
-                        <span id="review-passenger" class="font-bold text-white block">—</span>
-                        <span id="review-phone" class="text-slate-400 font-mono text-[11px] block">—</span>
+                <!-- 3. Vehicle Preference Card -->
+                <div class="surface-well p-5 rounded-2xl border border-white/5 space-y-4 relative group">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
+                                <i data-lucide="car" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-white uppercase tracking-wider">Vehicle Specification</span>
+                        </div>
+                        <button type="button" onclick="goToStep(4)" class="text-[11px] font-bold text-[#8CC63F] hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all flex items-center gap-1">
+                            <i data-lucide="edit-3" class="w-3 h-3"></i> Edit
+                        </button>
                     </div>
-                    <div>
-                        <span class="text-[10px] text-slate-400 uppercase font-bold block">Vehicle Category & Party</span>
-                        <span id="review-category" class="font-bold text-amber-400 block">Standard Sedan</span>
-                        <span id="review-count" class="text-slate-400 text-[11px] block">1 Passenger</span>
+
+                    <div class="p-3.5 rounded-xl bg-black/20 space-y-2">
+                        <span class="text-[10px] text-slate-400 block font-semibold">Requested Category</span>
+                        <div class="flex items-center gap-2">
+                            <span id="review-category" class="font-extrabold text-amber-400 text-sm">Standard Sedan</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed pt-1">
+                            Assigned from FlexyRide certified transport partners meeting 45-point inspection standards.
+                        </p>
                     </div>
                 </div>
+
+                <!-- 4. Additional Requirements & Notes Card -->
+                <div class="surface-well p-5 rounded-2xl border border-white/5 space-y-4 relative group">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-white uppercase tracking-wider">Requirements & Notes</span>
+                        </div>
+                        <button type="button" onclick="goToStep(5)" class="text-[11px] font-bold text-[#8CC63F] hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-all flex items-center gap-1">
+                            <i data-lucide="edit-3" class="w-3 h-3"></i> Edit
+                        </button>
+                    </div>
+
+                    <div class="space-y-2.5 text-xs">
+                        <div class="flex flex-wrap gap-2">
+                            <span id="review-badge-accessibility" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/5 text-slate-400 flex items-center gap-1">
+                                <i data-lucide="accessibility" class="w-3.5 h-3.5"></i> Standard Vehicle
+                            </span>
+                            <span id="review-badge-executive" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/5 text-slate-400 flex items-center gap-1">
+                                <i data-lucide="crown" class="w-3.5 h-3.5"></i> Standard Service
+                            </span>
+                        </div>
+
+                        <div class="p-2.5 rounded-xl bg-black/20">
+                            <span class="text-[10px] text-slate-400 block font-semibold mb-1">Additional Instructions</span>
+                            <p id="review-notes" class="text-slate-300 text-xs italic">None specified</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="p-4 bg-[#8CC63F]/15 rounded-2xl text-xs text-[#8CC63F] font-semibold flex items-center gap-3 border border-[#8CC63F]/20">
-                <i data-lucide="shield-check" class="w-5 h-5 shrink-0"></i>
-                <span>Submitting this request will broadcast specifications to verified transport partners in Ghana for commercial quotations.</span>
+            <!-- Confirmation Notice -->
+            <div class="p-4 bg-[#8CC63F]/10 rounded-2xl text-xs text-[#8CC63F] font-semibold flex items-center gap-3 border border-[#8CC63F]/20">
+                <i data-lucide="shield-check" class="w-5 h-5 shrink-0 text-[#8CC63F]"></i>
+                <span>Ready to submit? Clicking "Submit Request" will broadcast your requirements to vetted transport operators in Ghana for competitive corporate quotations.</span>
             </div>
         </div>
 
@@ -489,29 +620,131 @@
     }
 
     function populateReviewSummary() {
+        const journeyTypeSelect = document.querySelector('[name="journey_type"]');
+        const journeyTypeText = journeyTypeSelect ? (journeyTypeSelect.options[journeyTypeSelect.selectedIndex]?.text || 'One-Way Journey') : 'One-Way Journey';
+        const journeyTypeVal = journeyTypeSelect ? journeyTypeSelect.value : '';
+
         const pickup = document.querySelector('[name="pickup_address"]')?.value || 'Not specified';
         const dest = document.querySelector('[name="destination_address"]')?.value || 'Not specified';
         const dept = document.querySelector('[name="departure_datetime"]')?.value || 'Not specified';
+        const returnDate = document.querySelector('[name="return_datetime"]')?.value || '';
+        const airportName = document.querySelector('[name="airport_name"]')?.value || '';
+        const flightNum = document.querySelector('[name="flight_number"]')?.value || '';
+        const flightTime = document.querySelector('[name="flight_datetime"]')?.value || '';
+
         const name = document.querySelector('[name="full_name"]')?.value || 'Not specified';
-        const phone = document.querySelector('[name="phone_number"]')?.value || '';
-        const catSelect = document.querySelector('[name="requested_vehicle_category"]');
-        const catText = catSelect ? catSelect.options[catSelect.selectedIndex]?.text || 'Standard Sedan' : 'Standard Sedan';
+        const phone = document.querySelector('[name="phone_number"]')?.value || 'Not provided';
+        const email = document.querySelector('[name="email"]')?.value || 'Not provided';
         const count = document.querySelector('[name="passenger_count"]')?.value || '1';
+
+        const catSelect = document.querySelector('[name="requested_vehicle_category"]');
+        const catText = catSelect ? (catSelect.options[catSelect.selectedIndex]?.text || 'Standard Sedan') : 'Standard Sedan';
+
+        const accessibility = document.querySelector('[name="accessibility_required"]')?.checked || false;
+        const executive = document.querySelector('[name="executive_vehicle_required"]')?.checked || false;
+        const notes = document.querySelector('[name="additional_stops_notes"]')?.value || '';
+
+        // 1. Journey & Route
+        const jtEl = document.getElementById('review-journey-type');
+        if (jtEl) jtEl.textContent = journeyTypeText;
 
         const pEl = document.getElementById('review-pickup');
         if (pEl) pEl.textContent = pickup;
+
         const dEl = document.getElementById('review-dest');
         if (dEl) dEl.textContent = dest;
+
         const dpEl = document.getElementById('review-departure');
         if (dpEl) dpEl.textContent = dept.replace('T', ' at ');
+
+        // Return Date (if Return journey)
+        const retContainer = document.getElementById('review-return-container');
+        const retEl = document.getElementById('review-return');
+        if (retContainer && retEl) {
+            if (journeyTypeVal === 'RETURN' || returnDate) {
+                retContainer.classList.remove('hidden');
+                retEl.textContent = returnDate ? returnDate.replace('T', ' at ') : 'Not specified';
+            } else {
+                retContainer.classList.add('hidden');
+            }
+        }
+
+        // Airport / Flight Container
+        const flightContainer = document.getElementById('review-flight-container');
+        const airportEl = document.getElementById('review-airport');
+        const flightNumEl = document.getElementById('review-flight-num');
+        const flightTimeEl = document.getElementById('review-flight-time');
+        const flightTimeRow = document.getElementById('review-flight-time-row');
+
+        if (flightContainer) {
+            const isAirport = journeyTypeVal === 'AIRPORT_TRANSFER' || journeyTypeVal === 'AIRPORT_MEET_GREET' || flightNum || airportName;
+            if (isAirport) {
+                flightContainer.classList.remove('hidden');
+                if (airportEl) airportEl.textContent = airportName || 'Kotoka International Airport (ACC)';
+                if (flightNumEl) flightNumEl.textContent = flightNum || 'Not specified';
+                if (flightTimeEl && flightTimeRow) {
+                    if (flightTime) {
+                        flightTimeRow.classList.remove('hidden');
+                        flightTimeEl.textContent = flightTime.replace('T', ' at ');
+                    } else {
+                        flightTimeRow.classList.add('hidden');
+                    }
+                }
+            } else {
+                flightContainer.classList.add('hidden');
+            }
+        }
+
+        // 2. Passenger Details
         const passEl = document.getElementById('review-passenger');
         if (passEl) passEl.textContent = name;
+
         const phEl = document.getElementById('review-phone');
         if (phEl) phEl.textContent = phone;
+
+        const emEl = document.getElementById('review-email');
+        if (emEl) emEl.textContent = email;
+
+        const cntEl = document.getElementById('review-count');
+        if (cntEl) cntEl.textContent = `${count} Passenger${parseInt(count) > 1 ? 's' : ''}`;
+
+        // 3. Vehicle Specification
         const catEl = document.getElementById('review-category');
         if (catEl) catEl.textContent = catText;
-        const cntEl = document.getElementById('review-count');
-        if (cntEl) cntEl.textContent = `${count} Passenger(s)`;
+
+        // 4. Requirements & Notes
+        const accessBadge = document.getElementById('review-badge-accessibility');
+        if (accessBadge) {
+            if (accessibility) {
+                accessBadge.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-500/20 text-blue-400 flex items-center gap-1 border border-blue-500/30';
+                accessBadge.innerHTML = `<i data-lucide="accessibility" class="w-3.5 h-3.5"></i> Wheelchair / Ramp Requested`;
+            } else {
+                accessBadge.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/5 text-slate-400 flex items-center gap-1';
+                accessBadge.innerHTML = `<i data-lucide="accessibility" class="w-3.5 h-3.5"></i> Standard Vehicle`;
+            }
+        }
+
+        const execBadge = document.getElementById('review-badge-executive');
+        if (execBadge) {
+            if (executive) {
+                execBadge.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/20 text-amber-400 flex items-center gap-1 border border-amber-500/30';
+                execBadge.innerHTML = `<i data-lucide="crown" class="w-3.5 h-3.5"></i> VIP / Executive Attire Requested`;
+            } else {
+                execBadge.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/5 text-slate-400 flex items-center gap-1';
+                execBadge.innerHTML = `<i data-lucide="crown" class="w-3.5 h-3.5"></i> Standard Chauffeur`;
+            }
+        }
+
+        const notesEl = document.getElementById('review-notes');
+        if (notesEl) {
+            notesEl.textContent = notes.trim() ? notes : 'None specified';
+        }
+
+        // Re-render Lucide icons inside Step 6
+        if (window.lucide) {
+            const step6 = document.getElementById('step-content-6');
+            if (step6) lucide.createIcons({ root: step6 });
+        }
     }
 
     function goToStep(step) {
@@ -520,7 +753,64 @@
             updateWizardUI();
         } else if (step === currentStep + 1) {
             nextStep();
+        } else if (step <= totalSteps) {
+            // Validate all steps up to the target step
+            let canAdvance = true;
+            for (let s = 1; s < step; s++) {
+                const pane = document.getElementById(`step-content-${s}`);
+                if (!pane) continue;
+                const inputs = pane.querySelectorAll('input, select, textarea');
+                for (let input of inputs) {
+                    if (input.type === 'hidden') continue;
+                    if (!input.checkValidity()) {
+                        canAdvance = false;
+                        currentStep = s;
+                        updateWizardUI();
+                        input.focus();
+                        return;
+                    }
+                }
+            }
+            if (canAdvance) {
+                currentStep = step;
+                updateWizardUI();
+            }
         }
+    }
+
+    function validateAllSteps() {
+        for (let step = 1; step <= 5; step++) {
+            const pane = document.getElementById(`step-content-${step}`);
+            if (!pane) continue;
+            const inputs = pane.querySelectorAll('input, select, textarea');
+            for (let input of inputs) {
+                if (input.type === 'hidden') continue;
+                if (!input.checkValidity()) {
+                    currentStep = step;
+                    updateWizardUI();
+                    input.focus();
+                    input.classList.add('ring-2', 'ring-red-500', 'bg-red-500/10');
+
+                    const existingErr = input.parentElement.querySelector('.custom-error-text') || 
+                                        input.parentElement.parentElement.querySelector('.custom-error-text');
+                    if (!existingErr) {
+                        const errorMsg = document.createElement('p');
+                        errorMsg.className = 'custom-error-text text-[11px] text-rose-400 font-bold mt-1.5 flex items-center gap-1';
+                        errorMsg.innerHTML = `<i data-lucide="alert-circle" class="w-3 h-3"></i> ${input.validationMessage || "This field is required."}`;
+                        if (input.parentElement.classList.contains('relative') || input.parentElement.classList.contains('autocomplete-wrapper')) {
+                            input.parentElement.parentElement.appendChild(errorMsg);
+                        } else {
+                            input.parentElement.appendChild(errorMsg);
+                        }
+                        if (window.lucide) {
+                            lucide.createIcons({ root: errorMsg });
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     function nextStep() {
@@ -596,8 +886,8 @@
                 const place = autocomplete.getPlace();
                 if (!place.geometry || !place.geometry.location) return;
 
-                if (latInput) latInput.value = place.geometry.location.lat();
-                if (lngInput) lngInput.value = place.geometry.location.lng();
+                if (latInput) latInput.value = place.geometry.location.lat().toFixed(6);
+                if (lngInput) lngInput.value = place.geometry.location.lng().toFixed(6);
             });
         }
     }
@@ -612,12 +902,26 @@
 
         const form = document.getElementById('wizard-form');
         if (form) {
-            form.addEventListener('submit', function() {
+            form.addEventListener('submit', function(e) {
+                if (!validateAllSteps()) {
+                    e.preventDefault();
+                    return false;
+                }
+
                 const submitBtn = document.getElementById('submit-btn');
                 if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-                    submitBtn.innerHTML = `<span>Submitting Request...</span>`;
+                    submitBtn.classList.add('opacity-75', 'pointer-events-none');
+                    submitBtn.innerHTML = `
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-[#0A0F1D] inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Submitting Request...</span>
+                    `;
+                    // Non-blocking disable after submit event finishes to prevent browser aborting form POST
+                    setTimeout(() => {
+                        submitBtn.disabled = true;
+                    }, 0);
                 }
             });
         }

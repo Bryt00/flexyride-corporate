@@ -39,7 +39,7 @@ def on_vehicle_assignment(sender, instance, created, **kwargs):
         
         msg = f"Driver {driver_name} with vehicle {veh_name} has been assigned to trip {req.request_number}."
         
-        if primary_pass and primary_pass.email:
+        if primary_pass and primary_pass.phone_number:
             Notification.objects.create(
                 passenger_info=primary_pass,
                 request=req,
@@ -48,3 +48,7 @@ def on_vehicle_assignment(sender, instance, created, **kwargs):
                 title=f"Driver Assigned - {req.request_number}",
                 message=msg
             )
+
+        # Dispatch branded driver & vehicle assignment email
+        from notifications.email_service import send_driver_assigned_email
+        send_driver_assigned_email(instance)

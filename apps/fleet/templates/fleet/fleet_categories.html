@@ -40,23 +40,63 @@
 <!-- Filter Tabs & Fleet Grid (Borderless) -->
 <section class="py-24 bg-[#0A0F1D]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        <!-- Interactive Category Filter -->
-        <div class="flex flex-wrap items-center justify-between gap-6">
-            <div>
-                <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">Explore Categories</span>
-                <h2 class="text-2xl sm:text-3xl font-black text-white mt-1">Select Fleet Class</h2>
+        <!-- Interactive Category Filter & Search Bar -->
+        <div class="space-y-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div>
+                    <span class="text-xs font-black text-[#8CC63F] uppercase tracking-widest">Explore Categories & Fleet Inventory</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-white mt-1">Vehicle Marketplace</h2>
+                </div>
+                <!-- Interactive Category Filter Buttons -->
+                <div class="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-[#111728] shadow-xl shadow-black/40 text-xs font-bold border border-white/5">
+                    <button onclick="setFleetCategory('all')" class="fleet-filter-btn px-4 py-2.5 rounded-xl bg-[#8CC63F] text-[#0A0F1D] shadow-md transition-all duration-200" data-target="all">All Vehicles</button>
+                    <button onclick="setFleetCategory('executive')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="executive">Executive & VIP</button>
+                    <button onclick="setFleetCategory('suv')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="suv">SUVs & 4x4</button>
+                    <button onclick="setFleetCategory('bus')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="bus">Shuttles & Buses</button>
+                    <button onclick="setFleetCategory('special')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="special">Accessible & Standard</button>
+                </div>
             </div>
-            <div class="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-[#111728] shadow-xl shadow-black/40 text-xs font-bold">
-                <button onclick="filterFleet('all')" class="fleet-filter-btn px-4 py-2.5 rounded-xl bg-[#8CC63F] text-[#0A0F1D] shadow-md transition-all duration-200" data-target="all">All Vehicles</button>
-                <button onclick="filterFleet('executive')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="executive">Executive & VIP</button>
-                <button onclick="filterFleet('suv')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="suv">SUVs & 4x4</button>
-                <button onclick="filterFleet('bus')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="bus">Shuttles & Buses</button>
-                <button onclick="filterFleet('special')" class="fleet-filter-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200" data-target="special">Accessible & Standard</button>
+
+            <!-- Search Bar & Results Status -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-3 rounded-2xl bg-[#111728]/70 border border-white/10 backdrop-blur-sm">
+                <div class="relative flex-1 sm:max-w-lg">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-4 top-3.5 pointer-events-none"></i>
+                    <input type="text" id="fleetSearchInput" 
+                           placeholder="Search by make, model, capacity, or features (e.g. Mercedes, Prado, Wi-Fi, 30-seater)..." 
+                           class="w-full pl-11 pr-10 py-2.5 bg-[#0A0F1D] border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#8CC63F]/50 focus:ring-1 focus:ring-[#8CC63F]/30 transition-all"
+                           oninput="onFleetSearch(this.value)">
+                    <button id="clearFleetSearchBtn" onclick="clearFleetSearch()" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors" title="Clear search">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-400 justify-between sm:justify-end px-1 sm:px-0">
+                    <span id="fleetCountBadge" class="font-medium text-slate-300">
+                        Showing <b class="text-[#8CC63F] font-bold" id="visibleFleetCount">6</b> vehicles
+                    </span>
+                    <button id="resetFleetFiltersBtn" onclick="resetAllFleetFilters()" class="hidden text-[11px] font-bold text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset Filters
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Fleet Grid (Borderless Cards) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="fleetGrid">
+            <!-- Empty State for Search / Filter -->
+            <div id="noFleetFound" class="hidden col-span-full py-16 px-6 text-center rounded-3xl bg-[#111728]/40 border border-dashed border-white/10 space-y-4">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-[#8CC63F]/10 text-[#8CC63F] flex items-center justify-center">
+                    <i data-lucide="search-x" class="w-7 h-7"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-base font-bold text-white">No vehicles found</h3>
+                    <p class="text-xs text-slate-400 max-w-sm mx-auto" id="noFleetMessage">
+                        We couldn't find any vehicles matching your search criteria. Try a different keyword or reset filters.
+                    </p>
+                </div>
+                <button onclick="resetAllFleetFilters()" class="px-5 py-2.5 rounded-xl bg-[#8CC63F] text-[#0A0F1D] text-xs font-extrabold hover:bg-[#73A233] transition-all inline-flex items-center gap-2">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 stroke-[3]"></i> Reset All Filters
+                </button>
+            </div>
             
             <!-- 1. Executive Saloon -->
             <div class="fleet-card surface-card p-7 flex flex-col justify-between space-y-6 group" data-category="executive">
@@ -455,7 +495,11 @@
 
 {% block extra_js %}
 <script>
-    function filterFleet(category) {
+    let currentCategory = 'all';
+    let currentSearchQuery = '';
+
+    function setFleetCategory(category) {
+        currentCategory = category;
         document.querySelectorAll('.fleet-filter-btn').forEach(btn => {
             btn.classList.remove('bg-[#8CC63F]', 'text-[#0A0F1D]', 'shadow-md');
             btn.classList.add('text-slate-400');
@@ -465,20 +509,110 @@
             activeBtn.classList.remove('text-slate-400');
             activeBtn.classList.add('bg-[#8CC63F]', 'text-[#0A0F1D]', 'shadow-md');
         }
+        applyFleetFilters();
+    }
 
+    // Backward-compatible alias for existing onclick calls if any
+    function filterFleet(category) {
+        setFleetCategory(category);
+    }
+
+    function onFleetSearch(query) {
+        currentSearchQuery = query.trim();
+        const clearBtn = document.getElementById('clearFleetSearchBtn');
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', currentSearchQuery.length === 0);
+        }
+        applyFleetFilters();
+    }
+
+    function clearFleetSearch() {
+        const input = document.getElementById('fleetSearchInput');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        onFleetSearch('');
+    }
+
+    function resetAllFleetFilters() {
+        clearFleetSearch();
+        setFleetCategory('all');
+    }
+
+    function applyFleetFilters() {
         const cards = document.querySelectorAll('.fleet-card');
+        let visibleCount = 0;
+        const query = currentSearchQuery.toLowerCase();
+
         cards.forEach(card => {
-            if (category === 'all') {
+            const cardCategory = card.getAttribute('data-category') || '';
+            const cardText = (card.textContent || card.innerText || '').toLowerCase();
+
+            const matchesCategory = (currentCategory === 'all') || cardCategory.includes(currentCategory);
+            const matchesSearch = !query || cardText.includes(query);
+
+            if (matchesCategory && matchesSearch) {
                 card.classList.remove('hidden');
+                visibleCount++;
             } else {
-                const cats = card.getAttribute('data-category') || '';
-                if (cats.includes(category)) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
-                }
+                card.classList.add('hidden');
             }
         });
+
+        const countEl = document.getElementById('visibleFleetCount');
+        if (countEl) countEl.textContent = visibleCount;
+
+        const emptyEl = document.getElementById('noFleetFound');
+        if (emptyEl) {
+            if (visibleCount === 0) {
+                emptyEl.classList.remove('hidden');
+                const msgEl = document.getElementById('noFleetMessage');
+                if (msgEl) {
+                    if (query && currentCategory !== 'all') {
+                        msgEl.textContent = `No vehicles in the selected category match "${currentSearchQuery}".`;
+                    } else if (query) {
+                        msgEl.textContent = `No vehicles match "${currentSearchQuery}". Try another keyword or vehicle name.`;
+                    } else {
+                        msgEl.textContent = `No vehicles found in this category.`;
+                    }
+                }
+            } else {
+                emptyEl.classList.add('hidden');
+            }
+        }
+
+        const resetBtn = document.getElementById('resetFleetFiltersBtn');
+        if (resetBtn) {
+            const isFiltered = currentSearchQuery.length > 0 || currentCategory !== 'all';
+            resetBtn.classList.toggle('hidden', !isFiltered);
+        }
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
     }
+
+    // Initialize from URL parameters if provided (e.g. ?q=mercedes or ?category=executive)
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const qParam = params.get('q');
+        const catParam = params.get('category');
+
+        if (catParam) {
+            const validCats = ['all', 'executive', 'suv', 'bus', 'special'];
+            if (validCats.includes(catParam.toLowerCase())) {
+                setFleetCategory(catParam.toLowerCase());
+            }
+        }
+
+        if (qParam) {
+            const searchInput = document.getElementById('fleetSearchInput');
+            if (searchInput) {
+                searchInput.value = qParam;
+                onFleetSearch(qParam);
+            }
+        }
+    });
 </script>
 {% endblock %}

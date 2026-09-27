@@ -184,9 +184,16 @@
                 {% for v in vehicles|slice:":3" %}
                 <div class="surface-well rounded-2xl p-4 flex items-center justify-between border border-white/5 hover:border-emerald-500/40 transition-colors">
                     <div class="flex items-center gap-3.5">
-                        <div class="w-14 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-200 font-mono text-xs font-black shadow-inner shrink-0">
+                        {% with primary_photo=v.photos.all|dictsort:"is_primary"|last %}
+                        {% if primary_photo and primary_photo.image %}
+                        <img src="{{ primary_photo.image.url }}" alt="{{ v.make }} {{ v.model }}"
+                             class="w-16 h-12 rounded-xl object-cover border border-white/10 shadow-lg shrink-0">
+                        {% else %}
+                        <div class="w-16 h-12 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-200 font-mono text-[9px] font-black shadow-inner shrink-0">
                             {{ v.registration_number }}
                         </div>
+                        {% endif %}
+                        {% endwith %}
                         <div>
                             <p class="text-xs font-bold text-white">{{ v.make }} {{ v.model }} ({{ v.year }})</p>
                             <div class="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
@@ -194,6 +201,7 @@
                                 <span>{{ v.seating_capacity }} Seats</span>
                                 {% if v.wifi_available %}<span class="text-[#8CC63F]">• WiFi</span>{% endif %}
                             </div>
+                            <p class="text-[10px] text-slate-500 font-mono mt-0.5">{{ v.registration_number }}</p>
                         </div>
                     </div>
                     <span class="px-3 py-1 {% if v.status == 'AVAILABLE' %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/30{% else %}bg-amber-500/15 text-amber-400 border border-amber-500/30{% endif %} text-[10px] font-black rounded-full">

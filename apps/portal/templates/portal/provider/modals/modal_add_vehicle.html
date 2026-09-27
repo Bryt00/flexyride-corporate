@@ -19,7 +19,7 @@
         </div>
 
         <!-- Form Content with Sections -->
-        <form method="POST" action="{% url 'portal_provider_workspace' %}" class="px-7 pb-7 space-y-5" id="addVehicleForm">
+        <form method="POST" action="{% url 'portal_provider_workspace' %}" enctype="multipart/form-data" class="px-7 pb-7 space-y-5" id="addVehicleForm">
             {% csrf_token %}
             <input type="hidden" name="action" value="add_vehicle">
 
@@ -204,6 +204,35 @@
                 </div>
             </div>
 
+            <!-- Section 3: Vehicle Photo -->
+            <div class="space-y-3.5">
+                <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span class="w-5 h-5 rounded-md bg-white/5 flex items-center justify-center text-[#8CC63F] text-[9px] font-black">3</span>
+                    Vehicle Photo
+                </div>
+
+                <label for="addVehiclePhoto" class="block cursor-pointer">
+                    <div id="addPhotoDropzone" class="relative rounded-2xl border-2 border-dashed border-white/10 hover:border-[#8CC63F]/40 bg-[#0A0F1D] p-6 text-center transition-all group">
+                        <!-- Preview container (hidden until image selected) -->
+                        <div id="addPhotoPreviewWrap" class="hidden">
+                            <img id="addPhotoPreview" src="" alt="Vehicle preview" class="w-full h-40 object-cover rounded-xl mb-3 shadow-lg">
+                            <p id="addPhotoFileName" class="text-[11px] text-slate-400 font-medium"></p>
+                        </div>
+                        <!-- Default upload prompt -->
+                        <div id="addPhotoPrompt" class="flex flex-col items-center gap-2.5 py-2">
+                            <div class="w-12 h-12 rounded-xl bg-white/5 group-hover:bg-[#8CC63F]/10 flex items-center justify-center transition-all">
+                                <i data-lucide="camera" class="w-5 h-5 text-slate-500 group-hover:text-[#8CC63F] transition-colors"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white">Upload Vehicle Photo</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Click to browse or drag and drop • JPG, PNG, WebP • Max 5MB</p>
+                            </div>
+                        </div>
+                        <input type="file" name="vehicle_photo" id="addVehiclePhoto" accept="image/*" class="sr-only">
+                    </div>
+                </label>
+            </div>
+
             <!-- Action Bar -->
             <div class="flex items-center justify-between pt-2">
                 <p class="text-[10px] text-slate-500 flex items-center gap-1">
@@ -244,4 +273,46 @@
         if (seatingEl) seatingEl.textContent = `Min Seating: ${seating} pax`;
     }
     document.addEventListener('DOMContentLoaded', updateAddCategoryPreview);
+
+    // --- Add Vehicle Photo Preview ---
+    (function() {
+        const fileInput = document.getElementById('addVehiclePhoto');
+        const previewWrap = document.getElementById('addPhotoPreviewWrap');
+        const previewImg = document.getElementById('addPhotoPreview');
+        const previewName = document.getElementById('addPhotoFileName');
+        const prompt = document.getElementById('addPhotoPrompt');
+        const dropzone = document.getElementById('addPhotoDropzone');
+
+        if (!fileInput) return;
+
+        function showPreview(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                previewName.textContent = file.name;
+                previewWrap.classList.remove('hidden');
+                prompt.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files[0]) showPreview(fileInput.files[0]);
+        });
+
+        // Drag and drop
+        if (dropzone) {
+            dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-[#8CC63F]/60'); });
+            dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('border-[#8CC63F]/60'); });
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-[#8CC63F]/60');
+                if (e.dataTransfer.files[0]) {
+                    fileInput.files = e.dataTransfer.files;
+                    showPreview(e.dataTransfer.files[0]);
+                }
+            });
+        }
+    })();
 </script>
