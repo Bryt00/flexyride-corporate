@@ -52,6 +52,7 @@ class TransportationRequest(models.Model):
         editable=False,
         help_text="Human readable unique request reference, e.g. FRC-2026-00001"
     )
+    slug = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     customer = models.ForeignKey(
         'accounts.CorporateCustomer',
         on_delete=models.CASCADE,

@@ -4,6 +4,7 @@ from django.conf import settings
 
 
 class PaymentTransaction(models.Model):
+    objects = models.Manager()
     class PaymentMethod(models.TextChoices):
         CARD = 'CARD', 'Credit / Debit Card'
         MOBILE_MONEY = 'MOBILE_MONEY', 'Mobile Money'
@@ -21,6 +22,7 @@ class PaymentTransaction(models.Model):
         on_delete=models.CASCADE,
         related_name='payments'
     )
+    slug = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     customer_quote = models.ForeignKey(
         'quotations.CustomerQuote',
         on_delete=models.CASCADE,
@@ -54,7 +56,7 @@ class PaymentTransaction(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.transaction_reference:
-            self.transaction_reference = f"PAY-{uuid.uuid4().hex[:10].upper()}"
+            self.transaction_reference = f"PAY-{uuid.uuid4().hex[:10].upper()}"  # type: ignore[assignment]
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -62,6 +64,7 @@ class PaymentTransaction(models.Model):
 
 
 class PaymentReceipt(models.Model):
+    objects = models.Manager()
     transaction = models.OneToOneField(
         PaymentTransaction,
         on_delete=models.CASCADE,
@@ -77,7 +80,7 @@ class PaymentReceipt(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.receipt_number:
-            self.receipt_number = f"RCT-{uuid.uuid4().hex[:8].upper()}"
+            self.receipt_number = f"RCT-{uuid.uuid4().hex[:8].upper()}"  # type: ignore[assignment]
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -85,6 +88,7 @@ class PaymentReceipt(models.Model):
 
 
 class Invoice(models.Model):
+    objects = models.Manager()
     """Corporate billing invoice for credit/invoice accounts (US-23, US-24, US-101, US-102)."""
 
     class Status(models.TextChoices):
@@ -99,6 +103,7 @@ class Invoice(models.Model):
         on_delete=models.CASCADE,
         related_name='invoices'
     )
+    slug = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     invoice_number = models.CharField(
         max_length=50, unique=True, editable=False
     )
@@ -123,14 +128,15 @@ class Invoice(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:
-            self.invoice_number = f"INV-{uuid.uuid4().hex[:8].upper()}"
+            self.invoice_number = f"INV-{uuid.uuid4().hex[:8].upper()}"  # type: ignore[assignment]
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Invoice {self.invoice_number} - {self.customer.company_name} [{self.get_status_display()}]"
+        return f"Invoice {self.invoice_number} - {self.customer.company_name} [{self.get_status_display()}]"  # type: ignore[attr-defined]
 
 
 class InvoiceLineItem(models.Model):
+    objects = models.Manager()
     """Individual line items on a consolidated corporate invoice."""
 
     invoice = models.ForeignKey(
@@ -151,7 +157,7 @@ class InvoiceLineItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        self.amount = self.quantity * self.unit_price
+        self.amount = self.quantity * self.unit_price  # type: ignore[operator]
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -36,8 +36,8 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         if self.role in [self.Role.SYSTEM_ADMIN, self.Role.BROKER]:
-            self.is_staff = True
-            self.is_superuser = True
+            self.is_staff = True  # type: ignore
+            self.is_superuser = True  # type: ignore
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -174,6 +174,21 @@ class ProviderCompany(models.Model):
         null=True, blank=True,
         help_text="Average response time to quote requests."
     )
+    paystack_subaccount_code = models.CharField(
+        max_length=50, 
+        blank=True, 
+        null=True,
+        help_text="Paystack Subaccount code (e.g. ACCT_xxxxx) for automated payout splits."
+    )
+    # Banking details for automated payouts
+    settlement_bank = models.CharField(
+        max_length=100, blank=True, null=True,
+        help_text="Bank name, Bank Code, or Mobile Money network (e.g. MTN, VOD, Access Bank)."
+    )
+    account_number = models.CharField(
+        max_length=50, blank=True, null=True,
+        help_text="Bank account number or MoMo number for payouts."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -184,5 +199,23 @@ class ProviderCompany(models.Model):
 
     def __str__(self):
         return f"{self.company_name} [{self.get_status_display()}]"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Auto-create Paystack subaccount if approved, banking details exist, and no subaccount yet
+        if self.status == self.Status.APPROVED and self.settlement_bank and self.account_number and not self.paystack_subaccount_code:
+            from payments import paystack
+            res = paystack.create_subaccount(
+                business_name=self.company_name,
+                settlement_bank=self.settlement_bank,
+                account_number=self.account_number,
+                primary_contact_email=self.email
+            )
+            if res.get('success'):
+                subaccount_code = res.get('subaccount_code')
+                if subaccount_code is not None:
+                    self.paystack_subaccount_code = subaccount_code
+                    # Save again using update_fields to prevent infinite recursion
+                    super().save(update_fields=['paystack_subaccount_code'])
 
 

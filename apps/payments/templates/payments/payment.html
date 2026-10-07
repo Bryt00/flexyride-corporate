@@ -188,6 +188,9 @@
                 currency: '{{ paystack_currency|default:"GHS" }}',
                 ref: ref,
                 channels: currentMethod === 'CARD' ? ['card'] : ['mobile_money', 'card'],
+                subaccount: '{{ paystack_subaccount_code|default:"" }}',
+                transaction_charge: parseInt('{{ paystack_transaction_charge|default:0 }}', 10),
+                bearer: 'subaccount',
                 callback: function(response) {
                     document.getElementById('paystack_reference').value = response.reference;
                     form.submit();

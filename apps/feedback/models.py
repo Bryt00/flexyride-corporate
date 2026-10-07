@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -9,6 +10,7 @@ class JourneyRating(models.Model):
         on_delete=models.CASCADE,
         related_name='ratings'
     )
+    slug = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         help_text="Rating from 1 (poor) to 5 (excellent)."
@@ -30,7 +32,7 @@ class JourneyRating(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Rating {self.rating}/5 for {self.request.request_number}"
+        return f"Rating {self.rating}/5 for {self.request.request_number}"  # type: ignore[attr-defined]
 
 
 class SupportIssue(models.Model):
@@ -54,6 +56,7 @@ class SupportIssue(models.Model):
         on_delete=models.CASCADE,
         related_name='support_issues'
     )
+    slug = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     issue_type = models.CharField(
         max_length=30,
         choices=IssueType.choices,
@@ -87,7 +90,7 @@ class SupportIssue(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Issue [{self.get_issue_type_display()}] - {self.request.request_number} [{self.get_status_display()}]"
+        return f"Issue [{self.get_issue_type_display()}] - {self.request.request_number} [{self.get_status_display()}]"  # type: ignore[attr-defined]
 
 
 class InternalBookingNote(models.Model):
@@ -105,10 +108,12 @@ class InternalBookingNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Internal Note by {self.author.username} on {self.request.request_number}"
+        return f"Internal Note by {self.author.username} on {self.request.request_number}"  # type: ignore[attr-defined]
 
 
 class BookingTimeline(models.Model):
+    objects = models.Manager()
+
     request = models.ForeignKey(
         'bookings.TransportationRequest',
         on_delete=models.CASCADE,
@@ -131,5 +136,5 @@ class BookingTimeline(models.Model):
         ordering = ['-timestamp']
 
     def __str__(self):
-        return f"Timeline {self.action_type} for {self.request.request_number} at {self.timestamp}"
+        return f"Timeline {self.action_type} for {self.request.request_number} at {self.timestamp}"  # type: ignore[attr-defined]
 

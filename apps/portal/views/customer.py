@@ -310,6 +310,14 @@ def payment_view(request, request_id='FRC-00000000'):
     paystack_currency = paystack.get_currency()
     paystack_amount_subunits = int(quote.final_customer_price * 100) if quote else 0
 
+    paystack_subaccount_code = ''
+    paystack_transaction_charge = 0
+    if quote:
+        if quote.selected_provider_quote and quote.selected_provider_quote.provider.paystack_subaccount_code:
+            paystack_subaccount_code = quote.selected_provider_quote.provider.paystack_subaccount_code
+        paystack_transaction_charge = int(quote.margin_amount * 100)
+
+
     if request.method == 'POST' and quote:
         payment_method = request.POST.get('payment_method', 'MOBILE_MONEY')
         paystack_ref = request.POST.get('paystack_reference') or payment_ref
@@ -370,6 +378,8 @@ def payment_view(request, request_id='FRC-00000000'):
         'paystack_public_key': paystack_public_key,
         'paystack_currency': paystack_currency,
         'paystack_amount_subunits': paystack_amount_subunits,
+        'paystack_subaccount_code': paystack_subaccount_code,
+        'paystack_transaction_charge': paystack_transaction_charge,
     })
 
 
