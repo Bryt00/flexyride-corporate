@@ -85,6 +85,28 @@
                 </div>
             </div>
 
+            <!-- Section 3: Availability & Duty Status -->
+            <div class="space-y-3.5">
+                <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span class="w-5 h-5 rounded-md bg-white/5 flex items-center justify-center text-purple-400 text-[9px] font-black">3</span>
+                    Operational Availability & Duty Status
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Driver Status <span class="text-red-400">*</span></label>
+                    <div class="relative">
+                        <i data-lucide="activity" class="w-3.5 h-3.5 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <select id="editDriverStatus" name="status" required
+                            class="w-full pl-9 pr-3.5 py-2.5 bg-[#0A0F1D] rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all appearance-none cursor-pointer">
+                            <option value="AVAILABLE">Available (Ready for Dispatch)</option>
+                            <option value="ON_TRIP">On Trip (Currently on Journey)</option>
+                            <option value="OFF_DUTY">Off Duty (Rest / Leave)</option>
+                            <option value="INACTIVE">Inactive (Deactivated)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <!-- Action Bar -->
             <div class="flex items-center justify-end gap-2.5 pt-2">
                 <button type="button" onclick="closeModal('editDriverModal')" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all">Cancel</button>

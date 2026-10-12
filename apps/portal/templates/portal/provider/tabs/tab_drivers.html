@@ -24,9 +24,23 @@
                             <p class="text-xs text-gray-400 font-mono">{{ d.phone_number }}</p>
                         </div>
                     </div>
-                    <span class="px-2 py-1 bg-amber-400/20 text-amber-400 font-bold text-xs rounded-lg">
-                        ★ {{ d.rating|floatformat:1 }}
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-tight
+                            {% if d.status == 'AVAILABLE' %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/20
+                            {% elif d.status == 'ON_TRIP' %}bg-blue-500/15 text-blue-400 border border-blue-500/20
+                            {% elif d.status == 'OFF_DUTY' %}bg-slate-500/15 text-slate-300 border border-slate-500/20
+                            {% else %}bg-rose-500/15 text-rose-400 border border-rose-500/20{% endif %}">
+                            <span class="w-1.5 h-1.5 rounded-full
+                                {% if d.status == 'AVAILABLE' %}bg-emerald-400
+                                {% elif d.status == 'ON_TRIP' %}bg-blue-400 animate-pulse
+                                {% elif d.status == 'OFF_DUTY' %}bg-slate-400
+                                {% else %}bg-rose-400{% endif %}"></span>
+                            {{ d.get_status_display }}
+                        </span>
+                        <span class="px-2 py-1 bg-amber-400/20 text-amber-400 font-bold text-xs rounded-lg">
+                            ★ {{ d.rating|floatformat:1 }}
+                        </span>
+                    </div>
                 </div>
 
                 <div class="space-y-1.5 text-xs text-gray-400 mt-2">
@@ -48,7 +62,8 @@
                         data-license="{{ d.license_number }}"
                         data-languages="{{ d.languages_spoken|default:'' }}"
                         data-expiry="{{ d.license_expiry|date:'Y-m-d' }}"
-                        class="text-xs font-bold text-purple-400 hover:text-purple-300">
+                        data-status="{{ d.status }}"
+                        class="text-xs font-bold text-purple-400 hover:text-purple-300 transition-colors">
                         Edit
                     </button>
                 </div>
@@ -58,13 +73,15 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="update_driver_status">
                     <input type="hidden" name="driver_id" value="{{ d.id }}">
-                    <select name="status" class="bg-[#0A0F1D] border border-white/10 rounded-lg text-[11px] text-gray-300 py-1.5 px-2 focus:outline-none flex-1">
-                        <option value="AVAILABLE" {% if d.status == 'AVAILABLE' %}selected{% endif %}>Available</option>
-                        <option value="ON_TRIP" {% if d.status == 'ON_TRIP' %}selected{% endif %}>On Trip</option>
-                        <option value="OFF_DUTY" {% if d.status == 'OFF_DUTY' %}selected{% endif %}>Off Duty</option>
-                        <option value="SUSPENDED" {% if d.status == 'SUSPENDED' %}selected{% endif %}>Suspended</option>
-                    </select>
-                    <button type="submit" class="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-bold transition-all">
+                    <div class="relative flex-1">
+                        <select name="status" onchange="this.form.submit()" class="w-full bg-[#0A0F1D] border border-white/10 rounded-lg text-[11px] text-gray-300 py-1.5 px-2.5 focus:outline-none focus:ring-1 focus:ring-purple-500/40 cursor-pointer">
+                            <option value="AVAILABLE" {% if d.status == 'AVAILABLE' %}selected{% endif %}>🟢 Available</option>
+                            <option value="ON_TRIP" {% if d.status == 'ON_TRIP' %}selected{% endif %}>🔵 On Trip</option>
+                            <option value="OFF_DUTY" {% if d.status == 'OFF_DUTY' %}selected{% endif %}>⚪ Off Duty</option>
+                            <option value="INACTIVE" {% if d.status == 'INACTIVE' %}selected{% endif %}>🔴 Inactive</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-bold transition-all shrink-0">
                         Save
                     </button>
                 </form>

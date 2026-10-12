@@ -25,6 +25,7 @@ from portal.views.portal_views import (
     admin_seed_ecosystem_view,
 )
 from portal.views.provider import provider_vehicle_detail_view
+from portal.views.operations import fleet_categories_api
 
 # Accounts app views
 from accounts.views import (
@@ -74,6 +75,8 @@ from payments.views import (
     paystack_webhook_view,
     broker_financials_view,
     provider_payouts_view,
+    paystack_banks_api,
+    paystack_resolve_account_api,
 )
 
 # Compliance app views
@@ -175,6 +178,9 @@ __all__ = [
     'admin_metrics_view',
     'admin_seed_ecosystem_view',
     'paystack_webhook_view',
+    'paystack_banks_api',
+    'paystack_resolve_account_api',
+    'fleet_categories_api',
     'webpush_subscribe_api',
     'notifications_api',
     'submit_journey_rating_view',

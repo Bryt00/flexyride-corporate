@@ -147,6 +147,8 @@ class CorporateCustomerSignUpForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+        if cleaned_data is None:
+            cleaned_data = {}
         pw = cleaned_data.get('password')
         confirm = cleaned_data.get('confirm_password')
         if pw and confirm and pw != confirm:
@@ -263,7 +265,9 @@ class ProviderCompanyOnboardingForm(forms.ModelForm):
         fields = [
             'company_name', 'registration_number', 'contact_person',
             'phone', 'email', 'address', 'service_area', 'specializations',
-            'status', 'overall_rating'
+            'status', 'overall_rating',
+            'payout_channel', 'settlement_bank', 'settlement_bank_name',
+            'account_number', 'account_name', 'percentage_charge',
         ]
         widgets = {
             'company_name': forms.TextInput(attrs={
@@ -295,9 +299,8 @@ class ProviderCompanyOnboardingForm(forms.ModelForm):
                 'placeholder': 'e.g. Greater Accra, Tema, Kumasi, Takoradi',
                 'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'
             }),
-            'specializations': forms.TextInput(attrs={
-                'placeholder': 'e.g. Airport Transfers, Executive VIP, Corporate Shuttles',
-                'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'
+            'specializations': forms.Select(attrs={
+                'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 cursor-pointer'
             }),
             'status': forms.Select(attrs={
                 'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'
@@ -308,7 +311,31 @@ class ProviderCompanyOnboardingForm(forms.ModelForm):
                 'max': '5',
                 'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'
             }),
+            'payout_channel': forms.Select(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'settlement_bank': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'settlement_bank_name': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'account_number': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'account_name': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'percentage_charge': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from fleet.models import VehicleCategoryRate
+        rates = VehicleCategoryRate.objects.filter(is_active=True).order_by('display_order')
+        choices = [('', '--------- (Select Fleet Category) ---------')]
+        for r in rates:
+            choices.append((r.display_name, r.display_name))
+        choices.append(('All Fleet Categories', 'All Fleet Categories (Full Service)'))
+        if self.instance and self.instance.pk and self.instance.specializations:
+            if self.instance.specializations not in [c[0] for c in choices]:
+                choices.append((self.instance.specializations, f"{self.instance.specializations} (Current)"))
+        self.fields['specializations'] = forms.ChoiceField(
+            choices=choices,
+            required=False,
+            label='Specializations / Fleet Category',
+            widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 cursor-pointer'})
+        )
 
     def clean_registration_number(self):
         reg = self.cleaned_data.get('registration_number', '').strip()
@@ -352,13 +379,15 @@ class ProviderCompanyOnboardingForm(forms.ModelForm):
                     import random
                     admin_pwd = f"Flexy@{random.randint(1000, 9999)}!"
 
+                from notifications.email_service import send_provider_welcome_email
                 existing_user = User.objects.filter(email__iexact=email).first()
                 if existing_user:
                     existing_user.role = User.Role.PROVIDER_ADMIN
                     existing_user.is_verified = True
                     existing_user.save()
+                    send_provider_welcome_email(provider=provider, user=existing_user, temp_password=None)
                 else:
-                    User.objects.create_user(
+                    new_user = User.objects.create_user(
                         username=admin_user,
                         email=email,
                         first_name=provider.contact_person,
@@ -367,6 +396,7 @@ class ProviderCompanyOnboardingForm(forms.ModelForm):
                         is_verified=True,
                         password=admin_pwd
                     )
+                    send_provider_welcome_email(provider=provider, user=new_user, temp_password=admin_pwd)
 
         return provider
 
@@ -378,7 +408,9 @@ class ProviderCompanyUpdateForm(forms.ModelForm):
         fields = [
             'company_name', 'registration_number', 'contact_person',
             'phone', 'email', 'address', 'service_area', 'specializations',
-            'status', 'overall_rating'
+            'status', 'overall_rating',
+            'payout_channel', 'settlement_bank', 'settlement_bank_name',
+            'account_number', 'account_name', 'percentage_charge',
         ]
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
@@ -388,8 +420,32 @@ class ProviderCompanyUpdateForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
             'address': forms.Textarea(attrs={'rows': 2, 'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 resize-none'}),
             'service_area': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
-            'specializations': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'specializations': forms.Select(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 cursor-pointer'}),
             'status': forms.Select(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
             'overall_rating': forms.NumberInput(attrs={'step': '0.1', 'min': '0', 'max': '5', 'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'payout_channel': forms.Select(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'settlement_bank': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'settlement_bank_name': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'account_number': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'account_name': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
+            'percentage_charge': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from fleet.models import VehicleCategoryRate
+        rates = VehicleCategoryRate.objects.filter(is_active=True).order_by('display_order')
+        choices = [('', '--------- (Select Fleet Category) ---------')]
+        for r in rates:
+            choices.append((r.display_name, r.display_name))
+        choices.append(('All Fleet Categories', 'All Fleet Categories (Full Service)'))
+        if self.instance and self.instance.pk and self.instance.specializations:
+            if self.instance.specializations not in [c[0] for c in choices]:
+                choices.append((self.instance.specializations, f"{self.instance.specializations} (Current)"))
+        self.fields['specializations'] = forms.ChoiceField(
+            choices=choices,
+            required=False,
+            label='Specializations / Fleet Category',
+            widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 cursor-pointer'})
+        )
 

@@ -19,6 +19,63 @@ from notifications.webpush import dispatch_notification
 from compliance.models import ComplianceDocument
 
 
+def _parse_payout_fields(request):
+    """Parses and validates Paystack settlement fields from a broker provider form.
+    Returns (data_dict, error_message). Empty bank + account means 'no payout details yet'.
+    """
+    channel = request.POST.get('payout_channel', ProviderCompany.PayoutChannel.BANK).strip().upper()
+    if channel not in ProviderCompany.PayoutChannel.values:
+        channel = ProviderCompany.PayoutChannel.BANK
+
+    bank_code = request.POST.get('settlement_bank', '').strip()
+    bank_name = request.POST.get('settlement_bank_name', '').strip()
+    account_number = ''.join(request.POST.get('account_number', '').split())
+    account_name = request.POST.get('account_name', '').strip()
+    pct_str = request.POST.get('percentage_charge', '').strip() or '0'
+
+    if bool(bank_code) != bool(account_number):
+        return None, "Provide both the settlement bank/network and the account number, or leave both blank."
+
+    if account_number:
+        if not account_number.isdigit():
+            return None, "Account / MoMo number must contain digits only."
+        if channel == ProviderCompany.PayoutChannel.MOBILE_MONEY and len(account_number) != 10:
+            return None, "Mobile Money numbers must be 10 digits (e.g. 0241234567)."
+
+    try:
+        percentage_charge = Decimal(pct_str)
+    except Exception:
+        return None, "Platform split percentage must be a number."
+    if percentage_charge < 0 or percentage_charge > 100:
+        return None, "Platform split percentage must be between 0 and 100."
+
+    return {
+        'payout_channel': channel,
+        'settlement_bank': bank_code or None,
+        'settlement_bank_name': bank_name if bank_code else '',
+        'account_number': account_number or None,
+        'account_name': account_name if account_number else '',
+        'percentage_charge': percentage_charge,
+    }, None
+
+
+def _subaccount_note(provider) -> tuple[str, bool]:
+    """Builds a flash-message suffix describing the Paystack subaccount sync outcome.
+    Returns (note, is_error).
+    """
+    res = getattr(provider, '_last_subaccount_result', None)
+    if res is None:
+        if provider.has_payout_details and provider.status != ProviderCompany.Status.APPROVED:
+            return " Paystack subaccount will be created once the provider is approved.", False
+        if not provider.has_payout_details:
+            return " No payout details yet: add bank/MoMo details to enable automated settlements.", False
+        return "", False
+    if res.get('success'):
+        sandbox = " (sandbox)" if res.get('sandbox') else ""
+        return f" Paystack subaccount {provider.paystack_subaccount_code}{sandbox} is linked.", False
+    return f" Paystack subaccount sync failed: {res.get('message', 'unknown error')}", True
+
+
 def handle_broker_post(request):
     """Processes mutation actions originating from broker workspaces."""
     action = request.POST.get('action')
@@ -140,7 +197,11 @@ def handle_broker_post(request):
         email = request.POST.get('email', '').strip().lower()
         address = request.POST.get('address', '').strip()
         service_area = request.POST.get('service_area', '').strip()
-        specializations = request.POST.get('specializations', '').strip()
+        specs_list = request.POST.getlist('specializations')
+        if specs_list and any(specs_list):
+            specializations = ", ".join([s.strip() for s in specs_list if s.strip()])
+        else:
+            specializations = request.POST.get('specializations', '').strip()
         status = request.POST.get('status', ProviderCompany.Status.APPROVED)
         rating_str = request.POST.get('overall_rating', '5.00').strip()
 
@@ -162,6 +223,11 @@ def handle_broker_post(request):
         if status not in [ProviderCompany.Status.APPROVED, ProviderCompany.Status.PENDING, ProviderCompany.Status.SUSPENDED]:
             status = ProviderCompany.Status.APPROVED
 
+        payout, payout_error = _parse_payout_fields(request)
+        if payout_error or payout is None:
+            messages.error(request, payout_error or "Invalid payout details.")
+            return redirect(redirect_target)
+
         create_admin = request.POST.get('create_admin_account') in ['on', 'true', '1', True]
         admin_username = request.POST.get('admin_username', '').strip()
         admin_password = request.POST.get('admin_password', '').strip()
@@ -177,7 +243,8 @@ def handle_broker_post(request):
                 status=status,
                 overall_rating=overall_rating,
                 service_area=service_area or 'Greater Accra Region, Ghana',
-                specializations=specializations or 'Executive Saloon, SUV, Airport Transfers'
+                specializations=specializations or 'Executive Saloon, SUV, Airport Transfers',
+                **payout,
             )
 
             admin_note = ""
@@ -193,12 +260,15 @@ def handle_broker_post(request):
                 if not admin_password:
                     admin_password = f"Flexy@{random.randint(1000, 9999)}!"
 
+                from notifications.email_service import send_provider_welcome_email
+
                 existing_user = User.objects.filter(email__iexact=email).first()
                 if existing_user:
                     existing_user.role = User.Role.PROVIDER_ADMIN
                     existing_user.is_verified = True
                     existing_user.save(update_fields=['role', 'is_verified'])
-                    admin_note = f" (Existing user '{existing_user.username}' linked as Provider Admin)"
+                    send_provider_welcome_email(provider=provider, user=existing_user, temp_password=None)
+                    admin_note = f" (Existing user '{existing_user.username}' linked as Provider Admin; welcome notification sent to {email})"
                 else:
                     if User.objects.filter(username__iexact=admin_username).exists():
                         admin_username = f"{admin_username}_{random.randint(10, 99)}"
@@ -212,9 +282,15 @@ def handle_broker_post(request):
                         is_verified=True,
                         password=admin_password
                     )
-                    admin_note = f" (Admin account created: {new_user.username} / {admin_password})"
+                    send_provider_welcome_email(provider=provider, user=new_user, temp_password=admin_password)
+                    admin_note = f" (Admin account created: {new_user.username} / {admin_password}; credentials emailed to {email})"
 
+            sub_note, sub_error = _subaccount_note(provider)
             messages.success(request, f"Transport Provider '{provider.company_name}' successfully onboarded.{admin_note}")
+            if sub_error:
+                messages.warning(request, sub_note.strip())
+            elif sub_note:
+                messages.info(request, sub_note.strip())
 
     elif action == 'update_provider':
         provider_id = request.POST.get('provider_id')
@@ -230,7 +306,11 @@ def handle_broker_post(request):
         email = request.POST.get('email', '').strip().lower()
         address = request.POST.get('address', '').strip()
         service_area = request.POST.get('service_area', '').strip()
-        specializations = request.POST.get('specializations', '').strip()
+        specs_list = request.POST.getlist('specializations')
+        if specs_list and any(specs_list):
+            specializations = ", ".join([s.strip() for s in specs_list if s.strip()])
+        else:
+            specializations = request.POST.get('specializations', '').strip()
         status = request.POST.get('status', '').strip()
         rating_str = request.POST.get('overall_rating', '').strip()
 
@@ -261,8 +341,32 @@ def handle_broker_post(request):
             except Exception:
                 pass
 
+        if request.POST.get('payout_fields_present'):
+            payout, payout_error = _parse_payout_fields(request)
+            if payout_error or payout is None:
+                messages.error(request, payout_error or "Invalid payout details.")
+                return redirect(redirect_target)
+            for field, value in payout.items():
+                setattr(provider, field, value)
+
         provider.save()
         messages.success(request, f"Provider profile for '{provider.company_name}' updated successfully.")
+        sub_note, sub_error = _subaccount_note(provider)
+        if sub_error:
+            messages.warning(request, sub_note.strip())
+        elif getattr(provider, '_last_subaccount_result', None) is not None:
+            messages.info(request, sub_note.strip())
+
+    elif action == 'sync_provider_subaccount':
+        provider = ProviderCompany.objects.filter(id=request.POST.get('provider_id')).first()
+        if not provider:
+            messages.error(request, "Transport provider not found.")
+        elif not provider.has_payout_details:
+            messages.error(request, f"'{provider.company_name}' has no settlement bank/account on file.")
+        else:
+            res = provider.sync_paystack_subaccount()
+            sub_note, sub_error = _subaccount_note(provider)
+            (messages.warning if sub_error else messages.success)(request, sub_note.strip())
 
     elif action == 'toggle_provider_status':
         provider_id = request.POST.get('provider_id')
@@ -457,6 +561,10 @@ def handle_provider_post(request):
         languages = request.POST.get('languages_spoken', 'English, Twi, Ga').strip()
         license_expiry = request.POST.get('license_expiry')
 
+        initial_status = request.POST.get('status', Driver.Status.AVAILABLE)
+        if initial_status not in Driver.Status.values:
+            initial_status = Driver.Status.AVAILABLE
+
         if full_name and phone and license_num:
             Driver.objects.create(
                 provider=provider_company,
@@ -465,7 +573,7 @@ def handle_provider_post(request):
                 license_number=license_num,
                 languages_spoken=languages,
                 license_expiry=license_expiry if license_expiry else None,
-                status=Driver.Status.AVAILABLE,
+                status=initial_status,
                 compliance_status=Driver.ComplianceStatus.COMPLIANT,
                 rating=Decimal('4.90')
             )
@@ -483,6 +591,9 @@ def handle_provider_post(request):
             license_expiry = request.POST.get('license_expiry')
             if license_expiry:
                 drv.license_expiry = license_expiry
+            new_status = request.POST.get('status')
+            if new_status and new_status in Driver.Status.values:
+                drv.status = new_status
             drv.save()
             messages.success(request, f"Driver {drv.full_name} updated!")
         return redirect(redirect_target)
@@ -508,8 +619,34 @@ def handle_provider_post(request):
             provider_company.specializations = specializations
             if registration_number:
                 provider_company.registration_number = registration_number
+
+            if request.POST.get('payout_fields_present'):
+                payout, payout_error = _parse_payout_fields(request)
+                if payout_error or payout is None:
+                    messages.error(request, payout_error or "Invalid payout details.")
+                    return redirect(redirect_target)
+                for field, value in payout.items():
+                    # Preserve existing broker platform margin unless unconfigured
+                    if field == 'percentage_charge' and provider_company.percentage_charge is not None:
+                        continue
+                    setattr(provider_company, field, value)
+
             provider_company.save()
-            messages.success(request, "Company details updated successfully!")
+            sub_note, sub_error = _subaccount_note(provider_company)
+            messages.success(request, f"Company profile updated successfully.{sub_note if not sub_error else ''}")
+            if sub_error:
+                messages.warning(request, sub_note.strip())
+        return redirect(redirect_target)
+
+    elif action == 'sync_company_subaccount':
+        if not provider_company:
+            messages.error(request, "Transport provider company not found.")
+        elif not provider_company.has_payout_details:
+            messages.error(request, "Please enter your settlement bank/MoMo network and account number first.")
+        else:
+            res = provider_company.sync_paystack_subaccount()
+            sub_note, sub_error = _subaccount_note(provider_company)
+            (messages.warning if sub_error else messages.success)(request, sub_note.strip())
         return redirect(redirect_target)
 
     elif action == 'update_vehicle_status':
@@ -536,9 +673,12 @@ def handle_provider_post(request):
         new_status = request.POST.get('status')
         drv = Driver.objects.filter(id=driver_id, provider=provider_company).first()
         if drv and new_status:
-            drv.status = new_status
-            drv.save()
-            messages.success(request, f"Driver {drv.full_name} status updated to {drv.get_status_display()}!")
+            if new_status in Driver.Status.values:
+                drv.status = new_status
+                drv.save()
+                messages.success(request, f"Driver {drv.full_name} status updated to {drv.get_status_display()}!")
+            else:
+                messages.error(request, f"Invalid driver status '{new_status}' provided.")
         return redirect(redirect_target)
 
     elif action == 'update_trip_status':

@@ -34,7 +34,7 @@ class QuotationsModelTests(TestCase):
         self.req = TransportationRequest.objects.create(
             customer=self.customer,
             requester=self.user,
-            pickup_address="Kotoka International Airport (ACC)",
+            pickup_address="International Airport",
             destination_address="Kempinski Hotel Gold Coast City, Accra",
             departure_datetime=timezone.now()
         )

@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -83,6 +84,10 @@ class ComplianceDocument(models.Model):
         if self.expiry_date and self.expiry_date < timezone.now().date():
             return False
         return True
+
+    if TYPE_CHECKING:
+        def get_document_type_display(self) -> str: ...
+        def get_status_display(self) -> str: ...
 
     def __str__(self):
         target = self.provider or self.vehicle or self.driver or "Unassigned"

@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from django.db import models
 from django.conf import settings
 
@@ -26,6 +27,9 @@ class ProviderQuoteRequest(models.Model):
         default=Status.SENT
     )
     requested_at = models.DateTimeField(auto_now_add=True)
+
+    if TYPE_CHECKING:
+        def get_status_display(self) -> str: ...
 
     def __str__(self):
         return f"Quote Request for {self.request.request_number} -> {self.provider.company_name} [{self.get_status_display()}]"
@@ -166,6 +170,9 @@ class CustomerQuote(models.Model):
             self.margin_amount = self.final_customer_price - self.provider_cost
         super().save(*args, **kwargs)
 
+    if TYPE_CHECKING:
+        def get_status_display(self) -> str: ...
+
     def __str__(self):
         return f"Customer Quote for {self.request.request_number}: GHS {self.final_customer_price:,} [{self.get_status_display()}]"
 
@@ -238,6 +245,9 @@ class CommissionTier(models.Model):
         ordering = ['-priority', 'name']
         verbose_name = 'Commission Percentage Tier'
         verbose_name_plural = 'Commission Percentage Tiers'
+
+    if TYPE_CHECKING:
+        def get_vehicle_category_display(self) -> str: ...
 
     def __str__(self):
         cat = self.get_vehicle_category_display() if self.vehicle_category else "All Vehicles"

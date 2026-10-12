@@ -102,8 +102,29 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
+# Node / Frontend Artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.next/
+.parcel-cache/
+
+# Go / Standalone Build Artifacts
+_flexyride_corporate_go_build/
+_*_build/
+*_build/
+
+# Database & File Backups
+*.bak
+*.backup
+*.sql
+*.dump
+dump.rdb
+*.sqlite3.bak*
+
 # AI / IDE Agent Artifacts
 .gemini/
 brain/
 scratch/
-*.sqlite3.bak*
+

@@ -84,7 +84,7 @@
     }
 
     // Prefill and open Edit Driver modal
-    function openEditDriverModal(btnOrId, name, phone, license, languages, expiry) {
+    function openEditDriverModal(btnOrId, name, phone, license, languages, expiry, status) {
         if (typeof btnOrId === 'object' && btnOrId !== null && btnOrId.dataset) {
             const d = btnOrId.dataset;
             document.getElementById('editDriverId').value = d.id || '';
@@ -93,6 +93,8 @@
             document.getElementById('editDriverLicense').value = d.license || '';
             document.getElementById('editDriverLanguages').value = d.languages || '';
             document.getElementById('editDriverExpiry').value = d.expiry || '';
+            const statusEl = document.getElementById('editDriverStatus');
+            if (statusEl) statusEl.value = d.status || 'AVAILABLE';
         } else {
             document.getElementById('editDriverId').value = btnOrId || '';
             document.getElementById('editDriverName').value = name || '';
@@ -100,6 +102,8 @@
             document.getElementById('editDriverLicense').value = license || '';
             document.getElementById('editDriverLanguages').value = languages || '';
             document.getElementById('editDriverExpiry').value = expiry || '';
+            const statusEl = document.getElementById('editDriverStatus');
+            if (statusEl) statusEl.value = status || 'AVAILABLE';
         }
         openModal('editDriverModal');
     }

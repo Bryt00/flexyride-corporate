@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 import uuid
 from django.db import models
 from django.conf import settings
@@ -45,6 +46,15 @@ class TransportationRequest(models.Model):
         LOW = 'LOW', 'Low'
         STANDARD = 'STANDARD', 'Standard'
         URGENT = 'URGENT', 'Urgent'
+
+    class VehicleCategory(models.TextChoices):
+        SEDAN = 'SEDAN', 'Sedan'
+        EXECUTIVE = 'EXECUTIVE', 'Executive'
+        SUV = 'SUV', 'Suv'
+        VAN = 'VAN', 'Van'
+        MINIBUS = 'MINIBUS', 'Minibus'
+        COASTER_BUS = 'COASTER_BUS', 'Coaster Bus'
+        LUXURY = 'LUXURY', 'Luxury'
 
     request_number = models.CharField(
         max_length=50,
@@ -118,8 +128,8 @@ class TransportationRequest(models.Model):
     # Requirements & Capacity
     requested_vehicle_category = models.CharField(
         max_length=30,
-        choices=models.TextChoices('Category', 'SEDAN EXECUTIVE SUV VAN MINIBUS COASTER_BUS LUXURY').choices,
-        default='SEDAN'
+        choices=VehicleCategory.choices,
+        default=VehicleCategory.SEDAN
     )
     vehicles_requested_count = models.PositiveIntegerField(default=1)
     passenger_count = models.PositiveIntegerField(default=1)
@@ -183,6 +193,24 @@ class TransportationRequest(models.Model):
                 )
 
         super().save(*args, **kwargs)
+
+    if TYPE_CHECKING:
+        # Django reverse relations dynamically attached at runtime
+        from payments.models import PaymentTransaction
+        from quotations.models import CustomerQuote, ProviderQuoteRequest
+        from feedback.models import BookingTimeline, JourneyRating
+        payments: models.Manager[PaymentTransaction]
+        customer_quotes: models.Manager[CustomerQuote]
+        passengers: models.Manager['PassengerInfo']
+        vehicle_assignments: models.Manager['VehicleAssignment']
+        recurring_schedules: models.Manager['RecurringSchedule']
+        cancellation_requests: models.Manager['CancellationRequest']
+        timeline_events: models.Manager[BookingTimeline]
+        ratings: models.Manager[JourneyRating]
+        provider_quote_requests: models.Manager[ProviderQuoteRequest]
+        def get_booking_status_display(self) -> str: ...
+        def get_journey_type_display(self) -> str: ...
+        def get_priority_level_display(self) -> str: ...
 
     def __str__(self):
         cust_name = self.customer.company_name if hasattr(self, 'customer') and self.customer else "Pending Customer"
@@ -279,10 +307,32 @@ class VehicleAssignment(models.Model):
         choices=Status.choices,
         default=Status.ASSIGNED
     )
+
+    if TYPE_CHECKING:
+        def get_status_display(self) -> str: ...
     assigned_at = models.DateTimeField(auto_now_add=True)
     replacement_reason = models.TextField(blank=True, null=True)
 
     objects = models.Manager()
+
+    @property
+    def provider_quote(self):
+        """Accepted ProviderQuote for this assignment's request and provider."""
+        if hasattr(self, '_provider_quote'):
+            return self._provider_quote
+        try:
+            from quotations.models import ProviderQuote
+            return ProviderQuote.objects.filter(
+                provider=self.vehicle.provider,
+                quote_request__request=self.request,
+                status='ACCEPTED_BY_BROKER'
+            ).first()
+        except Exception:
+            return None
+
+    @provider_quote.setter
+    def provider_quote(self, value):
+        self._provider_quote = value
 
     def __str__(self):
         return f"{self.request.request_number} -> {self.vehicle.registration_number} / {self.driver.full_name}"
@@ -362,6 +412,9 @@ class CancellationRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = models.Manager()
+
+    if TYPE_CHECKING:
+        def get_status_display(self) -> str: ...
 
     def __str__(self):
         return f"Cancellation for {self.request.request_number} [{self.get_status_display()}]"

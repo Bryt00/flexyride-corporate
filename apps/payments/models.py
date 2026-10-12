@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 import uuid
 from django.db import models
 from django.conf import settings
@@ -58,6 +59,10 @@ class PaymentTransaction(models.Model):
         if not self.transaction_reference:
             self.transaction_reference = f"PAY-{uuid.uuid4().hex[:10].upper()}"  # type: ignore[assignment]
         super().save(*args, **kwargs)
+
+    if TYPE_CHECKING:
+        def get_status_display(self) -> str: ...
+        def get_payment_method_display(self) -> str: ...
 
     def __str__(self):
         return f"Payment {self.transaction_reference} - {self.currency} {self.amount:,} [{self.get_status_display()}]"
@@ -130,6 +135,9 @@ class Invoice(models.Model):
         if not self.invoice_number:
             self.invoice_number = f"INV-{uuid.uuid4().hex[:8].upper()}"  # type: ignore[assignment]
         super().save(*args, **kwargs)
+
+    if TYPE_CHECKING:
+        def get_status_display(self) -> str: ...
 
     def __str__(self):
         return f"Invoice {self.invoice_number} - {self.customer.company_name} [{self.get_status_display()}]"  # type: ignore[attr-defined]

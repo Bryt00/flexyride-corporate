@@ -17,6 +17,54 @@ logger = logging.getLogger(__name__)
 
 PAYSTACK_BASE_URL = "https://api.paystack.co"
 
+# Paystack's edge rejects urllib's default "Python-urllib/x.y" agent with HTTP 403,
+# so every request must send an explicit User-Agent.
+PAYSTACK_USER_AGENT = "FlexyRide-Corporate/1.0"
+
+# Offline fallback for the settlement bank picker (codes taken from Paystack GET /bank?currency=GHS).
+FALLBACK_GHS_BANKS = {
+    "ghipss": [
+        ("Absa Bank Ghana Ltd", "030100"), ("Access Bank", "280100"), ("ADB Bank Limited", "080100"),
+        ("ARB Apex Bank", "070101"), ("Bank of Africa Ghana", "210100"), ("CAL Bank Limited", "140100"),
+        ("Consolidated Bank Ghana Limited", "340100"), ("Ecobank Ghana Limited", "130100"),
+        ("FBNBank Ghana Limited", "200100"), ("Fidelity Bank Ghana Limited", "240100"),
+        ("First Atlantic Bank Limited", "170100"), ("First National Bank Ghana Limited", "330100"),
+        ("GCB Bank Limited", "040100"), ("Guaranty Trust Bank (Ghana) Limited", "230100"),
+        ("National Investment Bank Limited", "050100"), ("OmniBSCI Bank", "360100"),
+        ("Prudential Bank Limited", "180100"), ("Republic Bank (GH) Limited", "110100"),
+        ("Société Générale Ghana Limited", "090100"), ("Stanbic Bank Ghana Limited", "190100"),
+        ("Standard Chartered Bank Ghana Limited", "020100"), ("United Bank for Africa Ghana Limited", "060100"),
+        ("Universal Merchant Bank Ghana Limited", "100100"), ("Zenith Bank Ghana", "120100"),
+    ],
+    "mobile_money": [("AirtelTigo", "ATL"), ("MTN", "MTN"), ("Vodafone / Telecel", "VOD")],
+}
+
+
+def _headers() -> dict:
+    return {
+        "Authorization": f"Bearer {get_secret_key()}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": PAYSTACK_USER_AGENT,
+    }
+
+
+def _call(path: str, method: str = "GET", payload: dict | None = None, timeout: int = 12) -> dict:
+    """Performs a Paystack API call and returns the decoded JSON body.
+    HTTP error bodies are decoded too, so callers can surface Paystack's message.
+    Network failures propagate as exceptions.
+    """
+    data = json.dumps(payload).encode("utf-8") if payload is not None else None
+    req = urllib.request.Request(f"{PAYSTACK_BASE_URL}{path}", data=data, headers=_headers(), method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        try:
+            return json.loads(e.read().decode("utf-8"))
+        except Exception:
+            raise e
+
 
 def get_secret_key():
     return getattr(settings, 'PAYSTACK_SECRET_KEY', '')
@@ -55,11 +103,15 @@ def initialize_transaction(
     reference: str,
     callback_url: str,
     metadata: dict | None = None,
-    currency: str | None = None
+    currency: str | None = None,
+    subaccount: str | None = None,
+    transaction_charge: int | None = None,
+    bearer: str = "subaccount"
 ) -> dict:
     """
     Initializes a transaction with Paystack.
     Amount is converted to subunit (pesewas/kobo -> multiply by 100).
+    Optionally supports split payment to a provider's subaccount.
     """
     secret_key = get_secret_key()
     currency = currency or get_currency()
@@ -75,14 +127,17 @@ def initialize_transaction(
         "channels": ["card", "mobile_money", "bank_transfer"]
     }
 
+    if subaccount:
+        payload["subaccount"] = subaccount
+        if transaction_charge:
+            payload["transaction_charge"] = transaction_charge
+        payload["bearer"] = bearer
+
     req_data = json.dumps(payload).encode('utf-8')
     req = urllib.request.Request(
         f"{PAYSTACK_BASE_URL}/transaction/initialize",
         data=req_data,
-        headers={
-            "Authorization": f"Bearer {secret_key}",
-            "Content-Type": "application/json",
-        },
+        headers=_headers(),
         method="POST"
     )
 
@@ -115,13 +170,9 @@ def verify_transaction(reference: str) -> dict:
     """
     Verifies a transaction by its reference code on Paystack.
     """
-    secret_key = get_secret_key()
     req = urllib.request.Request(
         f"{PAYSTACK_BASE_URL}/transaction/verify/{reference}",
-        headers={
-            "Authorization": f"Bearer {secret_key}",
-            "Content-Type": "application/json",
-        },
+        headers=_headers(),
         method="GET"
     )
 
@@ -154,47 +205,176 @@ def verify_transaction(reference: str) -> dict:
         }
 
 
-def create_subaccount(business_name: str, settlement_bank: str, account_number: str, primary_contact_email: str) -> dict:
+def list_banks(bank_type: str = "ghipss", currency: str | None = None) -> dict:
     """
-    Creates a Paystack Subaccount for automated payouts.
-    percentage_charge is 0 because FlexyRide calculates margin dynamically at checkout.
+    Lists settlement banks / mobile money networks supported by Paystack.
+    bank_type: 'ghipss' (Ghana bank accounts) or 'mobile_money'.
+    Returns {"success", "banks": [{"name", "code"}], "sandbox"?}.
     """
-    secret_key = get_secret_key()
-    
+    from django.core.cache import cache
+
+    currency = currency or get_currency()
+    if bank_type not in ("ghipss", "mobile_money"):
+        bank_type = "ghipss"
+    cache_key = f"paystack_banks:{currency}:{bank_type}"
+    cached = cache.get(cache_key)
+    if cached:
+        return {"success": True, "banks": cached}
+
+    try:
+        data = _call(f"/bank?currency={currency}&type={bank_type}&perPage=100")
+        if data.get("status"):
+            banks = [
+                {"name": b["name"], "code": b["code"]}
+                for b in data.get("data", [])
+                if b.get("active", True) and not b.get("is_deleted", False)
+            ]
+            cache.set(cache_key, banks, 60 * 60 * 12)
+            return {"success": True, "banks": banks}
+        logger.warning("Paystack list_banks rejected: %s", data.get("message"))
+    except Exception as e:
+        logger.warning("Paystack list_banks API failed: %s", e)
+
+    fallback = [{"name": n, "code": c} for n, c in FALLBACK_GHS_BANKS.get(bank_type, [])]
+    return {"success": True, "sandbox": True, "banks": fallback}
+
+
+def resolve_account_number(account_number: str, bank_code: str) -> dict:
+    """
+    Resolves the registered account holder name for a bank / MoMo account.
+    Returns {"success", "account_name", "account_number", "message"?}.
+    """
+    from urllib.parse import urlencode
+
+    query = urlencode({"account_number": account_number, "bank_code": bank_code})
+    try:
+        data = _call(f"/bank/resolve?{query}")
+        if data.get("status"):
+            return {
+                "success": True,
+                "account_name": data["data"].get("account_name", ""),
+                "account_number": data["data"].get("account_number", account_number),
+            }
+        return {"success": False, "message": data.get("message", "Could not resolve account")}
+    except Exception as e:
+        logger.warning("Paystack resolve_account_number API failed: %s", e)
+        return {"success": False, "message": "Paystack is unreachable. Account name could not be verified."}
+
+
+def _subaccount_payload(
+    business_name: str,
+    settlement_bank: str,
+    account_number: str,
+    primary_contact_email: str,
+    primary_contact_name: str | None = None,
+    primary_contact_phone: str | None = None,
+    percentage_charge: Decimal | float | int = 0,
+    description: str | None = None,
+) -> dict:
     payload = {
         "business_name": business_name,
         "settlement_bank": settlement_bank,
         "account_number": account_number,
-        "percentage_charge": 0,
-        "primary_contact_email": primary_contact_email
+        "percentage_charge": float(percentage_charge or 0),
+        "primary_contact_email": primary_contact_email,
     }
+    if primary_contact_name:
+        payload["primary_contact_name"] = primary_contact_name
+    if primary_contact_phone:
+        payload["primary_contact_phone"] = primary_contact_phone
+    if description:
+        payload["description"] = description
+    return payload
 
-    req_data = json.dumps(payload).encode('utf-8')
-    req = urllib.request.Request(
-        f"{PAYSTACK_BASE_URL}/subaccount",
-        data=req_data,
-        headers={
-            "Authorization": f"Bearer {secret_key}",
-            "Content-Type": "application/json",
-        },
-        method="POST"
+
+def create_subaccount(
+    business_name: str,
+    settlement_bank: str,
+    account_number: str,
+    primary_contact_email: str,
+    primary_contact_name: str | None = None,
+    primary_contact_phone: str | None = None,
+    percentage_charge: Decimal | float | int = 0,
+    description: str | None = None,
+) -> dict:
+    """
+    Creates a Paystack Subaccount for automated payouts.
+    percentage_charge defaults to 0 because FlexyRide calculates margin dynamically at checkout.
+    """
+    payload = _subaccount_payload(
+        business_name, settlement_bank, account_number, primary_contact_email,
+        primary_contact_name, primary_contact_phone, percentage_charge, description,
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=12) as response:
-            res_body = response.read().decode('utf-8')
-            data = json.loads(res_body)
-            if data.get("status"):
-                return {
-                    "success": True,
-                    "subaccount_code": data["data"]["subaccount_code"]
-                }
-            return {"success": False, "message": data.get("message", "Subaccount creation failed")}
-    except (urllib.error.HTTPError, urllib.error.URLError, Exception) as e:
+        data = _call("/subaccount", method="POST", payload=payload)
+        if data.get("status"):
+            return {
+                "success": True,
+                "subaccount_code": data["data"]["subaccount_code"],
+                "account_name": data["data"].get("account_name") or "",
+                "settlement_bank_name": data["data"].get("settlement_bank") or "",
+            }
+        if not is_live_keys():
+            logger.info("Paystack test-mode rejection (%s); using sandbox subaccount simulation.", data.get("message"))
+            return {
+                "success": True,
+                "sandbox": True,
+                "subaccount_code": f"ACCT_TEST_{account_number[:4]}",
+                "account_name": business_name,
+                "settlement_bank_name": settlement_bank,
+            }
+        return {"success": False, "message": data.get("message", "Subaccount creation failed")}
+    except Exception as e:
         logger.warning("Paystack create_subaccount API failed: %s", e)
         # Sandbox fallback
         return {
-            "success": True, 
+            "success": True,
             "sandbox": True,
             "subaccount_code": f"ACCT_TEST_{account_number[:4]}"
         }
+
+
+def update_subaccount(
+    subaccount_code: str,
+    business_name: str,
+    settlement_bank: str,
+    account_number: str,
+    primary_contact_email: str,
+    primary_contact_name: str | None = None,
+    primary_contact_phone: str | None = None,
+    percentage_charge: Decimal | float | int = 0,
+    description: str | None = None,
+) -> dict:
+    """Updates settlement details on an existing Paystack Subaccount."""
+    if subaccount_code.startswith("ACCT_TEST_"):
+        return {"success": True, "sandbox": True, "subaccount_code": subaccount_code}
+
+    payload = _subaccount_payload(
+        business_name, settlement_bank, account_number, primary_contact_email,
+        primary_contact_name, primary_contact_phone, percentage_charge, description,
+    )
+    try:
+        data = _call(f"/subaccount/{subaccount_code}", method="PUT", payload=payload)
+        if data.get("status"):
+            return {
+                "success": True,
+                "subaccount_code": subaccount_code,
+                "account_name": data["data"].get("account_name") or "",
+                "settlement_bank_name": data["data"].get("settlement_bank") or "",
+            }
+        if not is_live_keys():
+            logger.info("Paystack test-mode rejection (%s); using sandbox update simulation.", data.get("message"))
+            return {
+                "success": True,
+                "sandbox": True,
+                "subaccount_code": subaccount_code,
+                "account_name": business_name,
+                "settlement_bank_name": settlement_bank,
+            }
+        return {"success": False, "message": data.get("message", "Subaccount update failed")}
+    except Exception as e:
+        logger.warning("Paystack update_subaccount API failed: %s", e)
+        if not is_live_keys():
+            return {"success": True, "sandbox": True, "subaccount_code": subaccount_code}
+        return {"success": False, "message": "Paystack is unreachable. Subaccount was not updated."}

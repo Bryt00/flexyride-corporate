@@ -1,5 +1,11 @@
+from typing import TYPE_CHECKING
 from django.db import models
 from django.conf import settings
+
+if TYPE_CHECKING:
+    from bookings.models import VehicleAssignment
+    from compliance.models import ComplianceDocument
+
 
 
 class Vehicle(models.Model):
@@ -81,6 +87,19 @@ class Vehicle(models.Model):
             self.status == self.Status.AVAILABLE and
             self.compliance_status == self.ComplianceStatus.COMPLIANT
         )
+
+    def is_compliant(self) -> bool:
+        return self.compliance_status == self.ComplianceStatus.COMPLIANT
+
+    if TYPE_CHECKING:
+        id: int
+        pk: int
+        photos: models.Manager['VehiclePhoto']
+        compliance_documents: models.Manager['ComplianceDocument']
+        assignments: models.Manager['VehicleAssignment']
+        def get_category_display(self) -> str: ...
+        def get_status_display(self) -> str: ...
+        def get_compliance_status_display(self) -> str: ...
 
     def __str__(self):
         return f"{self.make} {self.model} ({self.registration_number}) - {self.get_category_display()}"
@@ -166,6 +185,17 @@ class Driver(models.Model):
             self.status == self.Status.AVAILABLE and
             self.compliance_status == self.ComplianceStatus.COMPLIANT
         )
+
+    def is_compliant(self) -> bool:
+        return self.compliance_status == self.ComplianceStatus.COMPLIANT
+
+    if TYPE_CHECKING:
+        id: int
+        pk: int
+        compliance_documents: models.Manager['ComplianceDocument']
+        assignments: models.Manager['VehicleAssignment']
+        def get_status_display(self) -> str: ...
+        def get_compliance_status_display(self) -> str: ...
 
     def __str__(self):
         prov_name = getattr(self.provider, 'company_name', 'Independent') if getattr(self, 'provider_id', None) else 'Independent'

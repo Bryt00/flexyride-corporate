@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 import uuid
 from django.db import models
 from django.conf import settings
@@ -88,6 +89,10 @@ class SupportIssue(models.Model):
     resolved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    if TYPE_CHECKING:
+        def get_issue_type_display(self) -> str: ...
+        def get_status_display(self) -> str: ...
 
     def __str__(self):
         return f"Issue [{self.get_issue_type_display()}] - {self.request.request_number} [{self.get_status_display()}]"  # type: ignore[attr-defined]

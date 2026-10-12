@@ -62,6 +62,14 @@ def _dispatch_async(worker_func, worker_args=(), celery_task=None, celery_args=(
         logger.info(f"Dispatched email to background daemon thread: {worker_func.__name__}")
 
 
+def get_reply_to_email():
+    """Returns a list of reply-to email addresses for transactional dispatches."""
+    reply_to = getattr(settings, 'REPLY_TO_EMAIL', None)
+    if reply_to:
+        return [reply_to]
+    return [getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Operations <operations@flexyridegh.com>')]
+
+
 # ==============================================================================
 # 1. Quote Ready Email
 # ==============================================================================
@@ -122,12 +130,13 @@ def _send_quote_ready_email_worker(customer_quote, request_obj):
         html_content = render_to_string('notifications/emails/quote_ready_email.html', context)
         text_content = strip_tags(html_content)
 
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Corporate <noreply@flexyridegh.com>')
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Operations <operations@flexyridegh.com>')
         msg = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
             from_email=from_email,
-            to=[recipient_email]
+            to=[recipient_email],
+            reply_to=get_reply_to_email(),
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
@@ -242,12 +251,13 @@ def _send_booking_confirmation_email_worker(request_obj, quote_obj=None, payment
         html_content = render_to_string('notifications/emails/booking_confirmation_email.html', context)
         text_content = strip_tags(html_content)
 
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Corporate <noreply@flexyridegh.com>')
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Operations <operations@flexyridegh.com>')
         msg = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
             from_email=from_email,
-            to=[recipient_email]
+            to=[recipient_email],
+            reply_to=get_reply_to_email(),
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
@@ -363,12 +373,13 @@ def _send_payment_receipt_email_worker(payment_transaction, receipt_obj=None):
         html_content = render_to_string('notifications/emails/payment_receipt_email.html', context)
         text_content = strip_tags(html_content)
 
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Corporate <noreply@flexyridegh.com>')
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Operations <operations@flexyridegh.com>')
         msg = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
             from_email=from_email,
-            to=[recipient_email]
+            to=[recipient_email],
+            reply_to=get_reply_to_email(),
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
@@ -483,12 +494,13 @@ def _send_driver_assigned_email_worker(vehicle_assignment):
         html_content = render_to_string('notifications/emails/driver_assigned_email.html', context)
         text_content = strip_tags(html_content)
 
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Corporate <noreply@flexyridegh.com>')
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Operations <operations@flexyridegh.com>')
         msg = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
             from_email=from_email,
-            to=recipient_emails
+            to=recipient_emails,
+            reply_to=get_reply_to_email(),
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
@@ -532,3 +544,120 @@ def _send_driver_assigned_email_worker(vehicle_assignment):
                 delivery_status=Notification.DeliveryStatus.FAILED
             )
         return False
+
+
+# ==============================================================================
+# 5. Provider Welcome & Credentials Email
+# ==============================================================================
+
+def send_provider_welcome_email(provider, user, temp_password=None, async_send=None):
+    """
+    Dispatches onboarding welcome email with login credentials to partner provider administrator.
+    Runs asynchronously in background by default.
+    """
+    provider_id = provider.id if hasattr(provider, 'id') else provider
+    user_id = user.id if hasattr(user, 'id') else user
+
+    if should_send_async(async_send):
+        try:
+            from notifications.tasks import send_provider_welcome_email_async
+            celery_task = send_provider_welcome_email_async
+            celery_args = (provider_id, user_id, temp_password)
+        except Exception:
+            celery_task = None
+            celery_args = ()
+
+        _dispatch_async(
+            worker_func=_send_provider_welcome_email_worker,
+            worker_args=(provider, user, temp_password),
+            celery_task=celery_task,
+            celery_args=celery_args
+        )
+        return True
+    else:
+        return _send_provider_welcome_email_worker(provider, user, temp_password)
+
+
+def _send_provider_welcome_email_worker(provider, user, temp_password=None):
+    from accounts.models import ProviderCompany, User as UserModel
+
+    if isinstance(provider, int):
+        provider = ProviderCompany.objects.filter(id=provider).first()
+    if isinstance(user, int):
+        user = UserModel.objects.filter(id=user).first()
+
+    if not provider or not user:
+        logger.warning("Provider or User object not found for provider welcome email worker.")
+        return False
+
+    recipient_email = user.email or provider.email
+    if not recipient_email:
+        logger.warning(f"No recipient email found for provider welcome on company {provider.company_name}")
+        return False
+
+    recipient_name = user.first_name or provider.contact_person or user.username
+    site_url = getattr(settings, 'SITE_URL', 'https://flexyridegh.com')
+    if not isinstance(site_url, str) or not site_url.startswith('http'):
+        site_url = 'https://flexyridegh.com'
+    site_url = site_url.rstrip('/')
+    login_url = f"{site_url}/portal/login/"
+
+    subject = f"Welcome to FlexyRide Corporate — Partner Dispatch Portal Access for {provider.company_name}"
+    support_email = getattr(settings, 'REPLY_TO_EMAIL', 'operations@flexyridegh.com')
+
+    context = {
+        'provider': provider,
+        'user': user,
+        'temporary_password': temp_password,
+        'recipient_name': recipient_name,
+        'login_url': login_url,
+        'support_email': support_email,
+    }
+
+    try:
+        html_content = render_to_string('notifications/emails/provider_welcome_email.html', context)
+        text_content = strip_tags(html_content)
+
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Operations <operations@flexyridegh.com>')
+        reply_to = get_reply_to_email()
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=from_email,
+            to=[recipient_email],
+            reply_to=reply_to,
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+
+        if user and user.pk:
+            Notification.objects.create(
+                recipient=user,
+                channel=Notification.Channel.EMAIL,
+                notification_type=Notification.NotificationType.SYSTEM,
+                title=subject,
+                message=f"Partner dispatch credentials successfully dispatched to {recipient_email}.",
+                delivery_status=Notification.DeliveryStatus.SENT,
+                sent_at=timezone.now()
+            )
+
+        logger.info(f"Provider welcome credentials email sent to {recipient_email} for {provider.company_name}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to send provider welcome credentials email to {recipient_email}: {e}")
+        if user and user.pk:
+            try:
+                Notification.objects.create(
+                    recipient=user,
+                    channel=Notification.Channel.EMAIL,
+                    notification_type=Notification.NotificationType.SYSTEM,
+                    title=subject,
+                    message=f"Failed sending provider credentials email: {str(e)}",
+                    delivery_status=Notification.DeliveryStatus.FAILED
+                )
+            except Exception:
+                pass
+        return False
+

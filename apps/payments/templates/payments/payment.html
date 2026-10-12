@@ -181,16 +181,13 @@
 
         if (typeof PaystackPop !== 'undefined' && pubKey && !pubKey.includes('test_d3a8258b')) {
             // Live or configured sandbox key
-            const handler = PaystackPop.setup({
+            const paystackConfig = {
                 key: pubKey,
                 email: '{{ user.email|default:"billing@flexyride.com" }}',
                 amount: amountSubunits,
                 currency: '{{ paystack_currency|default:"GHS" }}',
                 ref: ref,
                 channels: currentMethod === 'CARD' ? ['card'] : ['mobile_money', 'card'],
-                subaccount: '{{ paystack_subaccount_code|default:"" }}',
-                transaction_charge: parseInt('{{ paystack_transaction_charge|default:0 }}', 10),
-                bearer: 'subaccount',
                 callback: function(response) {
                     document.getElementById('paystack_reference').value = response.reference;
                     form.submit();
@@ -198,7 +195,19 @@
                 onClose: function() {
                     console.log('Payment window closed');
                 }
-            });
+            };
+
+            const subaccountCode = "{{ paystack_subaccount_code|default:'' }}".trim();
+            if (subaccountCode) {
+                paystackConfig.subaccount = subaccountCode;
+                const marginCharge = parseInt('{{ paystack_transaction_charge|default:0 }}', 10);
+                if (marginCharge > 0) {
+                    paystackConfig.transaction_charge = marginCharge;
+                }
+                paystackConfig.bearer = 'subaccount';
+            }
+
+            const handler = PaystackPop.setup(paystackConfig);
             handler.openIframe();
         } else {
             // Instant sandbox fallback confirmation

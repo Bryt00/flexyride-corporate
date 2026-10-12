@@ -54,6 +54,9 @@ urlpatterns = [
     # Web Push, Ratings & Support APIs
     path('api/webpush/subscribe/', views.webpush_subscribe_api, name='portal_webpush_subscribe'),
     path('api/notifications/', views.notifications_api, name='portal_notifications_api'),
+    path('api/paystack/banks/', views.paystack_banks_api, name='portal_paystack_banks_api'),
+    path('api/paystack/resolve-account/', views.paystack_resolve_account_api, name='portal_paystack_resolve_account_api'),
+    path('api/fleet/categories/', views.fleet_categories_api, name='portal_fleet_categories_api'),
     path('trips/rate/', views.submit_journey_rating_view, name='portal_submit_journey_rating'),
     path('support/report-issue/', views.report_support_issue_view, name='portal_report_support_issue'),
 ]

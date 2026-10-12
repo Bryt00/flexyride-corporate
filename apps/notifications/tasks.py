@@ -66,3 +66,19 @@ def send_driver_assigned_email_async(self, assignment_id):
     except Exception as exc:
         logger.error(f"Error in send_driver_assigned_email_async task: {exc}")
         raise self.retry(exc=exc)
+
+
+@shared_task(name='notifications.send_provider_welcome_email_async', bind=True, max_retries=3, default_retry_delay=60)
+def send_provider_welcome_email_async(self, provider_id, user_id, temp_password=None):
+    """Asynchronous Celery worker task to dispatch provider welcome credentials email."""
+    from accounts.models import ProviderCompany, User
+    from notifications.email_service import _send_provider_welcome_email_worker
+
+    try:
+        provider = ProviderCompany.objects.get(id=provider_id)
+        user = User.objects.get(id=user_id)
+        return _send_provider_welcome_email_worker(provider, user, temp_password)
+    except Exception as exc:
+        logger.error(f"Error in send_provider_welcome_email_async task: {exc}")
+        raise self.retry(exc=exc)
+

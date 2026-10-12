@@ -356,7 +356,7 @@ def seed_full():
             'requester': customer_user,
             'journey_type': TransportationRequest.JourneyType.AIRPORT_MEET_GREET,
             'pickup_address': 'MTN House, Independence Avenue, Ridge, Accra',
-            'destination_address': 'Kotoka International Airport (ACC) · Terminal 3',
+            'destination_address': 'International Airport · Terminal 3',
             'departure_datetime': now + timedelta(days=1, hours=4),
             'requested_vehicle_category': 'SUV',
             'vehicles_requested_count': 1,
@@ -579,12 +579,12 @@ def seed_full():
     Invoice.objects.filter(currency='UGX').update(currency='GHS')
     CorporateCustomer.objects.filter(preferred_currency='UGX').update(preferred_currency='GHS')
 
-    # Update any old trips with Kampala/Entebbe addresses to Accra/Kotoka
+    # Update any old trips with Kampala/Entebbe addresses to Accra/Airport
     TransportationRequest.objects.filter(pickup_address__icontains='Kampala').update(
         pickup_address='Kempinski Hotel Gold Coast City, Accra'
     )
     TransportationRequest.objects.filter(destination_address__icontains='Entebbe').update(
-        destination_address='Kotoka International Airport (ACC) · Terminal 3'
+        destination_address='International Airport · Terminal 3'
     )
     TransportationRequest.objects.filter(destination_address__icontains='Kampala').update(
         destination_address='Liberation Road, Airport City, Accra'

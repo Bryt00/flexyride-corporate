@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from django.db import models
 
 
@@ -32,6 +33,9 @@ class SLAMetric(models.Model):
         verbose_name = 'SLA Metric'
         verbose_name_plural = 'SLA Metrics'
         ordering = ['-measured_at']
+
+    if TYPE_CHECKING:
+        def get_metric_type_display(self) -> str: ...
 
     def __str__(self):
         return f"{self.provider.company_name} - {self.get_metric_type_display()}: {self.value}"

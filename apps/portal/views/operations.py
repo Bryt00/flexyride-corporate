@@ -261,3 +261,23 @@ def invoice_printable_view(request, invoice_num):
         'customer': invoice.customer,
         'line_items': invoice.line_items.all()
     })
+
+
+def fleet_categories_api(request):
+    """Returns active vehicle categories created by admin as JSON."""
+    from fleet.models import VehicleCategoryRate
+    rates = VehicleCategoryRate.objects.filter(is_active=True).order_by('display_order')
+    categories = [
+        {
+            'id': r.id,
+            'code': r.category,
+            'display_name': r.display_name,
+            'base_rate': float(r.base_wholesale_rate),
+            'per_km_rate': float(r.per_km_rate),
+            'daily_charter_rate': float(r.daily_charter_rate),
+            'min_seating_capacity': r.min_seating_capacity,
+            'recommended_models': r.recommended_models,
+        }
+        for r in rates
+    ]
+    return JsonResponse({'success': True, 'categories': categories})

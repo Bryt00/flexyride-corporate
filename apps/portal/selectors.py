@@ -130,12 +130,12 @@ def get_provider_context(request):
     if not provider_company:
         provider_company = ProviderCompany.objects.first()
 
-    quote_requests = []
-    vehicles = []
-    drivers = []
-    active_dispatches = []
-    completed_trips = []
-    compliance_docs = []
+    quote_requests = ProviderQuoteRequest.objects.none()
+    vehicles = Vehicle.objects.none()
+    drivers = Driver.objects.none()
+    active_dispatches = VehicleAssignment.objects.none()
+    completed_trips = VehicleAssignment.objects.none()
+    compliance_docs = ComplianceDocument.objects.none()
 
     if provider_company:
         quote_requests = (

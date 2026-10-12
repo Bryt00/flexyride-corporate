@@ -252,3 +252,26 @@ def provider_payouts_view(request):
     ctx = get_provider_context(request)
     ctx['active_tab'] = 'provider_payouts'
     return render(request, 'payments/provider_payouts.html', ctx)
+
+
+@login_required
+def paystack_banks_api(request):
+    """Returns settlement banks or mobile money networks supported by Paystack."""
+    bank_type = request.GET.get('type', 'ghipss').strip().lower()
+    res = paystack.list_banks(bank_type=bank_type)
+    return HttpResponse(json.dumps(res), content_type='application/json')
+
+
+@login_required
+def paystack_resolve_account_api(request):
+    """Resolves and verifies an account / MoMo number with Paystack."""
+    account_number = request.GET.get('account_number', '').strip()
+    bank_code = request.GET.get('bank_code', '').strip()
+    if not account_number or not bank_code:
+        return HttpResponse(
+            json.dumps({"success": False, "message": "Account number and bank code are required."}),
+            content_type='application/json',
+            status=400
+        )
+    res = paystack.resolve_account_number(account_number=account_number, bank_code=bank_code)
+    return HttpResponse(json.dumps(res), content_type='application/json')

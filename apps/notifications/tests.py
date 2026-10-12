@@ -68,7 +68,7 @@ class NotificationEmailServiceTests(TestCase):
             request_number='FRC-TEST-0001',
             customer=self.company,
             requester=self.customer_user,
-            pickup_address='Kotoka International Airport Terminal 3, Accra',
+            pickup_address='International Airport Terminal 3',
             destination_address='Kempinski Hotel Gold Coast City, Accra',
             departure_datetime=timezone.now() + timezone.timedelta(days=1),
             requested_vehicle_category='EXECUTIVE',
@@ -143,7 +143,7 @@ class NotificationEmailServiceTests(TestCase):
         sent = mail.outbox[0]
         self.assertIn("Booking Confirmed: Transfer #FRC-TEST-0001", sent.subject)
         self.assertEqual(sent.to, ['rep@corporate.com'])
-        self.assertIn("Kotoka International Airport", sent.body)
+        self.assertIn("International Airport", sent.body)
 
         # Check DB audit log
         notif = Notification.objects.filter(

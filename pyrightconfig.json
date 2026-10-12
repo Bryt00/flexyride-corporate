@@ -2,5 +2,6 @@
     "extraPaths": [
         ".",
         "apps"
-    ]
+    ],
+    "pythonVersion": "3.13"
 }

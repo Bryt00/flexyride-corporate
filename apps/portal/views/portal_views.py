@@ -76,7 +76,7 @@ def dashboard_view(request):
     """Screen 2: Corporate Dashboard Home — Dynamic stats from DB."""
     if request.user.is_superuser or request.user.role == User.Role.SYSTEM_ADMIN:
         return redirect('portal_broker_workspace')
-    elif request.user.role == User.Role.BROKER:
+    elif request.user.role == User.Role.BROKER or request.user.is_staff:
         return redirect('portal_broker_workspace')
     elif request.user.role == User.Role.PROVIDER_ADMIN:
         return redirect('portal_provider_workspace')

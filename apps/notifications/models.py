@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from django.db import models
 from django.conf import settings
 
@@ -74,6 +75,10 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+    if TYPE_CHECKING:
+        def get_notification_type_display(self) -> str: ...
+        def get_delivery_status_display(self) -> str: ...
 
     def __str__(self):
         target = self.recipient or self.passenger_info or "Unknown"
