@@ -751,3 +751,80 @@ class BrokerProviderCRUDTests(TestCase):
         self.assertEqual(driver.status, Driver.Status.ON_TRIP)
 
 
+class PWACachingTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        from django.core.cache import cache
+        cache.clear()
+
+    def test_pwa_manifest_endpoint(self):
+        """Test PWA manifest is served with proper content type and structure."""
+        response = self.client.get(reverse('pwa_manifest'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('application/manifest+json', response['Content-Type'])
+        self.assertIn('public', response.get('Cache-Control', ''))
+        data = response.json()
+        self.assertEqual(data.get('short_name'), 'FlexyRide')
+        self.assertEqual(data.get('display'), 'standalone')
+        self.assertEqual(data.get('scope'), '/')
+        self.assertTrue(len(data.get('icons', [])) >= 2)
+
+    def test_service_worker_endpoint(self):
+        """Test Service Worker is served from domain root with Service-Worker-Allowed header."""
+        response = self.client.get(reverse('pwa_service_worker'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('application/javascript', response['Content-Type'])
+        self.assertEqual(response.get('Service-Worker-Allowed'), '/')
+        self.assertIn('no-cache', response.get('Cache-Control', ''))
+        self.assertIn('flexyride-corp', response.content.decode())
+
+    def test_offline_page_endpoint(self):
+        """Test branded offline page renders successfully with emergency contacts."""
+        response = self.client.get(reverse('pwa_offline'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'portal/offline.html')
+        content = response.content.decode()
+        self.assertIn('Offline Mode', content)
+        self.assertIn('Retry Connection', content)
+        self.assertIn('+233 24 000 0000', content)
+
+    def test_cached_vehicle_category_rates(self):
+        """Test VehicleCategoryRate caching and invalidation signal."""
+        from django.core.cache import cache
+        from fleet.models import VehicleCategoryRate
+        cache.clear()
+
+        initial_count = VehicleCategoryRate.objects.filter(is_active=True).count()
+        rates_1 = VehicleCategoryRate.get_cached_active_rates()
+        self.assertEqual(len(rates_1), initial_count)
+
+        # Cache should now be populated
+        cached_data = cache.get('active_vehicle_category_rates')
+        self.assertIsNotNone(cached_data)
+
+        # Modifying rate triggers signal and clears cache
+        rate = rates_1[0]
+        original_name = rate.display_name
+        rate.display_name = original_name + ' (Updated Test)'
+        rate.save()
+        self.assertIsNone(cache.get('active_vehicle_category_rates'))
+
+        # Fetching again refreshes cache
+        rates_2 = VehicleCategoryRate.get_cached_active_rates()
+        self.assertIsNotNone(cache.get('active_vehicle_category_rates'))
+        self.assertIn('(Updated Test)', rates_2[0].display_name)
+
+    def test_landing_page_stats_caching(self):
+        """Test landing page platform metrics caching."""
+        from django.core.cache import cache
+        cache.clear()
+
+        response = self.client.get(reverse('landing_page'))
+        self.assertEqual(response.status_code, 200)
+        stats = cache.get('flexyride_landing_stats')
+        self.assertIsNotNone(stats)
+        self.assertIn('total_clients', stats)
+        self.assertIn('completed_trips', stats)
+
+
+

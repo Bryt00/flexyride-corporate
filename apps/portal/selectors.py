@@ -117,7 +117,7 @@ def get_broker_context(request):
         'completed_trips': completed_trips,
         'providers': providers,
         'corporate_customers': corporate_customers,
-        'category_rates': VehicleCategoryRate.objects.filter(is_active=True).order_by('display_order'),
+        'category_rates': VehicleCategoryRate.get_cached_active_rates(),
         'commission_tiers': CommissionTier.objects.filter(is_active=True).order_by('-priority'),
     }
 
@@ -220,6 +220,6 @@ def get_provider_context(request):
         'completed_trips': completed_trips,
         'compliance_docs': compliance_docs,
         'stats': stats,
-        'category_rates': VehicleCategoryRate.objects.filter(is_active=True).order_by('display_order'),
+        'category_rates': VehicleCategoryRate.get_cached_active_rates(),
         'company': provider_company
     }

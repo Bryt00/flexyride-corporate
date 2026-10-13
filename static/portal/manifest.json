@@ -1,0 +1,57 @@
+{
+  "name": "FlexyRide Corporate Mobility",
+  "short_name": "FlexyRide",
+  "description": "Enterprise Ground Mobility, Fleet Dispatch & Corporate Transit Operations Platform",
+  "start_url": "/portal/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0A0F1D",
+  "background_color": "#0A0F1D",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "travel"],
+  "icons": [
+    {
+      "src": "/static/portal/img/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/portal/img/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/portal/img/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Request Ride",
+      "short_name": "New Booking",
+      "description": "Create a new corporate transportation booking",
+      "url": "/portal/requests/create/",
+      "icons": [{ "src": "/static/portal/img/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Active Bookings",
+      "short_name": "Bookings",
+      "description": "View live bookings and trip dispatch",
+      "url": "/portal/",
+      "icons": [{ "src": "/static/portal/img/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Track Chauffeur",
+      "short_name": "Live Tracking",
+      "description": "Track active driver and vehicle dispatch in real time",
+      "url": "/bookings/tracking/",
+      "icons": [{ "src": "/static/portal/img/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

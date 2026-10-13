@@ -269,3 +269,26 @@ class VehicleCategoryRate(models.Model):
     def __str__(self):
         return f"{self.display_name} — GHS {self.base_wholesale_rate:,.2f}"
 
+    @classmethod
+    def get_cached_active_rates(cls):
+        """Retrieve active vehicle category rates from cache or database (1 hour TTL)."""
+        from django.core.cache import cache
+        cache_key = 'active_vehicle_category_rates'
+        rates = cache.get(cache_key)
+        if rates is None:
+            rates = list(cls.objects.filter(is_active=True).order_by('display_order'))
+            cache.set(cache_key, rates, 3600)
+        return rates
+
+
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+
+@receiver([post_save, post_delete], sender=VehicleCategoryRate)
+def invalidate_category_rates_cache(sender, **kwargs):
+    """Invalidate vehicle category rates cache when rates are added, updated, or removed."""
+    from django.core.cache import cache
+    cache.delete('active_vehicle_category_rates')
+
+

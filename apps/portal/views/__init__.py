@@ -23,6 +23,9 @@ from portal.views.portal_views import (
     provider_profile_view,
     provider_workspace_view,
     admin_seed_ecosystem_view,
+    manifest_view,
+    service_worker_view,
+    offline_view,
 )
 from portal.views.provider import provider_vehicle_detail_view
 from portal.views.operations import fleet_categories_api

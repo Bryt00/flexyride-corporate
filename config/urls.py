@@ -30,6 +30,9 @@ from apps.portal import views as portal_views
 
 urlpatterns = [
     path('favicon.ico', RedirectView.as_view(url='/static/portal/img/logo_icon.png', permanent=False)),
+    path('manifest.json', portal_views.manifest_view, name='root_manifest'),
+    path('sw.js', portal_views.service_worker_view, name='root_sw'),
+    path('offline/', portal_views.offline_view, name='root_offline'),
     path('admin/seed-ecosystem/', portal_views.admin_seed_ecosystem_view, name='admin_seed_ecosystem'),
     path('admin/', admin.site.urls),
     path('', include('portal.urls')),

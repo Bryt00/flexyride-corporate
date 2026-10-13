@@ -257,6 +257,33 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# --------------------------------------------------------------------------
+# Multi-Tier Caching Configuration (Resilient Redis with LocMemCache Fallback)
+# --------------------------------------------------------------------------
+REDIS_CACHE_URL = os.environ.get('REDIS_URL') or os.environ.get('CACHE_URL')
+
+if REDIS_CACHE_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'config.cache.ResilientRedisCache',
+            'LOCATION': REDIS_CACHE_URL,
+            'KEY_PREFIX': 'flexyride_corp',
+            'TIMEOUT': 300,  # 5 minutes default
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'flexyride-corp-locmem',
+            'KEY_PREFIX': 'flexyride_corp',
+            'TIMEOUT': 300,  # 5 minutes default
+            'OPTIONS': {
+                'MAX_ENTRIES': 2000,
+            }
+        }
+    }
+
 # ==============================================================================
 # DJANGO UNFOLD CONFIGURATION
 # ==============================================================================
@@ -480,8 +507,8 @@ VAPID_ADMIN_EMAIL = os.environ.get('VAPID_ADMIN_EMAIL', 'mailto:dispatch@flexyri
 # --------------------------------------------------------------------------
 from celery.schedules import crontab
 
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/3')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/3')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

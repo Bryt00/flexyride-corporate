@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_control
 from django.contrib import messages
 from django.utils import timezone
 
@@ -263,10 +264,11 @@ def invoice_printable_view(request, invoice_num):
     })
 
 
+@cache_control(public=True, max_age=300)
 def fleet_categories_api(request):
     """Returns active vehicle categories created by admin as JSON."""
     from fleet.models import VehicleCategoryRate
-    rates = VehicleCategoryRate.objects.filter(is_active=True).order_by('display_order')
+    rates = VehicleCategoryRate.get_cached_active_rates()
     categories = [
         {
             'id': r.id,

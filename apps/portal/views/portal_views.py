@@ -18,57 +18,14 @@ from ..selectors import (
 )
 from ..services import handle_broker_post, handle_provider_post
 from .base import is_broker, is_provider
-
-
-def landing_page_view(request):
-    """Screen 0: High-Converting Enterprise B2B Landing Page for FlexyRide Corporate."""
-    total_clients = CorporateCustomer.objects.count()
-    total_vehicles = Vehicle.objects.count()
-    total_drivers = Driver.objects.count()
-    completed_trips = TransportationRequest.objects.filter(
-        booking_status=TransportationRequest.BookingStatus.COMPLETED
-    ).count()
-
-    context = {
-        'hide_sidebar': True,
-        'hide_navbar': True,
-        'active_nav': 'home',
-        'stats': {
-            'total_clients': total_clients,
-            'total_vehicles': total_vehicles,
-            'total_drivers': total_drivers,
-            'completed_trips': f"{completed_trips:,}",
-            'sla_on_time': '99.4%',
-            'coverage_cities': 'Accra, Tema, Kumasi, Takoradi, Tamale',
-        },
-        'user_is_auth': request.user.is_authenticated,
-        'user_role': getattr(request.user, 'role', None) if request.user.is_authenticated else None,
-    }
-    return render(request, 'portal/landing.html', context)
-
-
-def solutions_view(request):
-    """Dedicated Detailed Solutions Page."""
-    context = {
-        'hide_sidebar': True,
-        'hide_navbar': True,
-        'active_nav': 'solutions',
-        'user_is_auth': request.user.is_authenticated,
-        'user_role': getattr(request.user, 'role', None) if request.user.is_authenticated else None,
-    }
-    return render(request, 'portal/solutions.html', context)
-
-
-def how_it_works_view(request):
-    """Dedicated Detailed How It Works Orchestration Page."""
-    context = {
-        'hide_sidebar': True,
-        'hide_navbar': True,
-        'active_nav': 'how_it_works',
-        'user_is_auth': request.user.is_authenticated,
-        'user_role': getattr(request.user, 'role', None) if request.user.is_authenticated else None,
-    }
-    return render(request, 'portal/how_it_works.html', context)
+from .public import (
+    landing_page_view,
+    solutions_view,
+    how_it_works_view,
+    manifest_view,
+    service_worker_view,
+    offline_view,
+)
 
 
 @login_required

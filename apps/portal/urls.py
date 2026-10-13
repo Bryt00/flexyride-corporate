@@ -6,6 +6,10 @@ urlpatterns = [
     path('logout/', views.portal_logout_view, name='portal_logout'),
     path('signup/', views.customer_signup_view, name='portal_signup'),
     path('register/', views.customer_signup_view, name='portal_register'),
+    # PWA Endpoints
+    path('manifest.json', views.manifest_view, name='pwa_manifest'),
+    path('sw.js', views.service_worker_view, name='pwa_service_worker'),
+    path('offline/', views.offline_view, name='pwa_offline'),
     path('', views.landing_page_view, name='landing_page'),
     path('solutions/', views.solutions_view, name='portal_solutions'),
     path('how-it-works/', views.how_it_works_view, name='portal_how_it_works'),

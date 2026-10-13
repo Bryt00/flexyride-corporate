@@ -322,7 +322,7 @@ class ProviderCompanyOnboardingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from fleet.models import VehicleCategoryRate
-        rates = VehicleCategoryRate.objects.filter(is_active=True).order_by('display_order')
+        rates = VehicleCategoryRate.get_cached_active_rates()
         choices = [('', '--------- (Select Fleet Category) ---------')]
         for r in rates:
             choices.append((r.display_name, r.display_name))
@@ -434,7 +434,7 @@ class ProviderCompanyUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from fleet.models import VehicleCategoryRate
-        rates = VehicleCategoryRate.objects.filter(is_active=True).order_by('display_order')
+        rates = VehicleCategoryRate.get_cached_active_rates()
         choices = [('', '--------- (Select Fleet Category) ---------')]
         for r in rates:
             choices.append((r.display_name, r.display_name))
