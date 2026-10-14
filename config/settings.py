@@ -478,6 +478,28 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": _("Communications & Campaigns"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Campaign Broadcasts"),
+                        "icon": "campaign",
+                        "link": reverse_lazy("admin:notifications_notificationcampaign_changelist"),
+                    },
+                    {
+                        "title": _("Notifications Log"),
+                        "icon": "notifications",
+                        "link": reverse_lazy("admin:notifications_notification_changelist"),
+                    },
+                    {
+                        "title": _("Push Subscriptions"),
+                        "icon": "cell_tower",
+                        "link": reverse_lazy("admin:notifications_webpushsubscription_changelist"),
+                    },
+                ],
+            },
         ],
     },
 }

@@ -26,7 +26,7 @@ def should_send_async(explicit_flag=None):
     """
     if explicit_flag is not None:
         return explicit_flag
-    if 'test' in sys.argv:
+    if 'test' in sys.argv or 'pytest' in sys.modules or getattr(settings, 'IS_TESTING', False):
         return False
     return getattr(settings, 'EMAIL_ASYNC', True)
 

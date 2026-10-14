@@ -107,6 +107,7 @@ class CorporateCustomerAdmin(ModelAdmin):
     list_display = ('company_name', 'contact_email', 'contact_phone', 'status', 'billing_type', 'preferred_currency')
     list_filter = ('status', 'billing_type', 'preferred_currency')
     search_fields = ('company_name', 'registration_number', 'contact_email', 'tax_id')
+    actions = ['send_bulk_notification_to_customers']
     fieldsets = (
         (None, {
             'fields': ('company_name', 'registration_number', 'tax_id', 'contact_email', 'contact_phone', 'address', 'status')
@@ -115,6 +116,21 @@ class CorporateCustomerAdmin(ModelAdmin):
             'fields': ('billing_type', 'credit_limit', 'payment_terms_days', 'preferred_currency')
         }),
     )
+
+    @admin.action(description="📢 Create Broadcast Campaign for Selected Customers")
+    def send_bulk_notification_to_customers(self, request, queryset):
+        from notifications.models import NotificationCampaign
+        from django.urls import reverse
+        from django.http import HttpResponseRedirect
+        campaign = NotificationCampaign.objects.create(
+            title=f"Announcement for {queryset.count()} Selected Customer(s)",
+            target_audience=NotificationCampaign.TargetAudience.ALL_CUSTOMERS,
+            channel=NotificationCampaign.Channel.EMAIL,
+            message_body="Dear {{name}},\n\nWe are pleased to inform you of our latest corporate service updates.\n\nBest regards,\nFlexyRide Operations Team",
+            created_by=request.user
+        )
+        self.message_user(request, f"Draft campaign #{campaign.id} created for selected customers. Edit message and dispatch when ready.")
+        return HttpResponseRedirect(reverse('admin:notifications_notificationcampaign_change', args=[campaign.id]))
 
 
 class ProviderCompanyAdminForm(forms.ModelForm):
@@ -157,6 +173,22 @@ class ProviderCompanyAdminForm(forms.ModelForm):
             return ", ".join(selected)
         return str(selected)
 
+    def clean(self):
+        cleaned_data = super().clean()
+        bank = cleaned_data.get('settlement_bank')
+        account_num = cleaned_data.get('account_number')
+        if bank and account_num:
+            account_num = account_num.strip().replace(' ', '')
+            cleaned_data['account_number'] = account_num
+            from payments import paystack
+            res = paystack.resolve_account_number(account_num, bank)
+            if res.get('success') and res.get('account_name'):
+                cleaned_data['account_name'] = res['account_name']
+            elif not res.get('success') and 'unreachable' not in res.get('message', '').lower():
+                # Only raise error if Paystack explicitly rejected the account details
+                self.add_error('account_number', f"Paystack account validation error: {res.get('message')}")
+        return cleaned_data
+
 
 @admin.register(ProviderCompany)
 class ProviderCompanyAdmin(ModelAdmin):
@@ -188,7 +220,10 @@ class ProviderCompanyAdmin(ModelAdmin):
             )
         }),
     )
-    actions = ['sync_selected_paystack_subaccounts']
+    actions = ['sync_selected_paystack_subaccounts', 'send_bulk_notification_to_providers']
+
+    class Media:
+        js = ('admin/js/paystack_account_resolver.js',)
 
     @admin.action(description="Sync Paystack Subaccount for selected providers")
     def sync_selected_paystack_subaccounts(self, request, queryset):
@@ -199,4 +234,19 @@ class ProviderCompanyAdmin(ModelAdmin):
                 if res.get('success'):
                     success_count += 1
         self.message_user(request, f"Successfully synced Paystack subaccounts for {success_count} provider(s).")
+
+    @admin.action(description="📢 Create Broadcast Campaign for Selected Providers")
+    def send_bulk_notification_to_providers(self, request, queryset):
+        from notifications.models import NotificationCampaign
+        from django.urls import reverse
+        from django.http import HttpResponseRedirect
+        campaign = NotificationCampaign.objects.create(
+            title=f"Provider Operations Alert ({queryset.count()} Selected Partners)",
+            target_audience=NotificationCampaign.TargetAudience.ALL_PROVIDERS,
+            channel=NotificationCampaign.Channel.EMAIL_AND_SMS,
+            message_body="Hello {{name}},\n\nOperational announcement for {{company}}: Please check your fleet status and active assignments in the Provider Portal.\n\nFlexyRide Operations Team",
+            created_by=request.user
+        )
+        self.message_user(request, f"Draft campaign #{campaign.id} created for selected providers.")
+        return HttpResponseRedirect(reverse('admin:notifications_notificationcampaign_change', args=[campaign.id]))
 

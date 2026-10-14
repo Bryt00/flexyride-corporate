@@ -234,3 +234,36 @@ class NotificationEmailServiceTests(TestCase):
         mail.outbox = []
         send_payment_receipt_email_async.apply(args=[self.payment.id, self.receipt.id])
         self.assertEqual(len(mail.outbox), 1)
+
+    def test_sms_service_normalization_and_bulk_dispatch(self):
+        """Test SMS service phone normalization and fallback delivery."""
+        from notifications.sms_service import sms_service
+        self.assertEqual(sms_service.normalize_phone('0244123456'), '+233244123456')
+        self.assertEqual(sms_service.normalize_phone('+233201234567'), '+233201234567')
+
+        res = sms_service.send_bulk_sms(['0244123456', '+233201234567'], 'Test FlexyRide SMS')
+        self.assertTrue(res.get('success'))
+        self.assertEqual(res.get('sent_count'), 2)
+
+    def test_notification_campaign_dispatch(self):
+        """Test creating and dispatching a broadcast campaign across channels."""
+        from notifications.models import NotificationCampaign
+        from notifications import tasks
+        mail.outbox = []
+
+        campaign = NotificationCampaign.objects.create(
+            title="Q4 Corporate Operations Announcement",
+            channel=NotificationCampaign.Channel.ALL,
+            target_audience=NotificationCampaign.TargetAudience.ALL_USERS,
+            message_body="Hello {{name}}, welcome to {{company}}.",
+            created_by=self.customer_user
+        )
+        recipients = campaign.get_recipients()
+        self.assertGreaterEqual(len(recipients), 1)
+
+        result = tasks.run_campaign_dispatch(campaign.pk)
+        campaign.refresh_from_db()
+        self.assertEqual(campaign.status, NotificationCampaign.Status.SENT)
+        self.assertGreaterEqual(campaign.successful_count, 1)
+        self.assertGreaterEqual(len(mail.outbox), 1)
+

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ campaign.title }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #080D18;
+            color: #E2E8F0;
+            margin: 0;
+            padding: 24px 12px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #10172A;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .header {
+            background: linear-gradient(135deg, #141C33 0%, #0F1626 100%);
+            padding: 32px 28px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+        .badge {
+            display: inline-block;
+            background-color: rgba(140, 198, 63, 0.15);
+            color: #8CC63F;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(140, 198, 63, 0.25);
+        }
+        .title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin: 0 0 6px;
+            letter-spacing: -0.02em;
+        }
+        .sub-text {
+            font-size: 13px;
+            color: #94A3B8;
+            margin: 0;
+        }
+        .body {
+            padding: 32px 28px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #CBD5E1;
+        }
+        .greeting {
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 16px;
+        }
+        .content-card {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            padding: 20px;
+            margin: 20px 0;
+            white-space: pre-line;
+            color: #E2E8F0;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .cta-container {
+            text-align: center;
+            margin: 32px 0 16px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #8CC63F 0%, #76A933 100%);
+            color: #080D18 !important;
+            font-weight: 800;
+            font-size: 14px;
+            padding: 14px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(140, 198, 63, 0.35);
+        }
+        .footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 24px 28px;
+            font-size: 12px;
+            color: #64748B;
+            text-align: center;
+            background-color: #0B1120;
+        }
+        .footer a {
+            color: #8CC63F;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="badge">Official Announcement</span>
+            <h1 class="title">{{ campaign.title }}</h1>
+            <p class="sub-text">FlexyRide Corporate Operations Broadcast</p>
+        </div>
+
+        <div class="body">
+            <div class="greeting">
+                Hello {{ recipient_name|default:"Valued Partner" }},
+            </div>
+
+            <div class="content-card">
+{{ personalized_body|safe }}
+            </div>
+
+            {% if campaign.action_url %}
+            <div class="cta-container">
+                <a href="{{ campaign.action_url }}" class="cta-button" target="_blank">
+                    {{ campaign.action_button_text|default:"View in Portal" }} &rarr;
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p style="margin: 0 0 8px;">
+                This message was dispatched by the FlexyRide Corporate Operations Console.
+            </p>
+            <p style="margin: 0;">
+                &copy; {{ current_year|default:"2026" }} FlexyRide Ghana. All rights reserved. &bull; 
+                <a href="https://corporate.flexyridegh.com">Portal Login</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

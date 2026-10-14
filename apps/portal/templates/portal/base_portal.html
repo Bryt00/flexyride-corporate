@@ -1818,6 +1818,9 @@
     </script>
     <!-- PWA Controller (Service Worker, Offline Detection & Install Prompt) -->
     <script src="{% static 'portal/js/pwa.js' %}" defer></script>
+    <!-- Cookie & Privacy Preference Center -->
+    {% include 'portal/components/cookie_consent_modal.html' %}
+    <script src="{% static 'portal/js/cookie_consent.js' %}" defer></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

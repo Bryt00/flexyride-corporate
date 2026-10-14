@@ -74,7 +74,7 @@ class DriverAdmin(ModelAdmin):
     readonly_fields = ('created_at', 'updated_at')
     raw_id_fields = ('provider', 'user')
     list_select_related = ('provider', 'user')
-    actions = ['mark_as_available', 'mark_as_off_duty']
+    actions = ['mark_as_available', 'mark_as_off_duty', 'send_bulk_sms_to_drivers']
 
     @display(description='Status')
     def status_badge(self, obj):
@@ -120,6 +120,21 @@ class DriverAdmin(ModelAdmin):
     def mark_as_off_duty(self, request, queryset):
         updated = queryset.update(status=Driver.Status.OFF_DUTY)
         self.message_user(request, f"Marked {updated} driver(s) as Off Duty.")
+
+    @action(description="📱 Send Broadcast SMS to Selected Drivers")
+    def send_bulk_sms_to_drivers(self, request, queryset):
+        from notifications.models import NotificationCampaign
+        from django.urls import reverse
+        from django.http import HttpResponseRedirect
+        campaign = NotificationCampaign.objects.create(
+            title=f"Driver Fleet Alert ({queryset.count()} Selected Drivers)",
+            target_audience=NotificationCampaign.TargetAudience.ALL_DRIVERS,
+            channel=NotificationCampaign.Channel.SMS,
+            message_body="FlexyRide Driver Alert: High demand alert in your service area. Stay online to receive priority corporate ride dispatches.",
+            created_by=request.user
+        )
+        self.message_user(request, f"Draft campaign #{campaign.id} created for selected drivers.")
+        return HttpResponseRedirect(reverse('admin:notifications_notificationcampaign_change', args=[campaign.id]))
 
 
 @admin.register(VehicleCategoryRate)

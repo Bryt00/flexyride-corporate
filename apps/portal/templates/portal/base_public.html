@@ -348,6 +348,7 @@
                     <a href="{% url 'portal_compliance_safety' %}" class="hover:text-slate-900 transition-colors">Safety & Compliance</a>
                     <a href="{% url 'portal_how_it_works' %}" class="hover:text-slate-900 transition-colors">SLA Guarantee</a>
                     <a href="{% url 'portal_solutions' %}" class="hover:text-slate-900 transition-colors">Enterprise Solutions</a>
+                    <button type="button" onclick="openCookiePreferences()" class="hover:text-slate-900 transition-colors">Cookie Preferences</button>
                     <a href="{% url 'portal_login' %}" class="text-[#73A233] hover:underline font-semibold">Portal Access</a>
                 </div>
             </div>
@@ -367,6 +368,9 @@
     </script>
     <!-- PWA Controller (Service Worker, Offline Detection & Install Prompt) -->
     <script src="{% static 'portal/js/pwa.js' %}" defer></script>
+    <!-- Cookie & Privacy Preference Center -->
+    {% include 'portal/components/cookie_consent_modal.html' %}
+    <script src="{% static 'portal/js/cookie_consent.js' %}" defer></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

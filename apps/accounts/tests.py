@@ -141,3 +141,30 @@ class AccountsModelTests(TestCase):
         self.assertTrue(bool(provider.paystack_subaccount_code))
         self.assertTrue(provider.paystack_subaccount_code.startswith("ACCT_"))
 
+    @patch('payments.paystack.resolve_account_number')
+    def test_provider_admin_form_paystack_account_resolution(self, mock_resolve):
+        """Test ProviderCompanyAdminForm resolves account name via Paystack."""
+        mock_resolve.return_value = {
+            'success': True,
+            'account_name': 'KOFI MENSAH ENTERPRISE',
+            'account_number': '04010012345678'
+        }
+        from accounts.admin import ProviderCompanyAdminForm
+        form_data = {
+            'company_name': 'Accra Executive Coaches',
+            'contact_person': 'Kofi Mensah',
+            'phone': '+233244000000',
+            'email': 'kofi@accraexec.com',
+            'status': ProviderCompany.Status.APPROVED,
+            'payout_channel': ProviderCompany.PayoutChannel.BANK,
+            'settlement_bank': '040100',
+            'settlement_bank_name': 'GCB Bank Limited',
+            'account_number': '04010012345678',
+            'overall_rating': '5.0',
+            'percentage_charge': '10.00',
+        }
+        form = ProviderCompanyAdminForm(data=form_data)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data['account_name'], 'KOFI MENSAH ENTERPRISE')
+
+

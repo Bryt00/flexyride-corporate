@@ -224,11 +224,16 @@ def list_banks(bank_type: str = "ghipss", currency: str | None = None) -> dict:
     try:
         data = _call(f"/bank?currency={currency}&type={bank_type}&perPage=100")
         if data.get("status"):
-            banks = [
-                {"name": b["name"], "code": b["code"]}
-                for b in data.get("data", [])
-                if b.get("active", True) and not b.get("is_deleted", False)
-            ]
+            seen_codes = set()
+            banks = []
+            for b in data.get("data", []):
+                if not b.get("active", True) or b.get("is_deleted", False):
+                    continue
+                code = b.get("code")
+                if code and code not in seen_codes:
+                    seen_codes.add(code)
+                    banks.append({"name": b.get("name", "").strip(), "code": code})
+            banks.sort(key=lambda x: x["name"])
             cache.set(cache_key, banks, 60 * 60 * 12)
             return {"success": True, "banks": banks}
         logger.warning("Paystack list_banks rejected: %s", data.get("message"))
