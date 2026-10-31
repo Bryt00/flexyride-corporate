@@ -661,3 +661,113 @@ def _send_provider_welcome_email_worker(provider, user, temp_password=None):
                 pass
         return False
 
+
+# ==============================================================================
+# 6. RFQ Tender Invitation Email to Providers
+# ==============================================================================
+
+def send_rfq_invitation_email(provider, request_obj, async_send=None):
+    """
+    Dispatches RFQ tender invitation email and in-portal alert to partner transport provider.
+    Runs asynchronously in background by default.
+    """
+    provider_id = provider.id if hasattr(provider, 'id') else provider
+    request_id = request_obj.id if hasattr(request_obj, 'id') else request_obj
+
+    if should_send_async(async_send):
+        try:
+            from notifications.tasks import send_rfq_invitation_email_async
+            celery_task = send_rfq_invitation_email_async
+            celery_args = (provider_id, request_id)
+        except Exception:
+            celery_task = None
+            celery_args = ()
+
+        _dispatch_async(
+            worker_func=_send_rfq_invitation_email_worker,
+            worker_args=(provider, request_obj),
+            celery_task=celery_task,
+            celery_args=celery_args
+        )
+        return True
+    else:
+        return _send_rfq_invitation_email_worker(provider, request_obj)
+
+
+def _send_rfq_invitation_email_worker(provider, request_obj):
+    from accounts.models import ProviderCompany, User as UserModel
+    from bookings.models import TransportationRequest
+
+    if isinstance(provider, int):
+        provider = ProviderCompany.objects.filter(id=provider).first()
+    if isinstance(request_obj, int):
+        request_obj = TransportationRequest.objects.filter(id=request_obj).first()
+
+    if not provider or not request_obj:
+        logger.warning("Provider or TransportationRequest not found for RFQ invitation email worker.")
+        return False
+
+    recipient_email = provider.email
+    user = UserModel.objects.filter(email=provider.email).first()
+    if not recipient_email and user:
+        recipient_email = user.email
+
+    if not recipient_email:
+        logger.warning(f"No recipient email found for provider RFQ invitation on company {provider.company_name}")
+        return False
+
+    site_url = getattr(settings, 'SITE_URL', 'https://flexyridegh.com')
+    if not isinstance(site_url, str) or not site_url.startswith('http'):
+        site_url = 'https://flexyridegh.com'
+    site_url = site_url.rstrip('/')
+    quote_url = f"{site_url}/portal/provider/workspace/?tab=rfqs"
+
+    subject = f"New RFQ Tender #{request_obj.request_number} — {request_obj.get_requested_vehicle_category_display()} ({request_obj.pickup_address} → {request_obj.destination_address})"
+    support_email = getattr(settings, 'REPLY_TO_EMAIL', 'operations@flexyridegh.com')
+
+    context = {
+        'provider': provider,
+        'request': request_obj,
+        'quote_url': quote_url,
+        'support_email': support_email,
+    }
+
+    try:
+        html_content = render_to_string('notifications/emails/rfq_invitation_email.html', context)
+        text_content = strip_tags(html_content)
+
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Operations <operations@flexyridegh.com>')
+        reply_to = get_reply_to_email()
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=from_email,
+            to=[recipient_email],
+            reply_to=reply_to,
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+
+        # In-portal notification / web push to provider user if linked
+        if user and user.pk:
+            try:
+                dispatch_notification(
+                    user=user,
+                    request_obj=request_obj,
+                    title=f"New RFQ Tender #{request_obj.request_number}",
+                    message=f"New quote tender from {request_obj.customer.company_name} ({request_obj.pickup_address} → {request_obj.destination_address}). 2-hr response window.",
+                    notification_type=Notification.NotificationType.BOOKING,
+                    url="/portal/provider/workspace/?tab=rfqs"
+                )
+            except Exception as pe:
+                logger.warning(f"Could not dispatch web push / in-app alert for provider RFQ: {pe}")
+
+        logger.info(f"RFQ invitation email sent to {recipient_email} for tender {request_obj.request_number}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to send RFQ invitation email to {recipient_email}: {e}")
+        return False
+
+

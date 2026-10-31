@@ -500,6 +500,88 @@ class BrokerProviderCRUDTests(TestCase):
         self.assertIsNotNone(pqr)
         self.assertEqual(pqr.status, 'SENT')
 
+    def test_broadcast_rfq_smart_capability_matching_and_email(self):
+        """Test broadcast_rfq targets only providers matching vehicle category and sends invitation email."""
+        from django.core import mail
+        from fleet.models import Vehicle
+
+        # Provider 1: Has an available VIP SUV
+        provider_suv = ProviderCompany.objects.create(
+            company_name='Accra Executive SUVs',
+            registration_number='DVLA-GH-SUV-001',
+            contact_person='Kwesi Appiah',
+            phone='+233 24 555 1111',
+            email='kwesi@accraexecsuv.gh',
+            status=ProviderCompany.Status.APPROVED,
+        )
+        Vehicle.objects.create(
+            provider=provider_suv,
+            make='Toyota',
+            model='Land Cruiser Prado',
+            registration_number='GR-5555-24',
+            category='SUV',
+            status=Vehicle.Status.AVAILABLE
+        )
+
+        # Provider 2: Has only a Sedan
+        provider_sedan = ProviderCompany.objects.create(
+            company_name='City Saloon Cabs',
+            registration_number='DVLA-GH-SED-002',
+            contact_person='Ama Osei',
+            phone='+233 24 555 2222',
+            email='ama@citysaloons.gh',
+            status=ProviderCompany.Status.APPROVED,
+        )
+        Vehicle.objects.create(
+            provider=provider_sedan,
+            make='Toyota',
+            model='Corolla',
+            registration_number='GR-6666-24',
+            category='SEDAN',
+            status=Vehicle.Status.AVAILABLE
+        )
+
+        customer = CorporateCustomer.objects.create(
+            company_name='AngloGold Ashanti',
+            contact_email='travel@anglogold.com.gh',
+            contact_phone='+233 30 277 8899'
+        )
+        req = TransportationRequest.objects.create(
+            customer=customer,
+            requester=self.broker_user,
+            journey_type=TransportationRequest.JourneyType.AIRPORT_MEET_GREET,
+            pickup_address='Kotoka International Airport Terminal 3',
+            destination_address='Kempinski Hotel Gold Coast City, Accra',
+            departure_datetime=timezone.now() + timezone.timedelta(days=3),
+            requested_vehicle_category='SUV'
+        )
+
+        # Empty outbox
+        mail.outbox = []
+
+        post_data = {
+            'action': 'broadcast_rfq',
+            'request_id': req.id
+        }
+        response = self.client.post(reverse('portal_broker_rfqs'), post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Provider with SUV MUST receive quote request
+        pqr_suv = ProviderQuoteRequest.objects.filter(request=req, provider=provider_suv).first()
+        self.assertIsNotNone(pqr_suv)
+        self.assertEqual(pqr_suv.status, ProviderQuoteRequest.Status.SENT)
+
+        # Provider with only Sedan must NOT receive this SUV quote request
+        pqr_sedan = ProviderQuoteRequest.objects.filter(request=req, provider=provider_sedan).first()
+        self.assertIsNone(pqr_sedan)
+
+        # Verify email was dispatched to Provider 1
+        self.assertTrue(len(mail.outbox) >= 1)
+        sent_email = [m for m in mail.outbox if provider_suv.email in m.to][0]
+        self.assertIn(req.request_number, sent_email.subject)
+        self.assertIn('Suv', sent_email.subject)
+        self.assertIn('Kotoka International Airport', sent_email.body)
+
     def test_staff_member_can_create_provider(self):
         """Test any active staff member can access provider workspace and onboard providers with payout details."""
         staff_user = User.objects.create_user(

@@ -83,6 +83,22 @@ def send_provider_welcome_email_async(self, provider_id, user_id, temp_password=
         raise self.retry(exc=exc)
 
 
+@shared_task(name='notifications.send_rfq_invitation_email_async', bind=True, max_retries=3, default_retry_delay=60)
+def send_rfq_invitation_email_async(self, provider_id, request_id):
+    """Asynchronous Celery worker task to dispatch provider RFQ tender invitation email."""
+    from accounts.models import ProviderCompany
+    from bookings.models import TransportationRequest
+    from notifications.email_service import _send_rfq_invitation_email_worker
+
+    try:
+        provider = ProviderCompany.objects.get(id=provider_id)
+        req = TransportationRequest.objects.get(id=request_id)
+        return _send_rfq_invitation_email_worker(provider, req)
+    except Exception as exc:
+        logger.error(f"Error in send_rfq_invitation_email_async task: {exc}")
+        raise self.retry(exc=exc)
+
+
 def run_campaign_dispatch(campaign_id: int):
     """Executes campaign broadcast across specified channels (Email, SMS, Push)."""
     from django.utils import timezone

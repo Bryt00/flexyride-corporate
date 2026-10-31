@@ -13,7 +13,7 @@ from accounts.models import User, ProviderCompany
 from bookings.models import TransportationRequest, VehicleAssignment
 from fleet.models import Vehicle, VehiclePhoto, Driver
 from quotations.models import ProviderQuoteRequest, ProviderQuote, CustomerQuote, CommissionTier
-from notifications.email_service import send_quote_ready_email
+from notifications.email_service import send_quote_ready_email, send_rfq_invitation_email
 from notifications.models import Notification
 from notifications.webpush import dispatch_notification
 from compliance.models import ComplianceDocument
@@ -85,9 +85,28 @@ def handle_broker_post(request):
         request_id = request.POST.get('request_id')
         req = TransportationRequest.objects.filter(id=request_id).first()
         if req:
-            target_providers = ProviderCompany.objects.filter(status=ProviderCompany.Status.APPROVED)
+            # 1. Smart Capability Matching: Target verified approved providers with active vehicles matching the requested category
+            target_providers = ProviderCompany.objects.filter(
+                status=ProviderCompany.Status.APPROVED,
+                vehicles__category=req.requested_vehicle_category,
+                vehicles__status=Vehicle.Status.AVAILABLE
+            ).distinct()
+
+            # Fallback 1: Any approved provider with vehicles matching the category
+            if not target_providers.exists():
+                target_providers = ProviderCompany.objects.filter(
+                    status=ProviderCompany.Status.APPROVED,
+                    vehicles__category=req.requested_vehicle_category
+                ).distinct()
+
+            # Fallback 2: If no provider has specific category registered, broadcast to all approved providers
+            if not target_providers.exists():
+                target_providers = ProviderCompany.objects.filter(status=ProviderCompany.Status.APPROVED)
+
+            # Fallback 3: System initialization fallback
             if not target_providers.exists():
                 target_providers = ProviderCompany.objects.all()
+
             count = 0
             for provider in target_providers:
                 pqr, created = ProviderQuoteRequest.objects.get_or_create(
@@ -97,9 +116,12 @@ def handle_broker_post(request):
                 )
                 if created:
                     count += 1
+                    # Dispatch transactional RFQ invitation email & in-portal alert
+                    send_rfq_invitation_email(provider, req)
+
             req.booking_status = 'BEING_ARRANGED'
             req.save(update_fields=['booking_status'])
-            messages.success(request, f"Broadcasted RFQ tender for {req.request_number} to {count} transport providers.")
+            messages.success(request, f"Broadcasted RFQ tender for {req.request_number} to {count} matching transport provider(s).")
         else:
             messages.error(request, "Transportation request not found.")
 
