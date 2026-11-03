@@ -391,20 +391,20 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 1: Onboard Provider Modal -->
+<!-- MODAL 1: Onboard Provider Modal (Multi-Step Wizard) -->
 <!-- ========================================================================= -->
-<div id="onboardModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-[#10172A] rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-6 relative border border-white/10 my-8" onclick="event.stopPropagation()">
+<div id="onboardModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-[#10172A] rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative border border-white/10 my-auto max-h-[92vh] flex flex-col" onclick="event.stopPropagation()">
         
         <!-- Modal Header -->
-        <div class="flex items-center justify-between pb-4 border-b border-white/10">
+        <div class="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-amber-400/15 text-amber-400 flex items-center justify-center font-black">
+                <div class="w-10 h-10 rounded-2xl bg-amber-400/15 text-amber-400 flex items-center justify-center font-black shrink-0">
                     <i data-lucide="building-2" class="w-5 h-5"></i>
                 </div>
                 <div>
                     <h3 class="text-base font-black text-white">Onboard Transport Provider</h3>
-                    <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Register commercial fleet partner & provision dispatcher access</p>
+                    <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Step-by-step commercial fleet partner onboarding</p>
                 </div>
             </div>
             <button type="button" onclick="closeOnboardModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-all">
@@ -412,69 +412,130 @@
             </button>
         </div>
 
-        <form method="POST" action="{% url 'portal_broker_providers' %}" class="space-y-5">
+        <!-- Wizard Step Indicators -->
+        <div class="py-3 border-b border-white/5 shrink-0">
+            <div class="grid grid-cols-3 gap-2 text-xs relative">
+                <!-- Step 1 Nav -->
+                <button type="button" id="onboardStepNav-1" onclick="goToOnboardStep(1)" class="group flex items-center gap-2 p-2 rounded-xl transition-all border border-amber-400/40 bg-amber-400/10 text-left cursor-pointer">
+                    <div id="onboardStepBadge-1" class="w-6 h-6 rounded-lg bg-amber-400 text-[#080D18] flex items-center justify-center font-black text-xs shrink-0 shadow-sm shadow-amber-400/30">
+                        1
+                    </div>
+                    <div class="min-w-0">
+                        <span id="onboardStepLabel-1" class="block text-[11px] font-bold text-amber-400 truncate">Legal & Contact</span>
+                        <span class="block text-[9px] text-slate-400 truncate hidden sm:block">Company & Details</span>
+                    </div>
+                </button>
+
+                <!-- Step 2 Nav -->
+                <button type="button" id="onboardStepNav-2" onclick="goToOnboardStep(2)" class="group flex items-center gap-2 p-2 rounded-xl transition-all border border-white/5 bg-white/5 text-left cursor-pointer opacity-80 hover:opacity-100">
+                    <div id="onboardStepBadge-2" class="w-6 h-6 rounded-lg bg-white/10 text-slate-400 flex items-center justify-center font-bold text-xs shrink-0">
+                        2
+                    </div>
+                    <div class="min-w-0">
+                        <span id="onboardStepLabel-2" class="block text-[11px] font-bold text-slate-300 truncate">Fleet & Scope</span>
+                        <span class="block text-[9px] text-slate-500 truncate hidden sm:block">Coverage & Categories</span>
+                    </div>
+                </button>
+
+                <!-- Step 3 Nav -->
+                <button type="button" id="onboardStepNav-3" onclick="goToOnboardStep(3)" class="group flex items-center gap-2 p-2 rounded-xl transition-all border border-white/5 bg-white/5 text-left cursor-pointer opacity-80 hover:opacity-100">
+                    <div id="onboardStepBadge-3" class="w-6 h-6 rounded-lg bg-white/10 text-slate-400 flex items-center justify-center font-bold text-xs shrink-0">
+                        3
+                    </div>
+                    <div class="min-w-0">
+                        <span id="onboardStepLabel-3" class="block text-[11px] font-bold text-slate-300 truncate">Portal & Payout</span>
+                        <span class="block text-[9px] text-slate-500 truncate hidden sm:block">Access & Paystack</span>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="w-full bg-white/5 h-1 rounded-full mt-2.5 overflow-hidden">
+                <div id="onboardWizardProgress" class="bg-amber-400 h-full transition-all duration-300 ease-out" style="width: 33.33%;"></div>
+            </div>
+        </div>
+
+        <form id="onboardProviderForm" method="POST" action="{% url 'portal_broker_providers' %}" class="flex-1 min-h-0 flex flex-col">
             {% csrf_token %}
             <input type="hidden" name="action" value="onboard_provider">
 
-            <!-- Section 1: Company & Legal Registration -->
-            <div class="space-y-3">
-                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-                    <span>1. Commercial Entity & Regulatory Registration</span>
-                </h4>
+            <!-- Scrollable Step Body -->
+            <div id="onboardModalBody" class="flex-1 overflow-y-auto pr-1 py-3 custom-scrollbar">
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Company Legal Name *</label>
-                        <input type="text" name="company_name" required placeholder="e.g. Safari Luxury Tours & Transport Ltd" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                <!-- STEP 1: Company & Legal Registration -->
+                <div id="onboardStepPane-1" class="space-y-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                        <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                            <span>1. Commercial Entity & Regulatory Registration</span>
+                        </h4>
+                        <span class="text-[10px] font-mono text-amber-400/80 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">Step 1 of 3</span>
                     </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-300">Company Legal Name *</label>
+                            <input type="text" name="company_name" id="onboardCompanyName" required placeholder="e.g. Safari Luxury Tours & Transport Ltd" 
+                                   class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-300">DVLA / Commercial Permit No.</label>
+                            <input type="text" name="registration_number" id="onboardRegistrationNumber" placeholder="e.g. DVLA-GH-COMM-048 (Leave blank to auto-generate)" 
+                                   class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-300">Contact Person *</label>
+                            <input type="text" name="contact_person" id="onboardContactPerson" required placeholder="e.g. Samuel Darko" 
+                                   class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-300">Dispatch Email *</label>
+                            <input type="email" name="email" id="onboardEmail" required placeholder="dispatch@provider.gh" 
+                                   class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-300">Phone Number *</label>
+                            <input type="text" name="phone" id="onboardPhone" required placeholder="+233 24 000 0000" 
+                                   class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                        </div>
+                    </div>
+
                     <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">DVLA / Commercial Permit No.</label>
-                        <input type="text" name="registration_number" placeholder="e.g. DVLA-GH-COMM-048 (Leave blank to auto-generate)" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                        <label class="text-[11px] font-bold text-slate-300">Depot & Operations Address</label>
+                        <input type="text" name="address" id="onboardAddress" placeholder="e.g. Plot 4, Spintex Road, Accra" 
+                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Contact Person *</label>
-                        <input type="text" name="contact_person" required placeholder="e.g. Samuel Darko" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                <!-- STEP 2: Fleet Operating Scope -->
+                <div id="onboardStepPane-2" class="hidden space-y-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                        <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                            <span>2. Operational Coverage & Capabilities</span>
+                        </h4>
+                        <span class="text-[10px] font-mono text-amber-400/80 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">Step 2 of 3</span>
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Dispatch Email *</label>
-                        <input type="email" name="email" required placeholder="dispatch@provider.gh" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Phone Number *</label>
-                        <input type="text" name="phone" required placeholder="+233 24 000 0000" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                    </div>
-                </div>
 
-                <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-300">Depot & Operations Address</label>
-                    <input type="text" name="address" placeholder="e.g. Plot 4, Spintex Road, Accra" 
-                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                </div>
-            </div>
-
-            <!-- Section 2: Fleet Operating Scope -->
-            <div class="space-y-3 pt-2 border-t border-white/10">
-                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
-                    <span>2. Operational Coverage & Capabilities</span>
-                </h4>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Service Coverage Areas</label>
-                        <input type="text" name="service_area" value="Greater Accra, Tema, Kumasi, Takoradi" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-300">Service Coverage Areas</label>
+                            <input type="text" name="service_area" id="onboardServiceArea" value="Greater Accra, Tema, Kumasi, Takoradi" 
+                                   class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-300">Initial Network Status</label>
+                            <select name="status" class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                                <option value="APPROVED" selected>Approved & Verified (Immediate Tender Broadcasts)</option>
+                                <option value="PENDING">Pending Review (Awaiting DVLA Verification)</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="space-y-1 sm:col-span-2">
+
+                    <div class="space-y-1">
                         <div class="flex items-center justify-between">
                             <label class="text-[11px] font-bold text-slate-300">Fleet Category Specializations (Click to select multiple)</label>
                             <span class="text-[10px] text-amber-400 font-semibold" id="onboardSelectedCatCount">0 selected</span>
@@ -493,140 +554,166 @@
                         </div>
                         <input type="hidden" name="specializations" id="onboardSpecializations" value="">
                     </div>
-                </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Initial Network Status</label>
-                        <select name="status" class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                            <option value="APPROVED" selected>Approved & Verified (Immediate Tender Broadcasts)</option>
-                            <option value="PENDING">Pending Review (Awaiting DVLA Verification)</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Initial Rating (0.00 - 5.00)</label>
-                        <input type="number" step="0.1" min="1" max="5" name="overall_rating" value="5.0" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 3: Provider Admin Portal Credentials -->
-            <div class="space-y-3 pt-2 border-t border-white/10">
-                <div class="flex items-center justify-between">
-                    <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="key" class="w-3.5 h-3.5"></i>
-                        <span>3. Provider Portal Dispatcher Access</span>
-                    </h4>
-                    <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 font-bold">
-                        <input type="checkbox" name="create_admin_account" value="true" checked class="rounded text-amber-400 focus:ring-amber-400 bg-black/40 border-white/10">
-                        <span>Provision Admin Account</span>
-                    </label>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black/40 p-4 rounded-2xl border border-white/5">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Portal Username</label>
-                        <input type="text" name="admin_username" placeholder="e.g. safari_dispatch (Leave blank to auto-generate)" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Temporary Password</label>
-                        <input type="text" name="admin_password" placeholder="Leave blank to auto-generate secure password" 
-                               class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 4: Paystack Subaccount & Settlement Banking -->
-            <div class="space-y-3 pt-2 border-t border-white/10">
-                <div class="flex items-center justify-between">
-                    <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
-                        <span>4. Paystack Payout Subaccount & Settlement</span>
-                    </h4>
-                    <span class="text-[10px] text-slate-400 font-semibold bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-                        Automated Split Payouts
-                    </span>
-                </div>
-
-                <!-- Payout Channel Selector: Bank vs MoMo -->
-                <div class="space-y-1.5">
-                    <label class="text-[11px] font-bold text-slate-300">Settlement Destination Channel</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#0d1424] border border-white/10 cursor-pointer hover:border-amber-400/40 transition-colors">
-                            <input type="radio" name="payout_channel" value="BANK" checked onchange="onPayoutChannelChanged('onboard', 'BANK')" class="text-amber-400 focus:ring-amber-400 bg-black/40 border-white/10">
-                            <div>
-                                <span class="text-xs font-bold text-white block">Commercial Bank</span>
-                                <span class="text-[10px] text-slate-400 block">GCB, Ecobank, Stanbic, Absa, etc.</span>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#0d1424] border border-white/10 cursor-pointer hover:border-amber-400/40 transition-colors">
-                            <input type="radio" name="payout_channel" value="MOBILE_MONEY" onchange="onPayoutChannelChanged('onboard', 'MOBILE_MONEY')" class="text-amber-400 focus:ring-amber-400 bg-black/40 border-white/10">
-                            <div>
-                                <span class="text-xs font-bold text-white block">Mobile Money (MoMo)</span>
-                                <span class="text-[10px] text-slate-400 block">MTN MoMo, Telecel / Vodafone, AirtelTigo</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Settlement Bank / MoMo Network</label>
-                        <select name="settlement_bank" id="onboardSettlementBank" onchange="onBankSelectionChanged('onboard')" class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                        </select>
-                        <input type="hidden" name="settlement_bank_name" id="onboardSettlementBankName" value="">
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Account / Mobile Money Number</label>
-                        <div class="relative flex items-center">
-                            <input type="text" name="account_number" id="onboardAccountNumber" placeholder="Bank account or 10-digit MoMo number" 
-                                   class="w-full pl-3.5 pr-20 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                            <button type="button" onclick="verifyPaystackAccount('onboard')" id="onboardVerifyBtn" class="absolute right-1.5 px-2.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-[#080D18] text-[11px] font-bold transition-all flex items-center gap-1 active:scale-95 shadow-sm">
-                                <i data-lucide="shield-check" class="w-3 h-3"></i>
-                                <span>Verify</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Verification Feedback & Holder Name -->
-                <div id="onboardResolveFeedback" class="hidden text-xs p-3 rounded-xl border"></div>
-                <input type="hidden" name="account_name" id="onboardAccountName" value="">
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-bold text-slate-300">Platform Split / Retained %</label>
-                        <div class="relative">
-                            <input type="number" step="0.01" min="0" max="100" name="percentage_charge" id="onboardPercentageCharge" value="0.00" 
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-300">Initial Rating (0.00 - 5.00)</label>
+                            <input type="number" step="0.1" min="1" max="5" name="overall_rating" value="5.0" 
                                    class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
-                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">%</span>
                         </div>
-                        <span class="text-[10px] text-slate-500 block">Default 0% (Dynamic journey quoting)</span>
+                        <div class="p-3 rounded-xl surface-well border border-white/5 text-[11px] text-slate-400 flex flex-col justify-center">
+                            <span class="text-white font-semibold flex items-center gap-1 text-[11px]">
+                                <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400"></i>
+                                Dispatcher Network Reach
+                            </span>
+                            <p class="text-[10px] leading-relaxed mt-0.5">
+                                Providers receive RFQ broadcast alerts matching their selected vehicle specializations and operating regions.
+                            </p>
+                        </div>
                     </div>
-                    <div class="p-3 rounded-xl surface-well border border-white/5 text-[11px] text-slate-400 space-y-1 flex flex-col justify-center">
-                        <span class="text-white font-semibold flex items-center gap-1 text-[11px]">
-                            <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400"></i>
-                            Automatic Subaccount Provisioning
-                        </span>
-                        <p class="text-[10px] leading-relaxed">
-                            Once approved, FlexyRide creates the Paystack Subaccount (<code>ACCT_xxxxx</code>) automatically for seamless customer split checkouts.
-                        </p>
+                </div>
+
+                <!-- STEP 3: Portal Access & Settlement Banking -->
+                <div id="onboardStepPane-3" class="hidden space-y-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                        <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="key" class="w-3.5 h-3.5"></i>
+                            <span>3. Dispatcher Access & Settlement Banking</span>
+                        </h4>
+                        <span class="text-[10px] font-mono text-amber-400/80 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">Step 3 of 3</span>
+                    </div>
+
+                    <!-- Dispatcher Portal Credentials -->
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-amber-400"></i>
+                                <span>Provider Portal Access</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 font-bold">
+                                <input type="checkbox" name="create_admin_account" value="true" checked class="rounded text-amber-400 focus:ring-amber-400 bg-black/40 border-white/10">
+                                <span>Provision Admin Account</span>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black/40 p-3.5 rounded-2xl border border-white/5">
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-300">Portal Username</label>
+                                <input type="text" name="admin_username" placeholder="e.g. safari_dispatch (Leave blank to auto-generate)" 
+                                       class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-300">Temporary Password</label>
+                                <input type="text" name="admin_password" placeholder="Leave blank to auto-generate secure password" 
+                                       class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paystack Settlement Banking -->
+                    <div class="space-y-3 pt-2 border-t border-white/10">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                                <i data-lucide="wallet" class="w-3.5 h-3.5 text-amber-400"></i>
+                                <span>Paystack Payout Subaccount</span>
+                            </label>
+                            <span class="text-[10px] text-slate-400 font-semibold bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
+                                Automated Split Payouts
+                            </span>
+                        </div>
+
+                        <!-- Payout Channel Selector: Bank vs MoMo -->
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold text-slate-300">Settlement Destination Channel</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#0d1424] border border-white/10 cursor-pointer hover:border-amber-400/40 transition-colors">
+                                    <input type="radio" name="payout_channel" value="BANK" checked onchange="onPayoutChannelChanged('onboard', 'BANK')" class="text-amber-400 focus:ring-amber-400 bg-black/40 border-white/10">
+                                    <div>
+                                        <span class="text-xs font-bold text-white block">Commercial Bank</span>
+                                        <span class="text-[10px] text-slate-400 block">GCB, Ecobank, Stanbic, Absa, etc.</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#0d1424] border border-white/10 cursor-pointer hover:border-amber-400/40 transition-colors">
+                                    <input type="radio" name="payout_channel" value="MOBILE_MONEY" onchange="onPayoutChannelChanged('onboard', 'MOBILE_MONEY')" class="text-amber-400 focus:ring-amber-400 bg-black/40 border-white/10">
+                                    <div>
+                                        <span class="text-xs font-bold text-white block">Mobile Money (MoMo)</span>
+                                        <span class="text-[10px] text-slate-400 block">MTN MoMo, Telecel, AirtelTigo</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-300">Settlement Bank / MoMo Network</label>
+                                <select name="settlement_bank" id="onboardSettlementBank" onchange="onBankSelectionChanged('onboard')" class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                                </select>
+                                <input type="hidden" name="settlement_bank_name" id="onboardSettlementBankName" value="">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-300">Account / Mobile Money Number</label>
+                                <div class="relative flex items-center">
+                                    <input type="text" name="account_number" id="onboardAccountNumber" placeholder="Bank account or 10-digit MoMo number" 
+                                           class="w-full pl-3.5 pr-20 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                                    <button type="button" onclick="verifyPaystackAccount('onboard')" id="onboardVerifyBtn" class="absolute right-1.5 px-2.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-[#080D18] text-[11px] font-bold transition-all flex items-center gap-1 active:scale-95 shadow-sm">
+                                        <i data-lucide="shield-check" class="w-3 h-3"></i>
+                                        <span>Verify</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Verification Feedback & Holder Name -->
+                        <div id="onboardResolveFeedback" class="hidden text-xs p-3 rounded-xl border"></div>
+                        <input type="hidden" name="account_name" id="onboardAccountName" value="">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-300">Platform Split / Retained %</label>
+                                <div class="relative">
+                                    <input type="number" step="0.01" min="0" max="100" name="percentage_charge" id="onboardPercentageCharge" value="0.00" 
+                                           class="w-full px-3.5 py-2.5 bg-[#0d1424] border border-white/10 rounded-xl text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                                    <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">%</span>
+                                </div>
+                                <span class="text-[10px] text-slate-500 block">Default 0% (Dynamic journey quoting)</span>
+                            </div>
+                            <div class="p-3 rounded-xl surface-well border border-white/5 text-[11px] text-slate-400 space-y-1 flex flex-col justify-center">
+                                <span class="text-white font-semibold flex items-center gap-1 text-[11px]">
+                                    <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400"></i>
+                                    Automatic Subaccount Provisioning
+                                </span>
+                                <p class="text-[10px] leading-relaxed">
+                                    Once approved, FlexyRide creates the Paystack Subaccount (<code>ACCT_xxxxx</code>) automatically for seamless customer split checkouts.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Submit Strip -->
-            <div class="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
-                <button type="button" onclick="closeOnboardModal()" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all">
+            <!-- Footer Navigation Strip -->
+            <div class="pt-3.5 border-t border-white/10 shrink-0 flex items-center justify-between gap-3">
+                <button type="button" onclick="closeOnboardModal()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all">
                     Cancel
                 </button>
-                <button type="submit" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#080D18] rounded-xl text-xs font-black shadow-lg shadow-amber-400/25 transition-all active:scale-95 flex items-center gap-2">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i>
-                    <span>Confirm Onboarding</span>
-                </button>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" id="onboardPrevBtn" onclick="prevOnboardStep()" class="hidden px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                        <span>Previous</span>
+                    </button>
+
+                    <button type="button" id="onboardNextBtn" onclick="nextOnboardStep()" class="px-5 py-2 bg-amber-400 hover:bg-amber-300 text-[#080D18] rounded-xl text-xs font-black shadow-lg shadow-amber-400/25 transition-all active:scale-95 flex items-center gap-1.5">
+                        <span id="onboardNextBtnText">Next: Fleet & Scope</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </button>
+
+                    <button type="submit" id="onboardSubmitBtn" class="hidden px-5 py-2 bg-amber-400 hover:bg-amber-300 text-[#080D18] rounded-xl text-xs font-black shadow-lg shadow-amber-400/25 transition-all active:scale-95 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span>Confirm Onboarding</span>
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -635,8 +722,8 @@
 <!-- ========================================================================= -->
 <!-- MODAL 2: Edit Provider Modal -->
 <!-- ========================================================================= -->
-<div id="editModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-[#10172A] rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-6 relative border border-white/10 my-8" onclick="event.stopPropagation()">
+<div id="editModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-[#10172A] rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative border border-white/10 my-auto max-h-[92vh] flex flex-col" onclick="event.stopPropagation()">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-4 border-b border-white/10">
@@ -654,7 +741,8 @@
             </button>
         </div>
 
-        <form method="POST" action="{% url 'portal_broker_providers' %}" class="space-y-4">
+        <form method="POST" action="{% url 'portal_broker_providers' %}" class="flex-1 min-h-0 flex flex-col">
+            <div class="flex-1 overflow-y-auto pr-1 py-3 space-y-4 custom-scrollbar">
             {% csrf_token %}
             <input type="hidden" name="action" value="update_provider">
             <input type="hidden" name="provider_id" id="editProviderId" value="">
@@ -820,11 +908,12 @@
                 </div>
             </div>
 
-            <div class="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all">
+            </div>
+            <div class="pt-3.5 border-t border-white/10 shrink-0 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-bold transition-all">
                     Cancel
                 </button>
-                <button type="submit" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-[#080D18] rounded-xl text-xs font-black shadow-lg shadow-amber-400/25 transition-all active:scale-95 flex items-center gap-2">
+                <button type="submit" class="px-5 py-2 bg-amber-400 hover:bg-amber-300 text-[#080D18] rounded-xl text-xs font-black shadow-lg shadow-amber-400/25 transition-all active:scale-95 flex items-center gap-2">
                     <i data-lucide="check" class="w-4 h-4"></i>
                     <span>Save Changes</span>
                 </button>
@@ -916,7 +1005,8 @@
             </div>
         </div>
 
-        <form method="POST" action="{% url 'portal_broker_providers' %}" class="space-y-4">
+        <form method="POST" action="{% url 'portal_broker_providers' %}" class="flex-1 min-h-0 flex flex-col">
+            <div class="flex-1 overflow-y-auto pr-1 py-3 space-y-4 custom-scrollbar">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_provider">
             <input type="hidden" name="provider_id" id="deleteProviderId" value="">

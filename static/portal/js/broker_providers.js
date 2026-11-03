@@ -254,8 +254,139 @@ function setCategoryChips(prefix, specializationsStr) {
     }
 }
 
+// =========================================================================
+// Onboard Provider Wizard State & Navigation
+// =========================================================================
+let currentOnboardStep = 1;
+
+function goToOnboardStep(step) {
+    if (step < 1 || step > 3) return;
+
+    // Validate current step if moving forward
+    if (step > currentOnboardStep) {
+        if (!validateOnboardStep(currentOnboardStep)) {
+            return;
+        }
+    }
+
+    currentOnboardStep = step;
+
+    // Update Step Panes & Nav Badges
+    for (let s = 1; s <= 3; s++) {
+        const pane = document.getElementById('onboardStepPane-' + s);
+        const nav = document.getElementById('onboardStepNav-' + s);
+        const badge = document.getElementById('onboardStepBadge-' + s);
+        const label = document.getElementById('onboardStepLabel-' + s);
+
+        if (pane) {
+            if (s === step) {
+                pane.classList.remove('hidden');
+            } else {
+                pane.classList.add('hidden');
+            }
+        }
+
+        if (nav && badge && label) {
+            if (s === step) {
+                // Active step
+                nav.className = 'group flex items-center gap-2 p-2 rounded-xl transition-all border border-amber-400/40 bg-amber-400/10 text-left cursor-pointer';
+                badge.className = 'w-6 h-6 rounded-lg bg-amber-400 text-[#080D18] flex items-center justify-center font-black text-xs shrink-0 shadow-sm shadow-amber-400/30';
+                badge.innerHTML = s;
+                label.className = 'block text-[11px] font-bold text-amber-400 truncate';
+            } else if (s < step) {
+                // Completed step
+                nav.className = 'group flex items-center gap-2 p-2 rounded-xl transition-all border border-emerald-500/30 bg-emerald-500/10 text-left cursor-pointer';
+                badge.className = 'w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-bold text-xs shrink-0';
+                badge.innerHTML = '✓';
+                label.className = 'block text-[11px] font-bold text-emerald-400 truncate';
+            } else {
+                // Upcoming step
+                nav.className = 'group flex items-center gap-2 p-2 rounded-xl transition-all border border-white/5 bg-white/5 text-left cursor-pointer opacity-70 hover:opacity-100';
+                badge.className = 'w-6 h-6 rounded-lg bg-white/10 text-slate-400 flex items-center justify-center font-bold text-xs shrink-0';
+                badge.innerHTML = s;
+                label.className = 'block text-[11px] font-bold text-slate-300 truncate';
+            }
+        }
+    }
+
+    // Update Progress Bar
+    const progress = document.getElementById('onboardWizardProgress');
+    if (progress) {
+        const pct = step === 1 ? 33.33 : (step === 2 ? 66.66 : 100);
+        progress.style.width = pct + '%';
+    }
+
+    // Update Footer Action Buttons
+    const prevBtn = document.getElementById('onboardPrevBtn');
+    const nextBtn = document.getElementById('onboardNextBtn');
+    const nextText = document.getElementById('onboardNextBtnText');
+    const submitBtn = document.getElementById('onboardSubmitBtn');
+
+    if (prevBtn) {
+        if (step > 1) {
+            prevBtn.classList.remove('hidden');
+        } else {
+            prevBtn.classList.add('hidden');
+        }
+    }
+
+    if (nextBtn && submitBtn) {
+        if (step === 3) {
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+        } else {
+            nextBtn.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
+            if (nextText) {
+                nextText.textContent = step === 1 ? 'Next: Fleet & Scope' : 'Next: Portal & Payout';
+            }
+        }
+    }
+
+    // Scroll inner body back to top on step transition
+    const scrollContainer = document.getElementById('onboardModalBody');
+    if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+    }
+
+    if (window.lucide) lucide.createIcons();
+}
+
+function nextOnboardStep() {
+    if (!validateOnboardStep(currentOnboardStep)) return;
+    if (currentOnboardStep < 3) {
+        goToOnboardStep(currentOnboardStep + 1);
+    }
+}
+
+function prevOnboardStep() {
+    if (currentOnboardStep > 1) {
+        goToOnboardStep(currentOnboardStep - 1);
+    }
+}
+
+function validateOnboardStep(step) {
+    if (step === 1) {
+        const companyName = document.getElementById('onboardCompanyName');
+        const contactPerson = document.getElementById('onboardContactPerson');
+        const email = document.getElementById('onboardEmail');
+        const phone = document.getElementById('onboardPhone');
+
+        let valid = true;
+        [phone, email, contactPerson, companyName].forEach(input => {
+            if (input && !input.checkValidity()) {
+                input.reportValidity();
+                valid = false;
+            }
+        });
+        return valid;
+    }
+    return true;
+}
+
 // 1. Onboard Modal
 function openOnboardModal() {
+    goToOnboardStep(1);
     populateBanks('onboard', 'BANK', '');
     setCategoryChips('onboard', '');
     const feedback = document.getElementById('onboardResolveFeedback');
