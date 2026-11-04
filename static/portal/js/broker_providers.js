@@ -281,8 +281,10 @@ function goToOnboardStep(step) {
         if (pane) {
             if (s === step) {
                 pane.classList.remove('hidden');
+                pane.style.display = 'block';
             } else {
                 pane.classList.add('hidden');
+                pane.style.display = 'none';
             }
         }
 
@@ -349,7 +351,13 @@ function goToOnboardStep(step) {
         scrollContainer.scrollTop = 0;
     }
 
-    if (window.lucide) lucide.createIcons();
+    try {
+        if (window.lucide && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+        }
+    } catch (e) {
+        console.warn('Lucide icon refresh error:', e);
+    }
 }
 
 function nextOnboardStep() {
@@ -372,14 +380,30 @@ function validateOnboardStep(step) {
         const email = document.getElementById('onboardEmail');
         const phone = document.getElementById('onboardPhone');
 
-        let valid = true;
-        [phone, email, contactPerson, companyName].forEach(input => {
-            if (input && !input.checkValidity()) {
-                input.reportValidity();
-                valid = false;
+        const fields = [
+            { el: companyName, name: 'Company Legal Name' },
+            { el: contactPerson, name: 'Contact Person' },
+            { el: email, name: 'Dispatch Email' },
+            { el: phone, name: 'Phone Number' }
+        ];
+
+        for (const f of fields) {
+            if (!f.el) continue;
+            const val = (f.el.value || '').trim();
+            if (!val) {
+                f.el.focus();
+                if (typeof f.el.reportValidity === 'function') {
+                    f.el.reportValidity();
+                }
+                return false;
             }
-        });
-        return valid;
+            if (f.el.type === 'email' && typeof f.el.checkValidity === 'function' && !f.el.checkValidity()) {
+                f.el.focus();
+                f.el.reportValidity();
+                return false;
+            }
+        }
+        return true;
     }
     return true;
 }
@@ -591,6 +615,10 @@ function closeDeleteModal() {
 }
 
 // Global exports for inline HTML handler compatibility
+window.goToOnboardStep = goToOnboardStep;
+window.nextOnboardStep = nextOnboardStep;
+window.prevOnboardStep = prevOnboardStep;
+window.validateOnboardStep = validateOnboardStep;
 window.populateBanks = populateBanks;
 window.onPayoutChannelChanged = onPayoutChannelChanged;
 window.onBankSelectionChanged = onBankSelectionChanged;
