@@ -253,13 +253,14 @@
                             {% endif %}
                         </span>
 
-                        {% if prov.has_payout_details and not prov.paystack_subaccount_code and prov.status == 'APPROVED' %}
+                        {% if prov.has_payout_details and prov.status == 'APPROVED' %}
                         <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline-flex m-0 p-0 items-center shrink-0">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="sync_provider_subaccount">
                             <input type="hidden" name="provider_id" value="{{ prov.id }}">
-                            <button type="submit" title="Sync / Provision Paystack Subaccount" class="px-2 py-1 rounded-lg bg-amber-400/15 hover:bg-amber-400/25 text-amber-300 text-[10px] font-bold border border-amber-400/20 transition-all flex items-center gap-1 active:scale-95">
-                                <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i> Sync
+                            <button type="submit" title="Sync / Re-provision Paystack Subaccount" class="px-2.5 py-1 rounded-lg {% if not prov.paystack_subaccount_code or 'Error:' in prov.paystack_subaccount_status %}bg-amber-400 hover:bg-amber-300 text-[#080D18] font-black shadow-sm shadow-amber-400/20{% else %}bg-white/5 hover:bg-white/10 text-slate-300 font-bold border border-white/10{% endif %} text-[10px] transition-all flex items-center gap-1 active:scale-95 cursor-pointer">
+                                <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i>
+                                <span>{% if not prov.paystack_subaccount_code or 'Error:' in prov.paystack_subaccount_status %}Sync Live{% else %}Sync{% endif %}</span>
                             </button>
                         </form>
                         {% endif %}
@@ -907,7 +908,7 @@
                             Live Subaccount Synchronization
                         </span>
                         <p class="text-[10px] leading-relaxed">
-                            Changes saved on approved providers automatically sync to Paystack.
+                            Click <strong>Save Changes</strong> below to automatically provision or update the live Paystack subaccount.
                         </p>
                     </div>
                 </div>

@@ -317,8 +317,8 @@ class ProviderCompany(models.Model):
         if self.status != self.Status.APPROVED or not self.has_payout_details:
             return
 
-        if not self.paystack_subaccount_code:
-            # Auto-create Paystack subaccount once approved with banking details
+        if not self.paystack_subaccount_code or ('Error:' in (self.paystack_subaccount_status or '')):
+            # Auto-create or retry Paystack subaccount once approved with banking details
             self.sync_paystack_subaccount()
         elif previous and any(
             self._normalize(previous[f]) != self._normalize(getattr(self, f)) for f in self.SUBACCOUNT_SOURCE_FIELDS
