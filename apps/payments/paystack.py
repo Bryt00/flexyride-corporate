@@ -314,12 +314,17 @@ def create_subaccount(
     try:
         data = _call("/subaccount", method="POST", payload=payload)
         if data.get("status"):
+            logger.info("Paystack subaccount created successfully: %s", data["data"].get("subaccount_code"))
             return {
                 "success": True,
                 "subaccount_code": data["data"]["subaccount_code"],
                 "account_name": data["data"].get("account_name") or "",
                 "settlement_bank_name": data["data"].get("settlement_bank") or "",
             }
+        logger.warning(
+            "Paystack create_subaccount rejected by gateway: message=%s, bank=%s, account=%s, data=%s",
+            data.get("message"), settlement_bank, account_number, data
+        )
         if not is_live_keys():
             logger.info("Paystack test-mode rejection (%s); using sandbox subaccount simulation.", data.get("message"))
             return {
@@ -331,13 +336,14 @@ def create_subaccount(
             }
         return {"success": False, "message": data.get("message", "Subaccount creation failed")}
     except Exception as e:
-        logger.warning("Paystack create_subaccount API failed: %s", e)
-        # Sandbox fallback
-        return {
-            "success": True,
-            "sandbox": True,
-            "subaccount_code": f"ACCT_TEST_{account_number[:4]}"
-        }
+        logger.warning("Paystack create_subaccount API exception: %s", e)
+        if not is_live_keys():
+            return {
+                "success": True,
+                "sandbox": True,
+                "subaccount_code": f"ACCT_TEST_{account_number[:4]}"
+            }
+        return {"success": False, "message": f"Paystack unreachable or request failed: {str(e)}"}
 
 
 def update_subaccount(

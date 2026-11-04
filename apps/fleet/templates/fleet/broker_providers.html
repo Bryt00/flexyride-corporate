@@ -226,8 +226,13 @@
                             <i data-lucide="check-circle" class="w-2.5 h-2.5"></i>
                             {{ prov.paystack_subaccount_code }}
                         </span>
+                        {% elif prov.paystack_subaccount_status and 'Error:' in prov.paystack_subaccount_status %}
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/25 flex items-center gap-1 cursor-help" title="{{ prov.paystack_subaccount_status }}">
+                            <i data-lucide="alert-triangle" class="w-2.5 h-2.5"></i>
+                            Sync Error
+                        </span>
                         {% elif prov.has_payout_details %}
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/15 text-amber-400 border border-amber-400/25 flex items-center gap-1">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/15 text-amber-400 border border-amber-400/25 flex items-center gap-1" title="{{ prov.paystack_subaccount_status|default:'Pending Subaccount' }}">
                             <i data-lucide="clock" class="w-2.5 h-2.5"></i>
                             Pending Subaccount
                         </span>
@@ -1545,6 +1550,19 @@ function openEditModal(provId) {
                 <div class="text-slate-700 dark:text-slate-300 text-[11px] pl-6">
                     Subaccount Code: <strong class="font-mono text-slate-900 dark:text-white">${data.paystack_subaccount_code}</strong>
                     ${data.paystack_subaccount_status ? ' • Status: ' + data.paystack_subaccount_status : ''}
+                </div>
+            `;
+        } else if (data.paystack_subaccount_status && data.paystack_subaccount_status.includes('Error:')) {
+            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25';
+            badge.textContent = 'Sync Failed';
+            alertBox.className = 'text-xs p-3 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-300 block space-y-1';
+            alertBox.innerHTML = `
+                <div class="flex items-center gap-2 font-bold text-rose-700 dark:text-rose-400">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+                    <span>Paystack Subaccount Rejected</span>
+                </div>
+                <div class="text-rose-900 dark:text-rose-200 text-[11px] pl-6 font-mono leading-relaxed">
+                    ${data.paystack_subaccount_status}
                 </div>
             `;
         } else if (data.settlement_bank && data.account_number) {

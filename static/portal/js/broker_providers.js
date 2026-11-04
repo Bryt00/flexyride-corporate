@@ -500,6 +500,19 @@ function openEditModal(provId) {
                     ${data.paystack_subaccount_status ? ' • Status: ' + data.paystack_subaccount_status : ''}
                 </div>
             `;
+        } else if (data.paystack_subaccount_status && data.paystack_subaccount_status.includes('Error:')) {
+            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25';
+            badge.textContent = 'Sync Failed';
+            alertBox.className = 'text-xs p-3 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-300 block space-y-1';
+            alertBox.innerHTML = `
+                <div class="flex items-center gap-2 font-bold text-rose-700 dark:text-rose-400">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+                    <span>Paystack Subaccount Rejected</span>
+                </div>
+                <div class="text-rose-900 dark:text-rose-200 text-[11px] pl-6 font-mono leading-relaxed">
+                    ${data.paystack_subaccount_status}
+                </div>
+            `;
         } else if (data.settlement_bank && data.account_number) {
             badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-amber-400/15 text-amber-600 dark:text-amber-400 border border-amber-400/25';
             badge.textContent = 'Pending Approval';
