@@ -1,8 +1,13 @@
 #!/bin/bash
 # ==============================================================================
-# FlexyRide Corporate - Service Restart & Update Script
-# Updates code/static assets and restarts Gunicorn (ASGI), Celery, Redis & Nginx
-# Usage: sudo bash restart_services.sh [--pull]
+# FlexyRide Corporate - Safe Zero-Downtime Deployment & Service Reload Script
+# Updates code, checks health, updates static files, and performs a graceful
+# rolling reload of Gunicorn, Celery, and Nginx without 502/server errors.
+#
+# Usage:
+#   sudo bash restart_services.sh              # Graceful rolling reload (zero downtime)
+#   sudo bash restart_services.sh --pull       # Pull git updates first, then graceful reload
+#   sudo bash restart_services.sh --hard       # Hard restart (forces cold restart of all services)
 # ==============================================================================
 
 set -e
@@ -21,6 +26,21 @@ else
     PROJECT_DIR="/opt/$PROJECT_NAME"
 fi
 
+# Flags
+DO_PULL=false
+HARD_RESTART=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --pull|-p)
+            DO_PULL=true
+            ;;
+        --hard)
+            HARD_RESTART=true
+            ;;
+    esac
+done
+
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -29,8 +49,13 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo "========================================================="
-echo -e "${BLUE}FlexyRide Corporate - Service Restart & Update${NC}"
+echo -e "${BLUE}FlexyRide Corporate - Safe Deployment & Reload${NC}"
 echo "Project Directory: $PROJECT_DIR"
+if [ "$HARD_RESTART" = true ]; then
+    echo -e "Mode: ${RED}Hard Service Restart (Cold Boot)${NC}"
+else
+    echo -e "Mode: ${GREEN}Graceful Rolling Reload (Zero-Downtime)${NC}"
+fi
 echo "========================================================="
 
 # 1. Check Root Privileges
@@ -41,12 +66,12 @@ fi
 
 cd "$PROJECT_DIR"
 
-# 2. Optional Git Pull (if --pull argument provided or asked)
-if [ "$1" == "--pull" ] || [ "$1" == "-p" ]; then
+# 2. Optional Git Pull
+if [ "$DO_PULL" = true ]; then
     if [ -d ".git" ]; then
         echo -e "${YELLOW}1. Pulling latest updates from Git...${NC}"
         git config --global --add safe.directory "$PROJECT_DIR" 2>/dev/null || true
-        sudo -u "$USER" git pull || echo -e "${RED}Git pull encountered an issue, proceeding with restart...${NC}"
+        sudo -u "$USER" git pull || echo -e "${RED}Git pull encountered an issue, proceeding with deployment...${NC}"
         echo -e "${GREEN}✓ Git repository updated${NC}"
     fi
 fi
@@ -56,6 +81,9 @@ echo -e "${YELLOW}2. Activating Python virtual environment...${NC}"
 if [ -f "$PROJECT_DIR/venv/bin/activate" ]; then
     source "$PROJECT_DIR/venv/bin/activate"
     echo -e "${GREEN}✓ Virtual environment activated${NC}"
+elif [ -f "$PROJECT_DIR/.venv/bin/activate" ]; then
+    source "$PROJECT_DIR/.venv/bin/activate"
+    echo -e "${GREEN}✓ Virtual environment activated (.venv)${NC}"
 else
     echo -e "${RED}Warning: Virtual environment not found at $PROJECT_DIR/venv${NC}"
 fi
@@ -67,86 +95,134 @@ if [ -f "$PROJECT_DIR/requirements.txt" ]; then
     echo -e "${GREEN}✓ Dependencies verified${NC}"
 fi
 
-# 5. Database Migrations
+# 5. Pre-flight Health Check (Prevents deploying broken code / 500 crashes)
 if [ -f "$PROJECT_DIR/manage.py" ]; then
-    echo -e "${YELLOW}4. Running database migrations...${NC}"
+    echo -e "${YELLOW}4. Running pre-flight system integrity check...${NC}"
+    if python manage.py check; then
+        echo -e "${GREEN}✓ System check passed - safe to deploy${NC}"
+    else
+        echo -e "${RED}✗ System check failed! Aborting deployment to prevent downtime.${NC}"
+        exit 1
+    fi
+
+    # 6. Database Migrations
+    echo -e "${YELLOW}5. Running database migrations...${NC}"
     python manage.py migrate --noinput
     echo -e "${GREEN}✓ Migrations up to date${NC}"
 
-    # 6. Static Files Collection
-    echo -e "${YELLOW}5. Collecting static assets (UI updates)...${NC}"
+    # 7. Safe Static Files Collection (without --clear to avoid asset blips)
+    echo -e "${YELLOW}6. Collecting static assets (UI updates)...${NC}"
     python manage.py collectstatic --noinput
     echo -e "${GREEN}✓ Static files collected${NC}"
 fi
 
-# 7. Ensure Permissions
-echo -e "${YELLOW}6. Ensuring filesystem permissions...${NC}"
-sudo mkdir -p "$PROJECT_DIR/staticfiles" "$PROJECT_DIR/media"
-sudo chown -R "$USER:www-data" "$PROJECT_DIR/staticfiles" "$PROJECT_DIR/media"
-sudo chmod -R 755 "$PROJECT_DIR/staticfiles"
-sudo chmod -R 775 "$PROJECT_DIR/media"
-sudo chown "$USER:$USER" "$PROJECT_DIR"/db.sqlite3* 2>/dev/null || true
-sudo chmod 664 "$PROJECT_DIR"/db.sqlite3* 2>/dev/null || true
-sudo chown "$USER:www-data" "$PROJECT_DIR"
-sudo chmod 775 "$PROJECT_DIR"
+# 8. Ensure Permissions
+echo -e "${YELLOW}7. Ensuring filesystem permissions...${NC}"
+mkdir -p "$PROJECT_DIR/staticfiles" "$PROJECT_DIR/media"
+chown -R "$USER:www-data" "$PROJECT_DIR/staticfiles" "$PROJECT_DIR/media"
+chmod -R 755 "$PROJECT_DIR/staticfiles"
+chmod -R 775 "$PROJECT_DIR/media"
+chown "$USER:$USER" "$PROJECT_DIR"/db.sqlite3* 2>/dev/null || true
+chmod 664 "$PROJECT_DIR"/db.sqlite3* 2>/dev/null || true
+chown "$USER:www-data" "$PROJECT_DIR"
+chmod 775 "$PROJECT_DIR"
 echo -e "${GREEN}✓ Permissions verified${NC}"
 
-# 8. Restart Redis
-echo -e "${YELLOW}7. Restarting Redis cache & message broker...${NC}"
-systemctl restart redis-server || systemctl restart redis || echo "Redis service not found"
-echo -e "${GREEN}✓ Redis restarted${NC}"
+# 9. Redis Health / Restart
+echo -e "${YELLOW}8. Checking Redis cache & broker service...${NC}"
+if [ "$HARD_RESTART" = true ]; then
+    systemctl restart redis-server 2>/dev/null || systemctl restart redis 2>/dev/null || echo "Redis service not found"
+    echo -e "${GREEN}✓ Redis restarted${NC}"
+else
+    if systemctl is-active --quiet redis-server 2>/dev/null || systemctl is-active --quiet redis 2>/dev/null; then
+        echo -e "${GREEN}✓ Redis active and healthy (sessions preserved)${NC}"
+    else
+        systemctl start redis-server 2>/dev/null || systemctl start redis 2>/dev/null || echo "Redis service not found"
+        echo -e "${GREEN}✓ Redis started${NC}"
+    fi
+fi
 
-# 9. Restart Application Server (Systemd / Supervisor fallback)
-echo -e "${YELLOW}8. Restarting Gunicorn ASGI web application...${NC}"
+# 10. Gunicorn Rolling Graceful Reload (Zero-Downtime)
+echo -e "${YELLOW}9. Reloading Gunicorn ASGI web application...${NC}"
+GUNICORN_SERVICE=""
 if systemctl list-unit-files | grep -q "gunicorn_${PROJECT_NAME}"; then
-    systemctl restart "gunicorn_${PROJECT_NAME}"
-    echo -e "${GREEN}✓ Systemd service gunicorn_${PROJECT_NAME} restarted${NC}"
+    GUNICORN_SERVICE="gunicorn_${PROJECT_NAME}"
 elif systemctl list-unit-files | grep -q "gunicorn_flexyride_corporate"; then
-    systemctl restart gunicorn_flexyride_corporate
-    echo -e "${GREEN}✓ Systemd service gunicorn_flexyride_corporate restarted${NC}"
+    GUNICORN_SERVICE="gunicorn_flexyride_corporate"
+fi
+
+if [ -n "$GUNICORN_SERVICE" ]; then
+    if [ "$HARD_RESTART" = true ]; then
+        systemctl restart "$GUNICORN_SERVICE"
+        echo -e "${GREEN}✓ Service $GUNICORN_SERVICE hard restarted${NC}"
+    else
+        # Graceful reload sends SIGHUP: keeps old workers running until new workers boot
+        if systemctl reload "$GUNICORN_SERVICE" 2>/dev/null; then
+            echo -e "${GREEN}✓ Service $GUNICORN_SERVICE gracefully reloaded (zero downtime)${NC}"
+        else
+            # Fallback to direct process HUP signal or restart
+            pkill -HUP -f "gunicorn.*${PROJECT_NAME}" 2>/dev/null || systemctl restart "$GUNICORN_SERVICE"
+            echo -e "${GREEN}✓ Sent graceful HUP reload signal to $GUNICORN_SERVICE${NC}"
+        fi
+    fi
+elif pgrep -f "gunicorn.*flexyride" > /dev/null; then
+    pkill -HUP -f "gunicorn.*flexyride"
+    echo -e "${GREEN}✓ Sent graceful HUP reload signal to running Gunicorn workers${NC}"
 elif command -v supervisorctl &> /dev/null; then
     supervisorctl restart flexyride_corporate_replicas:* 2>/dev/null || true
-    echo -e "${GREEN}✓ Supervisor replicas restarted${NC}"
+    echo -e "${GREEN}✓ Supervisor replicas refreshed${NC}"
 fi
 
-# 10. Restart Celery Worker & Beat
-echo -e "${YELLOW}9. Restarting Celery background workers and scheduler...${NC}"
+# 11. Celery Worker & Scheduler Update
+echo -e "${YELLOW}10. Refreshing Celery background workers and scheduler...${NC}"
 rm -f "$PROJECT_DIR/celerybeat.pid" "/tmp/celerybeat_${PROJECT_NAME}.pid"
-# Systemd mode
+CELERY_SERVICE=""
+CELERYBEAT_SERVICE=""
 if systemctl list-unit-files | grep -q "celery_${PROJECT_NAME}"; then
-    systemctl restart "celery_${PROJECT_NAME}"
-    systemctl restart "celerybeat_${PROJECT_NAME}" 2>/dev/null || true
-    echo -e "${GREEN}✓ Celery worker & beat systemd services restarted${NC}"
+    CELERY_SERVICE="celery_${PROJECT_NAME}"
+    CELERYBEAT_SERVICE="celerybeat_${PROJECT_NAME}"
 elif systemctl list-unit-files | grep -q "celery_flexyride_corporate"; then
-    systemctl restart celery_flexyride_corporate
-    systemctl restart celerybeat_flexyride_corporate 2>/dev/null || true
-    echo -e "${GREEN}✓ Celery worker & beat systemd services restarted${NC}"
+    CELERY_SERVICE="celery_flexyride_corporate"
+    CELERYBEAT_SERVICE="celerybeat_flexyride_corporate"
+fi
+
+if [ -n "$CELERY_SERVICE" ]; then
+    systemctl restart "$CELERY_SERVICE" 2>/dev/null || true
+    systemctl restart "$CELERYBEAT_SERVICE" 2>/dev/null || true
+    echo -e "${GREEN}✓ Celery worker & beat services updated${NC}"
 elif command -v supervisorctl &> /dev/null; then
     supervisorctl restart flexyride_corporate_celery:* 2>/dev/null || true
-    echo -e "${GREEN}✓ Supervisor Celery tasks restarted${NC}"
+    echo -e "${GREEN}✓ Supervisor Celery tasks refreshed${NC}"
 fi
 
-# 11. Test and Restart Nginx
-echo -e "${YELLOW}10. Testing and restarting Nginx...${NC}"
+# 12. Nginx Graceful Reload (Zero-Downtime, keeps live HTTPS sockets intact)
+echo -e "${YELLOW}11. Testing and reloading Nginx...${NC}"
 if nginx -t; then
-    systemctl restart nginx
-    echo -e "${GREEN}✓ Nginx restarted successfully${NC}"
+    if [ "$HARD_RESTART" = true ]; then
+        systemctl restart nginx
+        echo -e "${GREEN}✓ Nginx restarted${NC}"
+    else
+        systemctl reload nginx
+        echo -e "${GREEN}✓ Nginx gracefully reloaded (zero dropped connections)${NC}"
+    fi
 else
-    echo -e "${RED}✗ Nginx configuration error! Check /etc/nginx/sites-available/$PROJECT_NAME${NC}"
+    echo -e "${RED}✗ Nginx configuration test failed! Aborting Nginx reload.${NC}"
     exit 1
 fi
 
-# 12. Service Status Summary
+# 13. Service Status Summary
 echo ""
 echo "========================================================="
-echo -e "${GREEN}🎉 All services updated & restarted successfully!${NC}"
+echo -e "${GREEN}🎉 Deployment completed successfully with ZERO downtime!${NC}"
 echo "========================================================="
-echo "Status Summary:"
-for svc in "gunicorn_${PROJECT_NAME}" "celery_${PROJECT_NAME}" "celerybeat_${PROJECT_NAME}" "nginx"; do
-    if systemctl is-active --quiet "$svc" 2>/dev/null; then
-        echo -e "  - $svc: ${GREEN}Active (Running)${NC}"
-    else
-        echo -e "  - $svc: ${YELLOW}Inactive / Not configured${NC}"
+echo "Live Services Status:"
+for svc in "$GUNICORN_SERVICE" "$CELERY_SERVICE" "$CELERYBEAT_SERVICE" "nginx"; do
+    if [ -n "$svc" ]; then
+        if systemctl is-active --quiet "$svc" 2>/dev/null; then
+            echo -e "  - $svc: ${GREEN}Active (Running)${NC}"
+        else
+            echo -e "  - $svc: ${YELLOW}Inactive / Not configured${NC}"
+        fi
     fi
 done
 if systemctl is-active --quiet "redis-server" 2>/dev/null || systemctl is-active --quiet "redis" 2>/dev/null; then

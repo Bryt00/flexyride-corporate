@@ -374,6 +374,23 @@ def update_subaccount(
                 "account_name": data["data"].get("account_name") or "",
                 "settlement_bank_name": data["data"].get("settlement_bank") or "",
             }
+        
+        # When migrating from test to live keys, test subaccounts don't exist in live Paystack.
+        # Seamlessly auto-provision a fresh live subaccount instead of failing.
+        msg = data.get("message", "")
+        if "not found" in msg.lower() or "does not exist" in msg.lower():
+            logger.info("Subaccount %s not found on active integration. Creating fresh subaccount...", subaccount_code)
+            return create_subaccount(
+                business_name=business_name,
+                settlement_bank=settlement_bank,
+                account_number=account_number,
+                primary_contact_email=primary_contact_email,
+                primary_contact_name=primary_contact_name,
+                primary_contact_phone=primary_contact_phone,
+                percentage_charge=percentage_charge,
+                description=description,
+            )
+
         if not is_live_keys():
             logger.info("Paystack test-mode rejection (%s); using sandbox update simulation.", data.get("message"))
             return {

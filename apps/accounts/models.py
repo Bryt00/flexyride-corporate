@@ -358,6 +358,9 @@ class ProviderCompany(models.Model):
             res = paystack.update_subaccount(
                 subaccount_code=self.paystack_subaccount_code, percentage_charge=pct, **kwargs
             )
+            # When migrating between test and live keys, existing subaccount code does not exist in new environment.
+            if not res.get('success') and 'not found' in str(res.get('message', '')).lower():
+                res = paystack.create_subaccount(percentage_charge=pct, **kwargs)
         else:
             res = paystack.create_subaccount(percentage_charge=pct, **kwargs)
 
