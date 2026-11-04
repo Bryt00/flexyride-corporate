@@ -249,7 +249,7 @@
                         </span>
 
                         {% if prov.has_payout_details and not prov.paystack_subaccount_code and prov.status == 'APPROVED' %}
-                        <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline shrink-0">
+                        <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline-flex m-0 p-0 items-center shrink-0">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="sync_provider_subaccount">
                             <input type="hidden" name="provider_id" value="{{ prov.id }}">
@@ -267,7 +267,7 @@
                 <div class="flex items-center justify-between gap-2">
                     <!-- View Fleet & Drivers Button -->
                     <button type="button" onclick="openFleetModal('{{ prov.id }}')" 
-                            class="px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-bold transition-all border border-blue-500/20 inline-flex items-center gap-1.5 active:scale-95">
+                            class="h-8 px-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-bold transition-all border border-blue-500/20 inline-flex items-center gap-1.5 active:scale-95">
                         <i data-lucide="car" class="w-3.5 h-3.5"></i>
                         <span>Fleet & Drivers ({{ prov.vehicles.count }})</span>
                     </button>
@@ -276,34 +276,34 @@
                     <div class="flex items-center gap-1.5">
                         <!-- Quick Status Toggle -->
                         {% if prov.status == 'APPROVED' %}
-                        <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline">
+                        <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline-flex m-0 p-0 items-center">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="toggle_provider_status">
                             <input type="hidden" name="provider_id" value="{{ prov.id }}">
                             <input type="hidden" name="new_status" value="SUSPENDED">
-                            <button type="submit" title="Suspend Operator" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-all border border-rose-500/20 active:scale-95">
+                            <button type="submit" title="Suspend Operator" class="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-all border border-rose-500/20 inline-flex items-center justify-center active:scale-95">
                                 <i data-lucide="ban" class="w-3.5 h-3.5"></i>
                             </button>
                         </form>
                         {% else %}
-                        <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline">
+                        <form method="POST" action="{% url 'portal_broker_providers' %}" class="inline-flex m-0 p-0 items-center">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="toggle_provider_status">
                             <input type="hidden" name="provider_id" value="{{ prov.id }}">
                             <input type="hidden" name="new_status" value="APPROVED">
-                            <button type="submit" title="Verify & Approve" class="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold transition-all border border-emerald-500/20 active:scale-95">
+                            <button type="submit" title="Verify & Approve" class="w-8 h-8 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-all border border-emerald-500/20 inline-flex items-center justify-center active:scale-95">
                                 <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
                             </button>
                         </form>
                         {% endif %}
 
                         <!-- Edit Button -->
-                        <button type="button" onclick="openEditModal('{{ prov.id }}')" title="Edit Provider" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold transition-all border border-white/5 active:scale-95">
+                        <button type="button" onclick="openEditModal('{{ prov.id }}')" title="Edit Provider" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 transition-all border border-white/5 inline-flex items-center justify-center active:scale-95">
                             <i data-lucide="pencil" class="w-3.5 h-3.5 text-amber-400"></i>
                         </button>
 
                         <!-- Delete Button -->
-                        <button type="button" onclick="openDeleteModal('{{ prov.id }}', '{{ prov.company_name|escapejs }}', '{{ prov.vehicles.count }}', '{{ prov.quotes.count }}')" title="Deactivate / Delete" class="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-xs font-bold transition-all border border-white/5 active:scale-95">
+                        <button type="button" onclick="openDeleteModal('{{ prov.id }}', '{{ prov.company_name|escapejs }}', '{{ prov.vehicles.count }}', '{{ prov.quotes.count }}')" title="Deactivate / Delete" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-all border border-white/5 inline-flex items-center justify-center active:scale-95">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
@@ -1210,21 +1210,21 @@ function verifyPaystackAccount(prefix) {
             if (data.success && data.account_name) {
                 if (acctNameInput) acctNameInput.value = data.account_name;
                 if (feedback) {
-                    feedback.className = 'text-xs p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 block space-y-1';
+                    feedback.className = 'text-xs p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 block space-y-1';
                     feedback.innerHTML = `
-                        <div class="flex items-center gap-2 font-bold text-emerald-400">
+                        <div class="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
                             <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
                             <span>Paystack Account Verified</span>
                         </div>
-                        <div class="text-white font-mono text-xs pl-6">
-                            Account Holder: <strong>${data.account_name}</strong>
+                        <div class="text-emerald-900 dark:text-emerald-100 font-mono text-xs pl-6">
+                            Account Holder: <strong class="font-black text-slate-900 dark:text-white">${data.account_name}</strong>
                         </div>
                     `;
                     if (window.lucide) lucide.createIcons();
                 }
             } else {
                 if (feedback) {
-                    feedback.className = 'text-xs p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 block flex items-center gap-2';
+                    feedback.className = 'text-xs p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 block flex items-center gap-2';
                     feedback.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i><span>' + (data.message || 'Could not verify account holder with Paystack.') + '</span>';
                     if (window.lucide) lucide.createIcons();
                 }
@@ -1516,14 +1516,14 @@ function openEditModal(provId) {
 
     if (feedback) {
         if (data.account_name) {
-            feedback.className = 'text-xs p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 block space-y-1';
+            feedback.className = 'text-xs p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 block space-y-1';
             feedback.innerHTML = `
-                <div class="flex items-center gap-2 font-bold text-emerald-400">
+                <div class="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
                     <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
                     <span>Paystack Account Verified</span>
                 </div>
-                <div class="text-white font-mono text-xs pl-6">
-                    Account Holder: <strong>${data.account_name}</strong>
+                <div class="text-emerald-900 dark:text-emerald-100 font-mono text-xs pl-6">
+                    Account Holder: <strong class="font-black text-slate-900 dark:text-white">${data.account_name}</strong>
                 </div>
             `;
         } else {
@@ -1534,31 +1534,31 @@ function openEditModal(provId) {
 
     if (badge && alertBox) {
         if (data.paystack_subaccount_code) {
-            badge.className = 'text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25';
+            badge.className = 'text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25';
             badge.textContent = data.paystack_subaccount_code;
-            alertBox.className = 'text-xs p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 block space-y-1';
+            alertBox.className = 'text-xs p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 block space-y-1';
             alertBox.innerHTML = `
-                <div class="flex items-center gap-2 font-bold text-emerald-400">
+                <div class="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
                     <i data-lucide="shield-check" class="w-4 h-4 shrink-0"></i>
                     <span>Paystack Subaccount Connected</span>
                 </div>
-                <div class="text-slate-300 text-[11px] pl-6">
-                    Subaccount Code: <strong class="font-mono text-white">${data.paystack_subaccount_code}</strong>
+                <div class="text-slate-700 dark:text-slate-300 text-[11px] pl-6">
+                    Subaccount Code: <strong class="font-mono text-slate-900 dark:text-white">${data.paystack_subaccount_code}</strong>
                     ${data.paystack_subaccount_status ? ' • Status: ' + data.paystack_subaccount_status : ''}
                 </div>
             `;
         } else if (data.settlement_bank && data.account_number) {
-            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-amber-400/15 text-amber-400 border border-amber-400/25';
+            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-amber-400/15 text-amber-600 dark:text-amber-400 border border-amber-400/25';
             badge.textContent = 'Pending Approval';
-            alertBox.className = 'text-xs p-3 rounded-xl border border-amber-400/20 bg-amber-400/10 text-amber-300 block';
+            alertBox.className = 'text-xs p-3 rounded-xl border border-amber-400/20 bg-amber-400/10 text-amber-800 dark:text-amber-300 block';
             alertBox.innerHTML = `
-                <div class="flex items-center gap-2 font-semibold">
+                <div class="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-300">
                     <i data-lucide="clock" class="w-4 h-4 shrink-0"></i>
                     <span>Banking details saved. Paystack subaccount will be created when status is Approved.</span>
                 </div>
             `;
         } else {
-            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-white/5 text-slate-400 border border-white/5';
+            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5';
             badge.textContent = 'No Subaccount';
             alertBox.className = 'hidden';
             alertBox.innerHTML = '';

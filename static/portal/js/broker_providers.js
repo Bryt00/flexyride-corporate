@@ -163,21 +163,21 @@ function verifyPaystackAccount(prefix) {
             if (data.success && data.account_name) {
                 if (acctNameInput) acctNameInput.value = data.account_name;
                 if (feedback) {
-                    feedback.className = 'text-xs p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 block space-y-1';
+                    feedback.className = 'text-xs p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 block space-y-1';
                     feedback.innerHTML = `
-                        <div class="flex items-center gap-2 font-bold text-emerald-400">
+                        <div class="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
                             <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
                             <span>Paystack Account Verified</span>
                         </div>
-                        <div class="text-white font-mono text-xs pl-6">
-                            Account Holder: <strong>${data.account_name}</strong>
+                        <div class="text-emerald-900 dark:text-emerald-100 font-mono text-xs pl-6">
+                            Account Holder: <strong class="font-black text-slate-900 dark:text-white">${data.account_name}</strong>
                         </div>
                     `;
                     if (window.lucide) lucide.createIcons();
                 }
             } else {
                 if (feedback) {
-                    feedback.className = 'text-xs p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 block flex items-center gap-2';
+                    feedback.className = 'text-xs p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 block flex items-center gap-2';
                     feedback.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i><span>' + (data.message || 'Could not verify account holder with Paystack.') + '</span>';
                     if (window.lucide) lucide.createIcons();
                 }
@@ -469,14 +469,14 @@ function openEditModal(provId) {
 
     if (feedback) {
         if (data.account_name) {
-            feedback.className = 'text-xs p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 block space-y-1';
+            feedback.className = 'text-xs p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 block space-y-1';
             feedback.innerHTML = `
-                <div class="flex items-center gap-2 font-bold text-emerald-400">
+                <div class="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
                     <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
                     <span>Paystack Account Verified</span>
                 </div>
-                <div class="text-white font-mono text-xs pl-6">
-                    Account Holder: <strong>${data.account_name}</strong>
+                <div class="text-emerald-900 dark:text-emerald-100 font-mono text-xs pl-6">
+                    Account Holder: <strong class="font-black text-slate-900 dark:text-white">${data.account_name}</strong>
                 </div>
             `;
         } else {
@@ -487,31 +487,31 @@ function openEditModal(provId) {
 
     if (badge && alertBox) {
         if (data.paystack_subaccount_code) {
-            badge.className = 'text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25';
+            badge.className = 'text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25';
             badge.textContent = data.paystack_subaccount_code;
-            alertBox.className = 'text-xs p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 block space-y-1';
+            alertBox.className = 'text-xs p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 block space-y-1';
             alertBox.innerHTML = `
-                <div class="flex items-center gap-2 font-bold text-emerald-400">
+                <div class="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
                     <i data-lucide="shield-check" class="w-4 h-4 shrink-0"></i>
                     <span>Paystack Subaccount Connected</span>
                 </div>
-                <div class="text-slate-300 text-[11px] pl-6">
-                    Subaccount Code: <strong class="font-mono text-white">${data.paystack_subaccount_code}</strong>
+                <div class="text-slate-700 dark:text-slate-300 text-[11px] pl-6">
+                    Subaccount Code: <strong class="font-mono text-slate-900 dark:text-white">${data.paystack_subaccount_code}</strong>
                     ${data.paystack_subaccount_status ? ' • Status: ' + data.paystack_subaccount_status : ''}
                 </div>
             `;
         } else if (data.settlement_bank && data.account_number) {
-            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-amber-400/15 text-amber-400 border border-amber-400/25';
+            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-amber-400/15 text-amber-600 dark:text-amber-400 border border-amber-400/25';
             badge.textContent = 'Pending Approval';
-            alertBox.className = 'text-xs p-3 rounded-xl border border-amber-400/20 bg-amber-400/10 text-amber-300 block';
+            alertBox.className = 'text-xs p-3 rounded-xl border border-amber-400/20 bg-amber-400/10 text-amber-800 dark:text-amber-300 block';
             alertBox.innerHTML = `
-                <div class="flex items-center gap-2 font-semibold">
+                <div class="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-300">
                     <i data-lucide="clock" class="w-4 h-4 shrink-0"></i>
                     <span>Banking details saved. Paystack subaccount will be created when status is Approved.</span>
                 </div>
             `;
         } else {
-            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-white/5 text-slate-400 border border-white/5';
+            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5';
             badge.textContent = 'No Subaccount';
             alertBox.className = 'hidden';
             alertBox.innerHTML = '';
