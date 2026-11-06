@@ -169,8 +169,8 @@ function verifyPaystackAccount(prefix) {
                             <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
                             <span>Paystack Account Verified</span>
                         </div>
-                        <div class="text-emerald-900 dark:text-emerald-100 font-mono text-xs pl-6">
-                            Account Holder: <strong class="font-black text-slate-900 dark:text-white">${data.account_name}</strong>
+                        <div class="text-emerald-950 dark:text-emerald-100 font-mono text-xs pl-6">
+                            Account Holder: <strong class="font-black text-slate-900 dark:text-emerald-200" style="color: #064e3b !important;">${data.account_name}</strong>
                         </div>
                     `;
                     if (window.lucide) lucide.createIcons();
@@ -475,8 +475,8 @@ function openEditModal(provId) {
                     <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
                     <span>Paystack Account Verified</span>
                 </div>
-                <div class="text-emerald-900 dark:text-emerald-100 font-mono text-xs pl-6">
-                    Account Holder: <strong class="font-black text-slate-900 dark:text-white">${data.account_name}</strong>
+                <div class="text-emerald-950 dark:text-emerald-100 font-mono text-xs pl-6">
+                    Account Holder: <strong class="font-black text-slate-900 dark:text-emerald-200" style="color: #064e3b !important;">${data.account_name}</strong>
                 </div>
             `;
         } else {
@@ -486,7 +486,31 @@ function openEditModal(provId) {
     }
 
     if (badge && alertBox) {
-        if (data.paystack_subaccount_code) {
+        if (data.paystack_subaccount_status && data.paystack_subaccount_status.includes('Error:')) {
+            badge.className = 'text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25';
+            badge.textContent = 'Sync Required';
+            alertBox.className = 'text-xs p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-950 dark:text-amber-200 block space-y-2';
+            alertBox.innerHTML = `
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-300">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 text-amber-600"></i>
+                        <span>Paystack Subaccount Needs Live Sync</span>
+                    </div>
+                    <button type="button" onclick="syncCurrentEditProviderSubaccount()" id="modalAlertSyncBtn" 
+                            class="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-[#080D18] text-[11px] font-black transition-all flex items-center gap-1 active:scale-95 shadow-sm cursor-pointer shrink-0">
+                        <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                        <span>Sync Live Now</span>
+                    </button>
+                </div>
+                <div class="text-[11px] pl-6 text-slate-700 dark:text-slate-300">
+                    Previous Code: <strong class="font-mono text-slate-900 dark:text-white">${data.paystack_subaccount_code || 'None'}</strong>
+                    • Status: <span class="text-rose-600 dark:text-rose-400 font-bold">${data.paystack_subaccount_status}</span>
+                </div>
+                <div class="text-[10px] pl-6 text-amber-900 dark:text-amber-200 leading-relaxed">
+                    This subaccount code was created in Test mode and was not found on your active Live Paystack account. Click <strong>Sync Live Now</strong> above or <strong>Save Changes</strong> below to automatically provision this provider on Live Paystack.
+                </div>
+            `;
+        } else if (data.paystack_subaccount_code) {
             badge.className = 'text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25';
             badge.textContent = data.paystack_subaccount_code;
             alertBox.className = 'text-xs p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 block space-y-1';
@@ -498,19 +522,6 @@ function openEditModal(provId) {
                 <div class="text-slate-700 dark:text-slate-300 text-[11px] pl-6">
                     Subaccount Code: <strong class="font-mono text-slate-900 dark:text-white">${data.paystack_subaccount_code}</strong>
                     ${data.paystack_subaccount_status ? ' • Status: ' + data.paystack_subaccount_status : ''}
-                </div>
-            `;
-        } else if (data.paystack_subaccount_status && data.paystack_subaccount_status.includes('Error:')) {
-            badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25';
-            badge.textContent = 'Sync Failed';
-            alertBox.className = 'text-xs p-3 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-300 block space-y-1';
-            alertBox.innerHTML = `
-                <div class="flex items-center gap-2 font-bold text-rose-700 dark:text-rose-400">
-                    <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
-                    <span>Paystack Subaccount Rejected</span>
-                </div>
-                <div class="text-rose-900 dark:text-rose-200 text-[11px] pl-6 font-mono leading-relaxed">
-                    ${data.paystack_subaccount_status}
                 </div>
             `;
         } else if (data.settlement_bank && data.account_number) {
@@ -539,6 +550,104 @@ function openEditModal(provId) {
 function closeEditModal() {
     const modal = document.getElementById('editModal');
     if (modal) modal.classList.add('hidden');
+}
+
+async function syncCurrentEditProviderSubaccount() {
+    const provId = document.getElementById('editProviderId')?.value;
+    if (!provId) return;
+
+    const syncBtns = [
+        document.getElementById('editModalSyncBtn'),
+        document.getElementById('modalAlertSyncBtn')
+    ].filter(Boolean);
+
+    syncBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="inline-block animate-spin mr-1">⟳</span> Syncing...';
+    });
+
+    const formData = new FormData();
+    formData.append('action', 'sync_provider_subaccount');
+    formData.append('provider_id', provId);
+    formData.append('ajax', '1');
+
+    const csrfEl = document.querySelector('#editModal input[name="csrfmiddlewaretoken"]') || document.querySelector('input[name="csrfmiddlewaretoken"]');
+    const csrfToken = csrfEl ? csrfEl.value : '';
+
+    try {
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            }
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            // Update in-page script tag cache for this provider
+            const scriptEl = document.getElementById('prov-data-' + provId);
+            if (scriptEl) {
+                try {
+                    const d = JSON.parse(scriptEl.textContent);
+                    d.paystack_subaccount_code = result.subaccount_code;
+                    d.paystack_subaccount_status = result.subaccount_status || 'Active on Paystack';
+                    if (result.account_name) d.account_name = result.account_name;
+                    if (result.settlement_bank_name) d.settlement_bank_name = result.settlement_bank_name;
+                    scriptEl.textContent = JSON.stringify(d);
+                } catch (_) {}
+            }
+
+            // Re-render subaccount status in modal
+            const badge = document.getElementById('editSubaccountBadge');
+            const alertBox = document.getElementById('editSubaccountAlert');
+
+            if (badge) {
+                badge.className = 'text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25';
+                badge.textContent = result.subaccount_code;
+            }
+            if (alertBox) {
+                alertBox.className = 'text-xs p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 block space-y-1';
+                alertBox.innerHTML = `
+                    <div class="flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
+                        <i data-lucide="shield-check" class="w-4 h-4 shrink-0"></i>
+                        <span>Live Paystack Subaccount Connected</span>
+                    </div>
+                    <div class="text-slate-700 dark:text-slate-300 text-[11px] pl-6">
+                        Subaccount Code: <strong class="font-mono text-slate-900 dark:text-white">${result.subaccount_code}</strong>
+                        • Status: <span class="text-emerald-600 dark:text-emerald-400 font-semibold">${result.subaccount_status || 'Active on Paystack'}</span>
+                    </div>
+                `;
+            }
+            if (window.lucide) lucide.createIcons();
+
+            syncBtns.forEach(btn => {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="check" class="w-3 h-3 text-emerald-600 dark:text-emerald-400"></i><span>Synced Live</span>';
+            });
+            setTimeout(() => {
+                syncBtns.forEach(btn => {
+                    btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3"></i><span>Sync Live Now</span>';
+                    if (window.lucide) lucide.createIcons();
+                });
+            }, 3000);
+        } else {
+            alert('Paystack Live Sync notice: ' + (result.message || 'Subaccount sync could not be completed.'));
+            syncBtns.forEach(btn => {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3"></i><span>Retry Sync</span>';
+                if (window.lucide) lucide.createIcons();
+            });
+        }
+    } catch (err) {
+        alert('Could not complete live sync request. Please verify network connectivity.');
+        syncBtns.forEach(btn => {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3"></i><span>Retry Sync</span>';
+            if (window.lucide) lucide.createIcons();
+        });
+    }
 }
 
 // 3. Fleet & Driver Drilldown Modal
@@ -646,6 +755,7 @@ window.openFleetModal = openFleetModal;
 window.closeFleetModal = closeFleetModal;
 window.openDeleteModal = openDeleteModal;
 window.closeDeleteModal = closeDeleteModal;
+window.syncCurrentEditProviderSubaccount = syncCurrentEditProviderSubaccount;
 
 document.addEventListener('DOMContentLoaded', function() {
     populateBanks('onboard', 'BANK', '');

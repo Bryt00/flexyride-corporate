@@ -5,6 +5,7 @@ import random
 from decimal import Decimal
 from django.db import transaction
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.contrib.auth import update_session_auth_hash
@@ -381,14 +382,28 @@ def handle_broker_post(request):
 
     elif action == 'sync_provider_subaccount':
         provider = ProviderCompany.objects.filter(id=request.POST.get('provider_id')).first()
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1'
         if not provider:
             messages.error(request, "Transport provider not found.")
+            if is_ajax:
+                return JsonResponse({'success': False, 'message': "Transport provider not found."}, status=404)
         elif not provider.has_payout_details:
             messages.error(request, f"'{provider.company_name}' has no settlement bank/account on file.")
+            if is_ajax:
+                return JsonResponse({'success': False, 'message': f"'{provider.company_name}' has no settlement bank/account on file."}, status=400)
         else:
             res = provider.sync_paystack_subaccount()
             sub_note, sub_error = _subaccount_note(provider)
             (messages.warning if sub_error else messages.success)(request, sub_note.strip())
+            if is_ajax:
+                return JsonResponse({
+                    'success': not sub_error and res.get('success', False),
+                    'message': sub_note.strip(),
+                    'subaccount_code': provider.paystack_subaccount_code or '',
+                    'subaccount_status': provider.paystack_subaccount_status or '',
+                    'account_name': provider.account_name or '',
+                    'settlement_bank_name': provider.settlement_bank_name or '',
+                })
 
     elif action == 'toggle_provider_status':
         provider_id = request.POST.get('provider_id')
