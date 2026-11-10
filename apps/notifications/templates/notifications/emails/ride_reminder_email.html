@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduled Ride Reminder: {{ request.request_number }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #080D18;
+            color: #E2E8F0;
+            margin: 0;
+            padding: 24px 12px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #10172A;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .header {
+            background: linear-gradient(135deg, #141C33 0%, #0F1626 100%);
+            padding: 32px 28px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+        }
+        .badge-2h {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #60A5FA;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .badge-1h {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #FBBF24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+        .title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin: 0 0 6px;
+            letter-spacing: -0.02em;
+        }
+        .ref-text {
+            font-size: 13px;
+            color: #94A3B8;
+            margin: 0;
+        }
+        .ref-code {
+            font-family: monospace;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+        .body {
+            padding: 28px;
+        }
+        .greeting {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #CBD5E1;
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #8CC63F;
+            margin: 0 0 12px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .highlight-card {
+            background: linear-gradient(135deg, rgba(140, 198, 63, 0.08) 0%, rgba(140, 198, 63, 0.02) 100%);
+            border: 1px solid rgba(140, 198, 63, 0.25);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .driver-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.02) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .route-point {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+        .route-point:last-child {
+            margin-bottom: 0;
+        }
+        .point-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 5px;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+        .dot-green {
+            background-color: #8CC63F;
+            box-shadow: 0 0 8px rgba(140, 198, 63, 0.5);
+        }
+        .dot-red {
+            background-color: #EF4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+        .point-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #94A3B8;
+            margin-bottom: 2px;
+        }
+        .point-address {
+            font-size: 14px;
+            color: #F8FAFC;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .grid-item {
+            margin-bottom: 8px;
+        }
+        .grid-label {
+            font-size: 11px;
+            color: #94A3B8;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .grid-value {
+            font-size: 13px;
+            color: #FFFFFF;
+            font-weight: 600;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 28px 0 16px;
+        }
+        .btn {
+            display: inline-block;
+            background: #8CC63F;
+            color: #080D18 !important;
+            font-size: 13px;
+            font-weight: 900;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(140, 198, 63, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .notice-box {
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid #8CC63F;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 12px;
+            color: #94A3B8;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        .notice-box-1h {
+            border-left-color: #F59E0B;
+            background: rgba(245, 158, 11, 0.05);
+            color: #CBD5E1;
+        }
+        .footer {
+            padding: 24px 28px;
+            background-color: #0C1220;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+            font-size: 11px;
+            color: #64748B;
+            line-height: 1.5;
+        }
+        .footer a {
+            color: #8CC63F;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            {% if reminder_type == '1h' %}
+                <span class="badge badge-1h">⏰ Trip Reminder • 1 Hour to Pickup</span>
+            {% else %}
+                <span class="badge badge-2h">📅 Upcoming Ride • 2 Hours to Pickup</span>
+            {% endif %}
+            
+            <h1 class="title">
+                {% if recipient_role == 'driver' %}
+                    Upcoming Mission Chauffeur Dispatch
+                {% elif recipient_role == 'provider' %}
+                    Fleet Mission Readiness Notice
+                {% else %}
+                    Scheduled Ride Reminder
+                {% endif %}
+            </h1>
+            <p class="ref-text">Service Reference: <span class="ref-code">#{{ request.request_number }}</span></p>
+        </div>
+
+        <!-- Body -->
+        <div class="body">
+            <p class="greeting">
+                Hello <strong>{{ recipient_name }}</strong>,<br>
+                {% if recipient_role == 'driver' %}
+                    This is an operational reminder that your assigned chauffeured mission for <strong>{{ request.customer.company_name }}</strong> is scheduled to commence in <strong>{{ hours_label }}</strong>. Please ensure your vehicle is clean, fueled, and prepare to be en-route to the pickup point.
+                {% elif recipient_role == 'provider' %}
+                    This is a fleet coordination notice that transport mission <strong>#{{ request.request_number }}</strong> is scheduled for pickup in <strong>{{ hours_label }}</strong>. Please verify your driver and vehicle readiness.
+                {% else %}
+                    This is a friendly reminder that your FlexyRide executive transfer is scheduled to depart in <strong>{{ hours_label }}</strong>. Please find the itinerary and chauffeur details below.
+                {% endif %}
+            </p>
+
+            <!-- Important Timing Notice -->
+            <div class="notice-box {% if reminder_type == '1h' %}notice-box-1h{% endif %}">
+                {% if reminder_type == '1h' %}
+                    <strong>Pickup in 1 Hour:</strong> Scheduled for <strong>{{ request.departure_datetime|date:"l, d M Y @ H:i" }}</strong> (Ghana Time). Please ensure all passengers are prepared at the pickup point.
+                {% else %}
+                    <strong>Pickup in 2 Hours:</strong> Scheduled for <strong>{{ request.departure_datetime|date:"l, d M Y @ H:i" }}</strong>. Your chauffeur is preparing the vehicle for your transfer.
+                {% endif %}
+            </div>
+
+            <!-- Route Details Card -->
+            <div class="section-title">Transfer Itinerary</div>
+            <div class="card">
+                <div class="route-point">
+                    <div class="point-dot dot-green"></div>
+                    <div>
+                        <div class="point-label">Pickup Location</div>
+                        <div class="point-address">{{ request.pickup_address }}</div>
+                    </div>
+                </div>
+                <div style="height: 14px; border-left: 2px dashed rgba(255, 255, 255, 0.15); margin-left: 4px; margin-top: -6px; margin-bottom: -6px;"></div>
+                <div class="route-point">
+                    <div class="point-dot dot-red"></div>
+                    <div>
+                        <div class="point-label">Destination</div>
+                        <div class="point-address">{{ request.destination_address }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule & Mission Metadata -->
+            <div class="section-title">Mission Overview</div>
+            <div class="highlight-card">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="50%" valign="top" style="padding-bottom: 12px;">
+                            <div class="grid-label">Pickup Date & Time</div>
+                            <div class="grid-value">{{ request.departure_datetime|date:"d M Y, H:i" }}</div>
+                        </td>
+                        <td width="50%" valign="top" style="padding-bottom: 12px;">
+                            <div class="grid-label">Service Type</div>
+                            <div class="grid-value">{{ request.get_journey_type_display }}</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="50%" valign="top" style="padding-bottom: 12px;">
+                            <div class="grid-label">Vehicle Category</div>
+                            <div class="grid-value">{{ request.get_requested_vehicle_category_display }}</div>
+                        </td>
+                        <td width="50%" valign="top" style="padding-bottom: 12px;">
+                            <div class="grid-label">Passenger(s)</div>
+                            <div class="grid-value">
+                                {% if primary_passenger %}
+                                    {{ primary_passenger.full_name }} ({{ primary_passenger.phone_number }})
+                                {% else %}
+                                    {{ request.passenger_count }} Passenger(s)
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% if request.flight_number %}
+                    <tr>
+                        <td width="50%" valign="top">
+                            <div class="grid-label">Flight Details</div>
+                            <div class="grid-value">{{ request.airline|default:"" }} {{ request.flight_number }}</div>
+                        </td>
+                        <td width="50%" valign="top">
+                            <div class="grid-label">Airport</div>
+                            <div class="grid-value">{{ request.airport_name|default:"Kotoka International Airport (ACC)" }}</div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <!-- Chauffeur & Vehicle Details (if assigned) -->
+            {% if assignment %}
+            <div class="section-title">Assigned Chauffeur & Fleet Unit</div>
+            <div class="driver-card">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="50%" valign="top" style="padding-bottom: 12px;">
+                            <div class="grid-label">Vetted Chauffeur</div>
+                            <div class="grid-value" style="color: #60A5FA; font-size: 15px;">{{ assignment.driver.full_name }}</div>
+                        </td>
+                        <td width="50%" valign="top" style="padding-bottom: 12px;">
+                            <div class="grid-label">Driver Phone Number</div>
+                            <div class="grid-value"><a href="tel:{{ assignment.driver.phone_number }}" style="color: #8CC63F; text-decoration: none;">{{ assignment.driver.phone_number }}</a></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="50%" valign="top">
+                            <div class="grid-label">Vehicle Make & Model</div>
+                            <div class="grid-value">{{ assignment.vehicle.year|default:"" }} {{ assignment.vehicle.make }} {{ assignment.vehicle.model }}</div>
+                        </td>
+                        <td width="50%" valign="top">
+                            <div class="grid-label">License Plate</div>
+                            <div class="grid-value" style="font-family: monospace; font-size: 14px; color: #FBBF24;">{{ assignment.vehicle.registration_number }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- Call to Action -->
+            {% if tracking_url %}
+            <div class="btn-container">
+                <a href="{{ tracking_url }}" class="btn">
+                    {% if recipient_role == 'driver' %}
+                        Open Mission Console
+                    {% else %}
+                        View Live Ride & Chauffeur Tracking
+                    {% endif %}
+                </a>
+            </div>
+            {% endif %}
+
+            <p style="font-size: 12px; color: #64748B; text-align: center; margin-top: 16px;">
+                Need to make last-minute adjustments or have questions? Contact FlexyRide 24/7 Operations at <a href="mailto:{{ support_email }}" style="color: #8CC63F;">{{ support_email }}</a>.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 6px;">
+                <strong>FlexyRide Corporate Mobility Platform</strong> • Airport & Executive Transportation
+            </p>
+            <p style="margin: 0;">
+                Accra, Ghana • Operations Desk: <a href="mailto:{{ support_email }}">{{ support_email }}</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

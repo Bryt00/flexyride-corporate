@@ -22,6 +22,7 @@ class Notification(models.Model):
         DRIVER_ARRIVED = 'DRIVER_ARRIVED', 'Driver Arrived'
         TRIP_COMPLETED = 'TRIP_COMPLETED', 'Trip Completed'
         CANCELLATION = 'CANCELLATION', 'Booking Cancelled'
+        RIDE_REMINDER = 'RIDE_REMINDER', 'Scheduled Ride Reminder'
         COMPLIANCE_EXPIRY = 'COMPLIANCE_EXPIRY', 'Compliance Document Expiring'
         APPROVAL_REQUIRED = 'APPROVAL_REQUIRED', 'Internal Approval Required'
         CAMPAIGN = 'CAMPAIGN', 'Campaign Broadcast'

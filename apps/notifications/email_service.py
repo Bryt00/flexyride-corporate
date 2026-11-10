@@ -757,7 +757,7 @@ def _send_rfq_invitation_email_worker(provider, request_obj):
                     request_obj=request_obj,
                     title=f"New RFQ Tender #{request_obj.request_number}",
                     message=f"New quote tender from {request_obj.customer.company_name} ({request_obj.pickup_address} → {request_obj.destination_address}). 2-hr response window.",
-                    notification_type=Notification.NotificationType.BOOKING,
+                    notification_type=Notification.NotificationType.BOOKING_UPDATE,
                     url="/portal/provider/workspace/?tab=rfqs"
                 )
             except Exception as pe:
@@ -769,5 +769,214 @@ def _send_rfq_invitation_email_worker(provider, request_obj):
     except Exception as e:
         logger.error(f"Failed to send RFQ invitation email to {recipient_email}: {e}")
         return False
+
+
+# ==============================================================================
+# 7. Scheduled Ride Reminder Email (2 Hours & 1 Hour Prior to Pickup)
+# ==============================================================================
+
+def send_ride_reminder_email(request_obj, reminder_type='2h', async_send=None):
+    """
+    Dispatches automated pre-trip reminder emails (2 hours or 1 hour prior to pickup)
+    to all involved parties: Passenger(s), Corporate Booker/Requester, Chauffeur, and Provider.
+    Runs asynchronously in background by default.
+    """
+    if should_send_async(async_send):
+        try:
+            from notifications.tasks import send_ride_reminder_email_async
+            celery_task = send_ride_reminder_email_async
+            celery_args = (request_obj.id, reminder_type)
+        except Exception:
+            celery_task = None
+            celery_args = ()
+
+        _dispatch_async(
+            worker_func=_send_ride_reminder_email_worker,
+            worker_args=(request_obj, reminder_type),
+            celery_task=celery_task,
+            celery_args=celery_args
+        )
+        return True
+    else:
+        return _send_ride_reminder_email_worker(request_obj, reminder_type)
+
+
+def _send_ride_reminder_email_worker(request_obj, reminder_type='2h'):
+    from bookings.models import TransportationRequest
+    if isinstance(request_obj, (int, str)):
+        request_obj = TransportationRequest.objects.get(id=request_obj)
+
+    hours_label = "1 hour" if reminder_type == '1h' else "2 hours"
+    subject_tag = "Urgent 1-Hour Reminder" if reminder_type == '1h' else "2-Hour Reminder"
+
+    primary_pass = request_obj.passengers.filter(is_primary=True).first() or request_obj.passengers.first()
+    assignment = (
+        request_obj.vehicle_assignments.filter(status__in=['ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'TRIP_IN_PROGRESS']).first()
+        or request_obj.vehicle_assignments.first()
+    )
+
+    site_url = getattr(settings, 'SITE_URL', 'https://flexyridegh.com').rstrip('/')
+    if primary_pass and primary_pass.tracking_token:
+        tracking_url = f"{site_url}/track/{primary_pass.tracking_token}/"
+    else:
+        tracking_url = f"{site_url}/portal/bookings/{request_obj.request_number}/live/"
+
+    # Assemble parties involved
+    parties = []
+
+    # 1. Passengers
+    for p in request_obj.passengers.all():
+        if p.email and p.email.strip():
+            parties.append({
+                'email': p.email.strip().lower(),
+                'name': p.full_name or "Valued Passenger",
+                'role': 'passenger',
+                'user': None,
+                'passenger': p,
+            })
+
+    # 2. Corporate Booker / Requester
+    requester = getattr(request_obj, 'requester', None)
+    if requester and requester.email and requester.email.strip():
+        req_email = requester.email.strip().lower()
+        if not any(p['email'] == req_email for p in parties):
+            parties.append({
+                'email': req_email,
+                'name': requester.get_full_name() or requester.username,
+                'role': 'passenger',
+                'user': requester,
+                'passenger': primary_pass,
+            })
+    elif request_obj.customer and request_obj.customer.contact_email:
+        cust_email = request_obj.customer.contact_email.strip().lower()
+        if not any(p['email'] == cust_email for p in parties):
+            parties.append({
+                'email': cust_email,
+                'name': request_obj.customer.company_name,
+                'role': 'passenger',
+                'user': None,
+                'passenger': primary_pass,
+            })
+
+    # 3. Assigned Chauffeur / Driver
+    if assignment and assignment.driver:
+        driver = assignment.driver
+        driver_user = getattr(driver, 'user', None)
+        driver_email = driver_user.email.strip().lower() if (driver_user and driver_user.email) else None
+        if driver_email and not any(p['email'] == driver_email for p in parties):
+            parties.append({
+                'email': driver_email,
+                'name': driver.full_name,
+                'role': 'driver',
+                'user': driver_user,
+                'passenger': primary_pass,
+            })
+
+    # 4. Assigned Transport Provider / Fleet Supplier
+    provider = None
+    if assignment and assignment.vehicle and assignment.vehicle.provider:
+        provider = assignment.vehicle.provider
+    if provider and provider.email and provider.email.strip():
+        prov_email = provider.email.strip().lower()
+        if not any(p['email'] == prov_email for p in parties):
+            parties.append({
+                'email': prov_email,
+                'name': provider.contact_person or provider.company_name,
+                'role': 'provider',
+                'user': None,
+                'passenger': primary_pass,
+            })
+
+    if not parties:
+        logger.warning(f"No recipient parties found for ride reminder on request {request_obj.request_number}")
+        return False
+
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'FlexyRide Operations <operations@flexyridegh.com>')
+    reply_to = get_reply_to_email()
+    sent_count = 0
+
+    for party in parties:
+        recipient_role = party['role']
+        recipient_name = party['name']
+        recipient_email = party['email']
+        user = party.get('user')
+        pass_info = party.get('passenger')
+
+        # Craft role-specific email subject
+        if recipient_role == 'driver':
+            subject = f"Chauffeur Dispatch Reminder ({subject_tag}): Transfer #{request_obj.request_number} — Pickup in {hours_label}"
+        elif recipient_role == 'provider':
+            subject = f"Fleet Readiness Reminder ({subject_tag}): Mission #{request_obj.request_number} — Pickup in {hours_label}"
+        else:
+            subject = f"Scheduled Ride Reminder ({subject_tag}): Transfer #{request_obj.request_number} — Pickup in {hours_label}"
+
+        context = {
+            'request': request_obj,
+            'assignment': assignment,
+            'primary_passenger': primary_pass,
+            'recipient_name': recipient_name,
+            'recipient_role': recipient_role,
+            'reminder_type': reminder_type,
+            'hours_label': hours_label,
+            'tracking_url': tracking_url,
+            'support_email': getattr(settings, 'DEFAULT_FROM_EMAIL', 'dispatch@flexyridegh.com'),
+        }
+
+        try:
+            html_content = render_to_string('notifications/emails/ride_reminder_email.html', context)
+            text_content = strip_tags(html_content)
+
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=from_email,
+                to=[recipient_email],
+                reply_to=reply_to,
+            )
+            msg.attach_alternative(html_content, "text/html")
+            msg.send(fail_silently=False)
+
+            Notification.objects.create(
+                recipient=user,
+                passenger_info=pass_info,
+                request=request_obj,
+                channel=Notification.Channel.EMAIL,
+                notification_type=Notification.NotificationType.RIDE_REMINDER,
+                title=subject,
+                message=f"{hours_label.capitalize()} pre-trip reminder dispatched to {recipient_name} ({recipient_email}). Pickup scheduled at {request_obj.departure_datetime.strftime('%Y-%m-%d %H:%M')}.",
+                delivery_status=Notification.DeliveryStatus.DELIVERED,
+                sent_at=timezone.now()
+            )
+
+            if user and user.pk:
+                try:
+                    dispatch_notification(
+                        user=user,
+                        request_obj=request_obj,
+                        title=f"Ride Reminder ({hours_label})",
+                        message=f"Mission #{request_obj.request_number} departs in {hours_label} at {request_obj.departure_datetime.strftime('%H:%M')}.",
+                        notification_type=Notification.NotificationType.RIDE_REMINDER,
+                        url=tracking_url
+                    )
+                except Exception as pe:
+                    logger.debug(f"WebPush dispatch optional notice: {pe}")
+
+            sent_count += 1
+            logger.info(f"Ride reminder ({reminder_type}) sent to {recipient_email} for #{request_obj.request_number}")
+
+        except Exception as e:
+            logger.error(f"Failed to send ride reminder ({reminder_type}) to {recipient_email} for #{request_obj.request_number}: {e}")
+
+    # Record reminder sent milestone on TransportationRequest
+    now = timezone.now()
+    if reminder_type == '1h':
+        request_obj.reminder_1h_sent_at = now
+        request_obj.save(update_fields=['reminder_1h_sent_at'])
+    else:
+        request_obj.reminder_2h_sent_at = now
+        request_obj.save(update_fields=['reminder_2h_sent_at'])
+
+    return sent_count > 0
+
 
 

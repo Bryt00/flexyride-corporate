@@ -99,6 +99,95 @@ def send_rfq_invitation_email_async(self, provider_id, request_id):
         raise self.retry(exc=exc)
 
 
+@shared_task(name='notifications.send_ride_reminder_email_async', bind=True, max_retries=3, default_retry_delay=60)
+def send_ride_reminder_email_async(self, request_id, reminder_type='2h'):
+    """Asynchronous Celery worker task to dispatch scheduled ride reminder email."""
+    from bookings.models import TransportationRequest
+    from notifications.email_service import _send_ride_reminder_email_worker
+
+    try:
+        req = TransportationRequest.objects.get(id=request_id)
+        return _send_ride_reminder_email_worker(req, reminder_type)
+    except Exception as exc:
+        logger.error(f"Error in send_ride_reminder_email_async task: {exc}")
+        raise self.retry(exc=exc)
+
+
+@shared_task(name='notifications.dispatch_ride_reminders_task')
+def dispatch_ride_reminders_task():
+    """
+    Periodic background job (Celery Beat) running every 5 minutes.
+    Scans upcoming confirmed/assigned scheduled rides and dispatches:
+    - 2-hour pre-trip reminder email if within the 2-hour window and not yet sent.
+    - 1-hour pre-trip reminder email if within the 1-hour window and not yet sent.
+    """
+    from datetime import timedelta
+    from django.utils import timezone
+    from bookings.models import TransportationRequest
+    from notifications.email_service import send_ride_reminder_email
+
+    now = timezone.now()
+    active_statuses = [
+        TransportationRequest.BookingStatus.CONFIRMED,
+        TransportationRequest.BookingStatus.ASSIGNED,
+        TransportationRequest.BookingStatus.DRIVER_EN_ROUTE,
+    ]
+
+    results = {
+        'timestamp': now.isoformat(),
+        'reminders_2h_sent': 0,
+        'reminders_1h_sent': 0,
+        'processed_requests': [],
+    }
+
+    # 1. Check for 2-Hour Reminders
+    # Target window: between 1h15m and 2h15m ahead
+    two_hours_min = now + timedelta(minutes=75)
+    two_hours_max = now + timedelta(hours=2, minutes=15)
+
+    rides_2h = TransportationRequest.objects.filter(
+        booking_status__in=active_statuses,
+        departure_datetime__gte=two_hours_min,
+        departure_datetime__lte=two_hours_max,
+        reminder_2h_sent_at__isnull=True
+    ).order_by('departure_datetime')
+
+    for ride in rides_2h:
+        try:
+            logger.info(f"[RideReminder] Dispatching 2-hour reminder for ride #{ride.request_number} (departure {ride.departure_datetime})")
+            send_ride_reminder_email(ride, reminder_type='2h', async_send=False)
+            results['reminders_2h_sent'] += 1
+            results['processed_requests'].append(f"{ride.request_number} (2h)")
+        except Exception as e:
+            logger.error(f"[RideReminder] Error sending 2h reminder for #{ride.request_number}: {e}")
+
+    # 2. Check for 1-Hour Reminders
+    # Target window: between now and 1h15m ahead
+    one_hour_min = now
+    one_hour_max = now + timedelta(hours=1, minutes=15)
+
+    rides_1h = TransportationRequest.objects.filter(
+        booking_status__in=active_statuses,
+        departure_datetime__gte=one_hour_min,
+        departure_datetime__lte=one_hour_max,
+        reminder_1h_sent_at__isnull=True
+    ).order_by('departure_datetime')
+
+    for ride in rides_1h:
+        try:
+            logger.info(f"[RideReminder] Dispatching 1-hour reminder for ride #{ride.request_number} (departure {ride.departure_datetime})")
+            send_ride_reminder_email(ride, reminder_type='1h', async_send=False)
+            results['reminders_1h_sent'] += 1
+            results['processed_requests'].append(f"{ride.request_number} (1h)")
+        except Exception as e:
+            logger.error(f"[RideReminder] Error sending 1h reminder for #{ride.request_number}: {e}")
+
+    logger.info(
+        f"[RideReminder] Completed check: {results['reminders_2h_sent']} 2h reminders, {results['reminders_1h_sent']} 1h reminders dispatched."
+    )
+    return results
+
+
 def run_campaign_dispatch(campaign_id: int):
     """Executes campaign broadcast across specified channels (Email, SMS, Push)."""
     from django.utils import timezone

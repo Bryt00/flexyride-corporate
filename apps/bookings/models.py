@@ -167,6 +167,16 @@ class TransportationRequest(models.Model):
         related_name='managed_corporate_bookings'
     )
 
+    # Pre-trip Automated Reminders (2h & 1h prior to pickup)
+    reminder_2h_sent_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Timestamp when 2-hour pre-trip reminder email was dispatched."
+    )
+    reminder_1h_sent_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Timestamp when 1-hour pre-trip reminder email was dispatched."
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

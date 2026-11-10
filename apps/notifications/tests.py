@@ -267,3 +267,131 @@ class NotificationEmailServiceTests(TestCase):
         self.assertGreaterEqual(campaign.successful_count, 1)
         self.assertGreaterEqual(len(mail.outbox), 1)
 
+    def test_send_ride_reminder_email_notifies_all_parties(self):
+        """Verify that 2-hour and 1-hour ride reminders dispatch to passenger, booker, driver, and provider."""
+        from datetime import timedelta
+        from notifications.email_service import send_ride_reminder_email
+        from bookings.models import VehicleAssignment
+
+        # Link driver to user for driver email
+        driver_user = User.objects.create_user(
+            username='driver_emmanuel',
+            email='emmanuel.driver@accrafleet.gh',
+            role=User.Role.DRIVER,
+            password='TestPassword123!'
+        )
+        self.driver.user = driver_user
+        self.driver.save(update_fields=['user'])
+
+        # Create active assignment
+        assignment = VehicleAssignment.objects.create(
+            request=self.req,
+            vehicle=self.vehicle,
+            driver=self.driver,
+            status=VehicleAssignment.Status.ASSIGNED
+        )
+
+        mail.outbox = []
+        # 1. Dispatch 2-hour reminder
+        success = send_ride_reminder_email(self.req, reminder_type='2h', async_send=False)
+        self.assertTrue(success)
+        self.req.refresh_from_db()
+        self.assertIsNotNone(self.req.reminder_2h_sent_at)
+
+        # Expected recipients: passenger (grace.kusi@enterprise.com), booker (rep@corporate.com), driver (emmanuel.driver@accrafleet.gh), provider (dispatch@accrafleet.gh)
+        sent_to = [email for m in mail.outbox for email in m.to]
+        self.assertIn('grace.kusi@enterprise.com', sent_to)
+        self.assertIn('rep@corporate.com', sent_to)
+        self.assertIn('emmanuel.driver@accrafleet.gh', sent_to)
+        self.assertIn('dispatch@accrafleet.gh', sent_to)
+
+        # Verify Notification records logged
+        notifs = Notification.objects.filter(request=self.req, notification_type=Notification.NotificationType.RIDE_REMINDER)
+        self.assertGreaterEqual(notifs.count(), 3)
+
+        # 2. Dispatch 1-hour reminder
+        mail.outbox = []
+        success_1h = send_ride_reminder_email(self.req, reminder_type='1h', async_send=False)
+        self.assertTrue(success_1h)
+        self.req.refresh_from_db()
+        self.assertIsNotNone(self.req.reminder_1h_sent_at)
+        self.assertGreaterEqual(len(mail.outbox), 3)
+
+    def test_dispatch_ride_reminders_periodic_task(self):
+        """Test Celery periodic task detects 2h and 1h upcoming rides without duplicate dispatches."""
+        from datetime import timedelta
+        from notifications.tasks import dispatch_ride_reminders_task
+
+        now = timezone.now()
+
+        # Ride 1: Departure in exactly 2 hours (within 2h window)
+        ride_2h = TransportationRequest.objects.create(
+            customer=self.company,
+            requester=self.customer_user,
+            request_number='FRC-TEST-2H',
+            journey_type=TransportationRequest.JourneyType.AIRPORT_TRANSFER,
+            departure_datetime=now + timedelta(hours=2),
+            pickup_address='Airport Residential, Accra',
+            destination_address='Terminal 3, KIA',
+            booking_status=TransportationRequest.BookingStatus.CONFIRMED
+        )
+        PassengerInfo.objects.create(
+            request=ride_2h,
+            full_name='Kwesi Pratt',
+            phone_number='+233241112222',
+            email='kwesi@testcorp.com',
+            is_primary=True
+        )
+
+        # Ride 2: Departure in 55 minutes (within 1h window)
+        ride_1h = TransportationRequest.objects.create(
+            customer=self.company,
+            requester=self.customer_user,
+            request_number='FRC-TEST-1H',
+            journey_type=TransportationRequest.JourneyType.ONE_WAY,
+            departure_datetime=now + timedelta(minutes=55),
+            pickup_address='Ridge Towers, Accra',
+            destination_address='Kempinski Gold Coast, Accra',
+            booking_status=TransportationRequest.BookingStatus.ASSIGNED
+        )
+        PassengerInfo.objects.create(
+            request=ride_1h,
+            full_name='Nana B',
+            phone_number='+233203334444',
+            email='nana@testcorp.com',
+            is_primary=True
+        )
+
+        mail.outbox = []
+        # First execution: should dispatch both
+        res = dispatch_ride_reminders_task()
+        self.assertEqual(res['reminders_2h_sent'], 1)
+        self.assertEqual(res['reminders_1h_sent'], 1)
+        self.assertGreaterEqual(len(mail.outbox), 2)
+
+        ride_2h.refresh_from_db()
+        ride_1h.refresh_from_db()
+        self.assertIsNotNone(ride_2h.reminder_2h_sent_at)
+        self.assertIsNotNone(ride_1h.reminder_1h_sent_at)
+
+        # Second execution immediately after: should be 0 (no duplicate dispatches)
+        mail.outbox = []
+        res_repeat = dispatch_ride_reminders_task()
+        self.assertEqual(res_repeat['reminders_2h_sent'], 0)
+        self.assertEqual(res_repeat['reminders_1h_sent'], 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_send_ride_reminders_command(self):
+        """Test management command for ride reminders in dry-run and live modes."""
+        from django.core.management import call_command
+        from io import StringIO
+
+        out = StringIO()
+        call_command('send_ride_reminders', dry_run=True, stdout=out)
+        self.assertIn("DRY RUN", out.getvalue())
+
+        out_live = StringIO()
+        call_command('send_ride_reminders', stdout=out_live)
+        self.assertIn("Summary", out_live.getvalue())
+
+

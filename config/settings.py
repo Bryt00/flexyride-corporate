@@ -552,6 +552,11 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'sla.tasks.detect_sla_breaches_task',
         'schedule': crontab(minute='*/30'),
     },
+    # 4. Check & dispatch scheduled ride reminders (2hrs & 1hr prior to pickup) - runs every 5 minutes
+    'dispatch-ride-reminders-periodic': {
+        'task': 'notifications.dispatch_ride_reminders_task',
+        'schedule': crontab(minute='*/5'),
+    },
 }
 
 
