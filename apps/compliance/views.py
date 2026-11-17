@@ -14,7 +14,6 @@ from accounts.models import ProviderCompany
 from fleet.models import Vehicle
 from bookings.models import VehicleAssignment
 from compliance.models import ComplianceDocument, ComplianceAuditLog
-from compliance.reports import generate_compliance_report_pdf
 from portal.selectors import get_provider_context, get_broker_context
 from portal.services import handle_provider_post
 from portal.views.base import is_provider, is_broker
@@ -148,8 +147,8 @@ def broker_compliance_dashboard_view(request):
             ).select_related('request')
             for assign in active_assignments:
                 flag = f"[SUSPENSION REVIEW] Provider '{provider.company_name}' suspended ({reason}). Review dispatch immediately."
-                assign.notes = (assign.notes + f"\n{flag}") if assign.notes else flag
-                assign.save(update_fields=['notes'])
+                assign.replacement_reason = (assign.replacement_reason + f"\n{flag}") if assign.replacement_reason else flag
+                assign.save(update_fields=['replacement_reason'])
 
             ComplianceAuditLog.log_action(
                 action=ComplianceAuditLog.Action.PROVIDER_SUSPENSION,
@@ -340,7 +339,15 @@ def compliance_export_report_view(request, provider_id):
     provider = get_object_or_404(ProviderCompany, id=provider_id)
     redact = request.GET.get('redact') == '1'
 
-    buffer = generate_compliance_report_pdf(provider, redact=redact)
+    try:
+        from compliance.reports import generate_compliance_report_pdf
+        buffer = generate_compliance_report_pdf(provider, redact=redact)
+    except ImportError as e:
+        return HttpResponse(
+            f"PDF generation engine ('reportlab') is not installed in this environment. Run 'pip install reportlab' to enable PDF export. Error: {e}",
+            status=503,
+            content_type="text/plain"
+        )
 
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
     filename = f"Paystack_Compliance_Evidence_FRC_PROV_{provider.id:04d}_{timezone.now().strftime('%Y%m%d')}.pdf"
@@ -362,10 +369,9 @@ def compliance_download_document_view(request, doc_id):
     if is_broker(request.user):
         can_access = True
     elif is_provider(request.user):
-        provider = ProviderCompany.objects.filter(
-            Q(email=request.user.email) | Q(users=request.user)
-        ).first()
-        if provider and doc.provider_id == provider.id:
+        provider = ProviderCompany.objects.filter(email=request.user.email).first()
+        doc_provider = doc.provider or (doc.vehicle.provider if doc.vehicle else None)
+        if provider and doc_provider and doc_provider == provider:
             can_access = True
 
     if not can_access:

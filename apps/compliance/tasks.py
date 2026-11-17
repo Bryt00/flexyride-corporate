@@ -40,6 +40,9 @@ def check_document_expirations_task():
     broker_admins = list(User.objects.filter(role__in=[User.Role.BROKER, User.Role.SYSTEM_ADMIN], is_active=True))
 
     for doc in docs:
+        if not doc.expiry_date:
+            continue
+
         days_left = (doc.expiry_date - today).days
 
         # 1. Past due or day-of expiry -> Mark EXPIRED and trigger lockout
@@ -68,11 +71,11 @@ def check_document_expirations_task():
                     ).select_related('request')
                     for assign in active_assignments:
                         flag_note = f"[COMPLIANCE EXPIRED] Vehicle {doc.vehicle.registration_number} roadworthiness/document expired on {doc.expiry_date}. Flagged for review & reassignment."
-                        if assign.notes:
-                            assign.notes += f"\n{flag_note}"
+                        if assign.replacement_reason:
+                            assign.replacement_reason += f"\n{flag_note}"
                         else:
-                            assign.notes = flag_note
-                        assign.save(update_fields=['notes'])
+                            assign.replacement_reason = flag_note
+                        assign.save(update_fields=['replacement_reason'])
 
                 # Lockout Provider if Operator Licence expired
                 if doc.provider and doc.document_type in ['OPERATOR_LICENSE', 'BUSINESS_LICENSE']:
@@ -89,11 +92,11 @@ def check_document_expirations_task():
                     ).select_related('request')
                     for assign in provider_assignments:
                         flag_note = f"[COMPLIANCE SUSPENSION] Provider {doc.provider.company_name} operator licence expired on {doc.expiry_date}. Flagged for review & reassignment."
-                        if assign.notes:
-                            assign.notes += f"\n{flag_note}"
+                        if assign.replacement_reason:
+                            assign.replacement_reason += f"\n{flag_note}"
                         else:
-                            assign.notes = flag_note
-                        assign.save(update_fields=['notes'])
+                            assign.replacement_reason = flag_note
+                        assign.save(update_fields=['replacement_reason'])
 
                 # Record in ComplianceAuditLog
                 ComplianceAuditLog.log_action(

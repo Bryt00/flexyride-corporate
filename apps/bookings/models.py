@@ -323,6 +323,15 @@ class VehicleAssignment(models.Model):
     assigned_at = models.DateTimeField(auto_now_add=True)
     replacement_reason = models.TextField(blank=True, null=True)
 
+    @property
+    def notes(self) -> str | None:
+        """Alias property for operational notes and compliance review flags."""
+        return self.replacement_reason
+
+    @notes.setter
+    def notes(self, value: str | None) -> None:
+        self.replacement_reason = value
+
     objects = models.Manager()
 
     @property

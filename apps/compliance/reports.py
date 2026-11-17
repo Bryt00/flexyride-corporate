@@ -5,13 +5,18 @@ Generates an official, verifiable PDF compliance evidence report using ReportLab
 
 import io
 from django.utils import timezone
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
-)
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from compliance.models import ComplianceAuditLog
+
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    )
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    HAS_REPORTLAB = True
+except ImportError:
+    HAS_REPORTLAB = False
 
 
 def generate_compliance_report_pdf(provider, redact=False, buffer=None):
@@ -20,6 +25,12 @@ def generate_compliance_report_pdf(provider, redact=False, buffer=None):
     Includes operating licence details, Paystack subaccount verification,
     vehicle roadworthiness matrix, and audit trail with optional PII redaction.
     """
+    if not HAS_REPORTLAB:
+        raise ImportError(
+            "The 'reportlab' package is required to generate compliance evidence PDFs. "
+            "Please install it in your virtualenv: pip install reportlab"
+        )
+
     if buffer is None:
         buffer = io.BytesIO()
 
