@@ -1,44 +1,304 @@
-<div id="tab-content-compliance" class="space-y-4">
-    <div class="flex items-center justify-between bg-[#121829] border border-white/10 rounded-2xl p-4">
-        <div>
-            <h2 class="text-base font-black text-white">Regulatory & Compliance Vault</h2>
-            <p class="text-xs text-gray-400">DVLA / NRSA operator licensing, commercial passenger liability insurance, and roadworthiness inspections.</p>
+<div id="tab-content-compliance" class="space-y-6">
+
+    <!-- Top Status Banner -->
+    <div class="bg-[#121829] border border-white/10 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl {% if company.compliance_status == 'VERIFIED' %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/30{% elif company.compliance_status == 'SUSPENDED' or company.compliance_status == 'EXPIRED' %}bg-red-500/15 text-red-400 border border-red-500/30{% else %}bg-amber-400/15 text-amber-400 border border-amber-400/30{% endif %} flex items-center justify-center shrink-0">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <h2 class="text-lg font-black text-white">Regulatory & Paystack Compliance Vault</h2>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                        {% if company.compliance_status == 'VERIFIED' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/40
+                        {% elif company.compliance_status == 'SUSPENDED' or company.compliance_status == 'EXPIRED' %}bg-red-500/20 text-red-400 border border-red-500/40
+                        {% else %}bg-amber-400/20 text-amber-400 border border-amber-400/40{% endif %}">
+                        {{ company.compliance_status|title }}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold
+                        {% if company.paystack_ready %}bg-blue-500/20 text-blue-400 border border-blue-500/30{% else %}bg-slate-700/50 text-slate-400 border border-white/10{% endif %}">
+                        Paystack: {% if company.paystack_subaccount_code %}{{ company.paystack_subaccount_code }}{% else %}Unlinked{% endif %}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                    FlexyRide Corporate maintains internal compliance records in accordance with DVLA, NRSA, and Paystack subaccount verification requirements.
+                </p>
+            </div>
         </div>
-        <button onclick="openModal('uploadDocModal')" class="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-600 transition-all flex items-center gap-2">
-            <i data-lucide="upload" class="w-4 h-4"></i>
-            Upload Document
+
+        <button type="button" onclick="openModal('uploadDocModal')" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-[#0A0F1D] rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 shrink-0 active:scale-95">
+            <i data-lucide="upload" class="w-4 h-4 stroke-[3]"></i>
+            <span>Upload Document</span>
         </button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {% for doc in compliance_docs %}
-        <div class="bg-[#121829] border border-white/10 rounded-2xl p-5 flex items-start justify-between gap-4">
-            <div class="flex items-start gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0 mt-0.5">
-                    <i data-lucide="file-check" class="w-5 h-5"></i>
-                </div>
+    <!-- Provider-Level Mandate Status Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- 1. Commercial Vehicle Operator Licence -->
+        <div class="bg-[#121829] border border-white/10 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i> Operator Licence
+                </span>
+                {% if company.operator_license %}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold 
+                        {% if company.operator_license.is_compliant %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/30
+                        {% elif company.operator_license.is_expired %}bg-red-500/15 text-red-400 border border-red-500/30
+                        {% else %}bg-amber-400/15 text-amber-400 border border-amber-400/30{% endif %}">
+                        {{ company.operator_license.get_status_display }}
+                    </span>
+                {% else %}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
+                        Missing
+                    </span>
+                {% endif %}
+            </div>
+            {% if company.operator_license %}
                 <div>
-                    <h3 class="text-sm font-bold text-white">{{ doc.get_document_type_display }}</h3>
-                    <p class="text-xs text-gray-400 font-mono mt-0.5">Ref: {{ doc.document_number|default:"N/A" }}</p>
-                    <div class="flex items-center gap-2 text-[11px] text-gray-400 mt-2">
-                        {% if doc.issue_date %}<span>Issued: {{ doc.issue_date|date:"M d, Y" }}</span> •{% endif %}
-                        {% if doc.expiry_date %}
-                        <span class="{% if doc.is_expired %}text-red-400{% else %}text-emerald-400{% endif %} font-semibold">Valid through {{ doc.expiry_date|date:"M d, Y" }}</span>
-                        {% else %}
-                        <span class="text-slate-400">No expiration date</span>
+                    <p class="text-sm font-black text-white font-mono">{{ company.operator_license.document_number|default:"Ref Pending" }}</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">{{ company.operator_license.issuing_authority|default:"DVLA / NRSA" }}</p>
+                </div>
+                <div class="text-[10px] text-slate-400 pt-2 border-t border-white/5 flex items-center justify-between">
+                    <span>Expiry:</span>
+                    <span class="font-bold {% if company.operator_license.is_expired %}text-red-400{% else %}text-white{% endif %}">
+                        {{ company.operator_license.expiry_date|default:"Permanent" }}
+                    </span>
+                </div>
+            {% else %}
+                <p class="text-xs text-slate-400">Upload your commercial vehicle operator permit to accept corporate bookings.</p>
+                <button type="button" onclick="openModal('uploadDocModal')" class="w-full py-1.5 rounded-lg bg-amber-400/10 hover:bg-amber-400/20 text-amber-400 text-xs font-bold transition-all">
+                    Upload Licence Now
+                </button>
+            {% endif %}
+        </div>
+
+        <!-- 2. Paystack Subaccount Split Payouts -->
+        <div class="bg-[#121829] border border-white/10 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <i data-lucide="credit-card" class="w-3.5 h-3.5 text-blue-400"></i> Paystack Subaccount
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold {% if company.paystack_ready %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/30{% else %}bg-amber-400/15 text-amber-400 border border-amber-400/30{% endif %}">
+                    {% if company.paystack_ready %}Verified{% else %}Action Required{% endif %}
+                </span>
+            </div>
+            <div>
+                <p class="text-sm font-black text-white font-mono">{{ company.paystack_subaccount_code|default:"Unconfigured" }}</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">{{ company.settlement_bank_name|default:company.settlement_bank|default:"Bank or MoMo" }}</p>
+            </div>
+            <div class="text-[10px] text-slate-400 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Account Holder:</span>
+                <span class="font-bold text-white">{{ company.account_name|default:company.contact_person }}</span>
+            </div>
+        </div>
+
+        <!-- 3. Fleet Compliance Overview -->
+        <div class="bg-[#121829] border border-white/10 rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <i data-lucide="car" class="w-3.5 h-3.5 text-purple-400"></i> Fleet Units
+                </span>
+                <span class="text-xs font-mono font-bold text-white">{{ vehicles|length }} Vehicles</span>
+            </div>
+            <div class="flex items-center justify-between text-xs pt-1">
+                <span class="text-slate-400">Compliant Units:</span>
+                <span class="font-bold text-emerald-400">
+                    {{ compliant_vehicles_count|default:"0" }} Verified
+                </span>
+            </div>
+            <div class="text-[10px] text-slate-400 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Lockout Status:</span>
+                <span class="font-bold {% if non_compliant_vehicles_count %}text-amber-400{% else %}text-emerald-400{% endif %}">
+                    {% if non_compliant_vehicles_count %}{{ non_compliant_vehicles_count }} Need Review / Expired{% else %}All Units Active{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Compliance Matrix Table -->
+    <div class="bg-[#121829] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
+            <div>
+                <h3 class="text-sm font-black text-white tracking-tight flex items-center gap-2">
+                    <i data-lucide="layers" class="w-4 h-4 text-[#8CC63F]"></i>
+                    Vehicle-Level Compliance Matrix
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Every vehicle is verified independently for roadworthiness and registration</p>
+            </div>
+            <button type="button" onclick="openModal('addVehicleModal')" class="px-3.5 py-2 bg-[#8CC63F]/15 hover:bg-[#8CC63F]/25 text-[#8CC63F] border border-[#8CC63F]/30 rounded-xl text-xs font-black transition-all flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Register Vehicle (Stepper)</span>
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-white/5 pb-2">
+                        <th class="py-2.5 pr-4">Vehicle Unit</th>
+                        <th class="py-2.5 px-3">Category</th>
+                        <th class="py-2.5 px-3">Registration Doc</th>
+                        <th class="py-2.5 px-3">Roadworthiness Cert</th>
+                        <th class="py-2.5 px-3">Expiry Date</th>
+                        <th class="py-2.5 px-3">Compliance Status</th>
+                        <th class="py-2.5 pl-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for v in vehicles %}
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="py-3 pr-4 font-mono">
+                            <span class="font-bold text-white text-xs block">{{ v.registration_number }}</span>
+                            <span class="text-[10px] text-slate-400 font-sans">{{ v.make }} {{ v.model }} ({{ v.year|default:"--" }})</span>
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300">
+                                {{ v.get_category_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3">
+                            {% if v.registration_document %}
+                                <span class="text-emerald-400 font-bold flex items-center gap-1">
+                                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                    {{ v.registration_document.document_number|default:"Attached" }}
+                                </span>
+                            {% else %}
+                                <span class="text-amber-400 font-medium">Pending Upload</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-3">
+                            {% if v.roadworthiness_document %}
+                                <span class="font-mono text-white text-[11px] block">{{ v.roadworthiness_document.document_number|default:"Attached" }}</span>
+                                <span class="text-[10px] {% if v.roadworthiness_document.is_expired %}text-red-400 font-bold{% else %}text-emerald-400{% endif %}">
+                                    {{ v.roadworthiness_document.get_status_display }}
+                                </span>
+                            {% else %}
+                                <span class="text-red-400 font-medium">Missing</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-3 font-mono text-[11px]">
+                            {% if v.roadworthiness_document and v.roadworthiness_document.expiry_date %}
+                                <span class="{% if v.roadworthiness_document.is_expired %}text-red-400 font-bold{% elif v.roadworthiness_document.days_until_expiry <= 30 %}text-amber-400 font-bold{% else %}text-slate-300{% endif %}">
+                                    {{ v.roadworthiness_document.expiry_date|date:"Y-m-d" }}
+                                </span>
+                            {% else %}
+                                <span class="text-slate-500">--</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                                {% if v.compliance_status == 'VERIFIED' or v.compliance_status == 'COMPLIANT' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                                {% elif v.compliance_status == 'EXPIRED' or v.compliance_status == 'SUSPENDED' %}bg-red-500/20 text-red-400 border border-red-500/30
+                                {% else %}bg-amber-400/20 text-amber-400 border border-amber-400/30{% endif %}">
+                                {{ v.get_compliance_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 pl-3 text-right">
+                            <button type="button" onclick="openRenewalForVehicle('{{ v.id }}', '{{ v.registration_number }}')" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg text-[10px] font-bold transition-all">
+                                Upload Renewal
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-500">
+                            No vehicles currently enrolled. Click "Register Vehicle (Stepper)" to onboard your first unit.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Document Repository List -->
+    <div class="bg-[#121829] border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5">
+            <div>
+                <h3 class="text-sm font-black text-white tracking-tight flex items-center gap-2">
+                    <i data-lucide="archive" class="w-4 h-4 text-emerald-400"></i>
+                    All Compliance Documents & Audit Records
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Historical and active regulatory certificates retained in private storage</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for doc in compliance_docs %}
+            <div class="bg-[#0A0F1D] border border-white/5 rounded-2xl p-5 flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl {% if doc.is_compliant %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% elif doc.is_expired %}bg-red-500/10 text-red-400 border border-red-500/20{% else %}bg-amber-400/10 text-amber-400 border border-amber-400/20{% endif %} flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">{{ doc.get_document_type_display }}</h4>
+                        <p class="text-xs text-slate-400 font-mono mt-0.5">
+                            Ref: {{ doc.document_number|default:"N/A" }}
+                            {% if doc.vehicle %} • <span class="text-amber-400">{{ doc.vehicle.registration_number }}</span>{% endif %}
+                        </p>
+                        <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mt-2">
+                            {% if doc.issuing_authority %}<span>Authority: {{ doc.issuing_authority }}</span> •{% endif %}
+                            {% if doc.expiry_date %}
+                            <span class="{% if doc.is_expired %}text-red-400 font-bold{% elif doc.days_until_expiry <= 30 %}text-amber-400 font-bold{% else %}text-emerald-400 font-semibold{% endif %}">
+                                Valid through {{ doc.expiry_date|date:"M d, Y" }}
+                            </span>
+                            {% else %}
+                            <span class="text-slate-400">No expiration date</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-end gap-2 shrink-0">
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-black whitespace-nowrap
+                        {% if doc.is_compliant %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/40
+                        {% elif doc.is_expired %}bg-red-500/20 text-red-400 border border-red-500/40
+                        {% else %}bg-amber-400/20 text-amber-400 border border-amber-400/40{% endif %}">
+                        {{ doc.get_status_display }}
+                    </span>
+
+                    <div class="flex items-center gap-1.5 mt-1">
+                        {% if doc.document_file %}
+                        <a href="{% url 'compliance_download_document' doc.id %}" target="_blank" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-bold transition-all flex items-center gap-1">
+                            <i data-lucide="download" class="w-3 h-3"></i> Download
+                        </a>
                         {% endif %}
+                        <button type="button" onclick="openRenewalModal('{{ doc.id }}', '{{ doc.document_type }}', '{{ doc.document_number }}')" class="px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-[10px] font-bold transition-all flex items-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Renew
+                        </button>
                     </div>
                 </div>
             </div>
-            <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-black rounded-lg whitespace-nowrap">
-                {{ doc.get_status_display }}
-            </span>
+            {% empty %}
+            <div class="col-span-2 text-center py-10 bg-[#0A0F1D] border border-white/5 rounded-2xl text-slate-400">
+                <i data-lucide="shield-alert" class="w-8 h-8 mx-auto mb-2 text-slate-500"></i>
+                <p class="font-bold text-white text-sm">No compliance certificates uploaded.</p>
+                <p class="text-xs text-slate-500 mt-1">Upload your Commercial Operator Licence and vehicle documents above.</p>
+            </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="col-span-2 text-center py-10 bg-[#121829] border border-white/10 rounded-2xl text-gray-400">
-            <i data-lucide="file-check" class="w-8 h-8 mx-auto mb-2 text-gray-500"></i>
-            <p class="font-bold">No compliance documents uploaded.</p>
-        </div>
-        {% endfor %}
     </div>
 </div>
+
+<script>
+    function openRenewalForVehicle(vehicleId, regPlate) {
+        openModal('uploadDocModal');
+        const targetType = document.getElementById('uploadTargetType');
+        if (targetType) {
+            targetType.value = 'VEHICLE';
+            toggleUploadTargetOptions();
+        }
+        const vehSelect = document.querySelector('select[name="vehicle_id"]');
+        if (vehSelect) {
+            vehSelect.value = vehicleId;
+        }
+    }
+
+    function openRenewalModal(docId, docType, docNum) {
+        openModal('uploadDocModal');
+        const prevId = document.getElementById('uploadPreviousDocId');
+        if (prevId) prevId.value = docId;
+        const typeSelect = document.getElementById('uploadDocTypeSelect');
+        if (typeSelect && docType) typeSelect.value = docType;
+    }
+</script>

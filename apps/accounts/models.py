@@ -299,6 +299,70 @@ class ProviderCompany(models.Model):
         acct = self.account_number or ''
         return f"•••• {acct[-4:]}" if len(acct) > 4 else acct
 
+    @property
+    def operator_license(self):
+        """Returns the primary commercial vehicle operator licence document."""
+        return self.compliance_documents.filter(
+            document_type__in=['OPERATOR_LICENSE', 'BUSINESS_LICENSE']
+        ).first()
+
+    @property
+    def compliance_status(self) -> str:
+        """
+        Calculates aggregate compliance status:
+        - SUSPENDED if provider status is SUSPENDED
+        - EXPIRED if operator licence or any mandatory document is expired
+        - EXPIRING_SOON if document expires within 30 days
+        - PENDING_REVIEW if unverified documents exist
+        - PENDING_SUBMISSION if no operator licence exists
+        - VERIFIED if operator licence is approved and valid
+        """
+        if self.status == self.Status.SUSPENDED:
+            return 'SUSPENDED'
+        op_lic = self.operator_license
+        if not op_lic:
+            return 'PENDING_SUBMISSION'
+        if op_lic.is_expired:
+            return 'EXPIRED'
+        if op_lic.status == 'REJECTED':
+            return 'REJECTED'
+        if op_lic.status not in ('VERIFIED', 'APPROVED'):
+            return 'PENDING_REVIEW'
+        if op_lic.days_until_expiry is not None and op_lic.days_until_expiry <= 30:
+            return 'EXPIRING_SOON'
+        return 'VERIFIED'
+
+    @property
+    def paystack_ready(self) -> bool:
+        """Returns True if Paystack subaccount is created and linked."""
+        return bool(self.paystack_subaccount_code and not self.paystack_subaccount_status.lower().startswith('error'))
+
+    def is_eligible_for_booking(self, requires_online_payment=False) -> tuple[bool, str]:
+        """
+        Enforces Section 6 of Paystack Compliance requirements:
+        - Provider account is active & approved
+        - Provider-level operating licence is verified and valid (not expired)
+        - No compliance suspension in place
+        - Required Paystack subaccount verification and split-payment configuration
+        """
+        if self.status == self.Status.SUSPENDED:
+            return False, f"Provider '{self.company_name}' is currently SUSPENDED from accepting new bookings."
+        if self.status != self.Status.APPROVED:
+            return False, f"Provider '{self.company_name}' is currently {self.get_status_display()} (Admin vetting required)."
+
+        op_lic = self.operator_license
+        if not op_lic:
+            return False, f"Provider '{self.company_name}' has not submitted a Commercial Vehicle Operator Licence."
+        if op_lic.status not in ('VERIFIED', 'APPROVED'):
+            return False, f"Provider '{self.company_name}' Operator Licence is {op_lic.get_status_display()} (Not yet approved by admin)."
+        if op_lic.is_expired:
+            return False, f"Provider '{self.company_name}' Commercial Vehicle Operator Licence expired on {op_lic.expiry_date}. Operating licence not renewed."
+
+        if requires_online_payment and not self.paystack_ready:
+            return False, f"Provider '{self.company_name}' Paystack subaccount split-payment configuration is incomplete."
+
+        return True, "Provider is fully verified and compliant."
+
     def save(self, *args, **kwargs):
         update_fields = kwargs.get('update_fields')
         previous = None

@@ -1088,6 +1088,17 @@
                         </div>
                     </a>
 
+                    <!-- Provider Compliance & Paystack Vault -->
+                    <a href="{% url 'portal_broker_compliance' %}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all {% if active_tab == 'broker_compliance' %}bg-[#10b981] text-white shadow-md shadow-emerald-500/20 font-bold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %} group">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-7 h-7 rounded-lg {% if active_tab == 'broker_compliance' %}bg-white/20 text-white{% else %}bg-amber-50 text-amber-600 group-hover:bg-amber-100{% endif %} flex items-center justify-center flex-shrink-0 transition-colors">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            </div>
+                            <span class="truncate">Provider Compliance</span>
+                        </div>
+                        <span class="text-[9px] font-mono font-bold {% if active_tab == 'broker_compliance' %}bg-white/20 text-white{% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %} px-2 py-0.5 rounded-full flex-shrink-0">Vault</span>
+                    </a>
+
                     <!-- Corporate Clients -->
                     <a href="{% url 'portal_broker_customers' %}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all {% if active_tab == 'broker_customers' %}bg-[#10b981] text-white shadow-md shadow-emerald-500/20 font-bold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %} group">
                         <div class="flex items-center gap-3 min-w-0">
@@ -1530,6 +1541,7 @@
                 <a href="{% url 'portal_broker_quotes' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_tab == 'broker_quotes' %}bg-amber-400 text-[#0A0F1D] font-bold{% else %}text-gray-300 hover:bg-white/5{% endif %}">Quotes & Margins</a>
                 <a href="{% url 'portal_broker_dispatches' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_tab == 'broker_dispatches' %}bg-amber-400 text-[#0A0F1D] font-bold{% else %}text-gray-300 hover:bg-white/5{% endif %}">Mission Dispatches</a>
                 <a href="{% url 'portal_broker_providers' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_tab == 'broker_providers' %}bg-amber-400 text-[#0A0F1D] font-bold{% else %}text-gray-300 hover:bg-white/5{% endif %}">Transport Providers</a>
+                <a href="{% url 'portal_broker_compliance' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_tab == 'broker_compliance' %}bg-amber-400 text-[#0A0F1D] font-bold{% else %}text-gray-300 hover:bg-white/5{% endif %}">Provider Compliance & Vault</a>
                 <a href="{% url 'portal_broker_customers' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_tab == 'broker_customers' %}bg-amber-400 text-[#0A0F1D] font-bold{% else %}text-gray-300 hover:bg-white/5{% endif %}">Corporate Clients</a>
                 <a href="{% url 'portal_broker_financials' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold {% if active_tab == 'broker_financials' %}bg-amber-400 text-[#0A0F1D] font-bold{% else %}text-gray-300 hover:bg-white/5{% endif %}">Margin & Financials</a>
                 <a href="{% url 'admin:index' %}" class="block px-4 py-2.5 rounded-xl text-sm font-semibold text-[#8CC63F] hover:bg-white/5">Admin Console ↗</a>

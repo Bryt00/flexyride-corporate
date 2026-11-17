@@ -51,8 +51,15 @@ class AccountsModelTests(TestCase):
         self.assertEqual(provider.status, ProviderCompany.Status.APPROVED)
         self.assertEqual(str(provider), "Swift Executive Transport [Approved]")
 
-    def test_provider_subaccount_code_creation_with_bank_details(self):
+    @patch('payments.paystack.create_subaccount')
+    def test_provider_subaccount_code_creation_with_bank_details(self, mock_create):
         """Test creating an approved provider with bank details auto-generates Paystack subaccount code."""
+        mock_create.return_value = {
+            'success': True,
+            'subaccount_code': 'ACCT_test_subaccount_123',
+            'account_name': 'ROYAL TRANSIT GHANA LTD',
+            'settlement_bank_name': 'GCB Bank Limited',
+        }
         provider = ProviderCompany.objects.create(
             company_name="Royal Transit Ghana",
             registration_number="DVLA-GH-ROYAL-01",
@@ -98,8 +105,15 @@ class AccountsModelTests(TestCase):
         self.assertEqual(provider.paystack_subaccount_status, "Active on Paystack")
         self.assertIsNotNone(provider.paystack_subaccount_synced_at)
 
-    def test_provider_pending_does_not_create_subaccount_until_approved(self):
+    @patch('payments.paystack.create_subaccount')
+    def test_provider_pending_does_not_create_subaccount_until_approved(self, mock_create):
         """Test a provider created with PENDING status does not create subaccount until approved."""
+        mock_create.return_value = {
+            'success': True,
+            'subaccount_code': 'ACCT_test_subaccount_456',
+            'account_name': 'Pending Logistics Ltd',
+            'settlement_bank_name': 'GCB Bank Limited',
+        }
         provider = ProviderCompany.objects.create(
             company_name="Pending Logistics",
             registration_number="DVLA-GH-PENDING-03",
@@ -120,8 +134,15 @@ class AccountsModelTests(TestCase):
         self.assertTrue(bool(provider.paystack_subaccount_code))
         self.assertTrue(provider.paystack_subaccount_code.startswith("ACCT_"))
 
-    def test_provider_momo_subaccount_code_creation(self):
+    @patch('payments.paystack.create_subaccount')
+    def test_provider_momo_subaccount_code_creation(self, mock_create):
         """Test creating a provider with Mobile Money channel generates subaccount code."""
+        mock_create.return_value = {
+            'success': True,
+            'subaccount_code': 'ACCT_momo_subaccount_789',
+            'account_name': 'TEMA MOMO TRANSPORTERS',
+            'settlement_bank_name': 'MTN Mobile Money',
+        }
         provider = ProviderCompany.objects.create(
             company_name="Tema MoMo Transporters",
             registration_number="DVLA-GH-MOMO-04",

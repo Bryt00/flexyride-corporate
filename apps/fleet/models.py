@@ -25,9 +25,15 @@ class Vehicle(models.Model):
         INACTIVE = 'INACTIVE', 'Inactive'
 
     class ComplianceStatus(models.TextChoices):
-        COMPLIANT = 'COMPLIANT', 'Compliant & Approved'
-        NON_COMPLIANT = 'NON_COMPLIANT', 'Non-Compliant / Expired'
+        PENDING_SUBMISSION = 'PENDING_SUBMISSION', 'Pending Submission'
         PENDING_REVIEW = 'PENDING_REVIEW', 'Pending Review'
+        VERIFIED = 'VERIFIED', 'Verified'
+        COMPLIANT = 'COMPLIANT', 'Compliant & Approved (Legacy)'
+        REJECTED = 'REJECTED', 'Rejected'
+        EXPIRING_SOON = 'EXPIRING_SOON', 'Expiring Soon'
+        EXPIRED = 'EXPIRED', 'Expired'
+        SUSPENDED = 'SUSPENDED', 'Suspended'
+        NON_COMPLIANT = 'NON_COMPLIANT', 'Non-Compliant / Expired (Legacy)'
 
     provider = models.ForeignKey(
         'accounts.ProviderCompany',
@@ -73,7 +79,7 @@ class Vehicle(models.Model):
         default=Status.AVAILABLE
     )
     compliance_status = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=ComplianceStatus.choices,
         default=ComplianceStatus.PENDING_REVIEW
     )
@@ -82,14 +88,79 @@ class Vehicle(models.Model):
 
     objects = models.Manager()
 
+    @property
+    def registration_document(self):
+        return self.compliance_documents.filter(
+            document_type__in=['VEHICLE_REGISTRATION', 'BUSINESS_LICENSE']
+        ).first()
+
+    @property
+    def roadworthiness_document(self):
+        return self.compliance_documents.filter(
+            document_type='ROADWORTHINESS'
+        ).first()
+
+    @property
+    def insurance_document(self):
+        return self.compliance_documents.filter(
+            document_type__in=['COMMERCIAL_INSURANCE', 'INSURANCE']
+        ).first()
+
     def is_available_for_assignment(self):
-        return (
-            self.status == self.Status.AVAILABLE and
-            self.compliance_status == self.ComplianceStatus.COMPLIANT
-        )
+        eligible, _ = self.is_eligible_for_booking()
+        return eligible
 
     def is_compliant(self) -> bool:
-        return self.compliance_status == self.ComplianceStatus.COMPLIANT
+        if self.compliance_status not in (
+            self.ComplianceStatus.VERIFIED,
+            self.ComplianceStatus.COMPLIANT,
+            'VERIFIED',
+            'COMPLIANT'
+        ):
+            return False
+        rw = self.roadworthiness_document
+        if rw and rw.is_expired:
+            return False
+        return True
+
+    def is_eligible_for_booking(self) -> tuple[bool, str]:
+        """
+        Enforces Paystack Compliance Requirement (Section 6: Booking Eligibility Enforcement):
+        1. Vehicle is available
+        2. Vehicle compliance status is verified
+        3. Vehicle registration document is verified
+        4. Valid, non-expired roadworthiness certificate
+        5. No vehicle suspension
+        6. Provider is active and fully eligible
+        """
+        if self.status != self.Status.AVAILABLE:
+            return False, f"Vehicle {self.registration_number} status is currently {self.get_status_display()}."
+
+        if self.compliance_status in (self.ComplianceStatus.SUSPENDED, 'SUSPENDED'):
+            return False, f"Vehicle {self.registration_number} is suspended from bookings."
+
+        if self.compliance_status not in (
+            self.ComplianceStatus.VERIFIED,
+            self.ComplianceStatus.COMPLIANT,
+            'VERIFIED',
+            'COMPLIANT'
+        ):
+            return False, f"Vehicle {self.registration_number} compliance is {self.get_compliance_status_display()} (admin verification required)."
+
+        rw = self.roadworthiness_document
+        if not rw:
+            return False, f"Vehicle {self.registration_number} is missing a Roadworthiness Certificate."
+        if rw.status not in ('VERIFIED', 'APPROVED'):
+            return False, f"Vehicle {self.registration_number} Roadworthiness Certificate is {rw.get_status_display()}."
+        if rw.is_expired:
+            return False, f"Vehicle {self.registration_number} Roadworthiness Certificate expired on {rw.expiry_date}."
+
+        if self.provider:
+            prov_ok, prov_msg = self.provider.is_eligible_for_booking()
+            if not prov_ok:
+                return False, f"Provider '{self.provider.company_name}' blocked: {prov_msg}"
+
+        return True, "Vehicle is fully compliant and eligible for booking."
 
     if TYPE_CHECKING:
         id: int
@@ -131,9 +202,15 @@ class Driver(models.Model):
         INACTIVE = 'INACTIVE', 'Inactive'
 
     class ComplianceStatus(models.TextChoices):
-        COMPLIANT = 'COMPLIANT', 'Compliant & Approved'
-        NON_COMPLIANT = 'NON_COMPLIANT', 'Non-Compliant / Expired'
+        PENDING_SUBMISSION = 'PENDING_SUBMISSION', 'Pending Submission'
         PENDING_REVIEW = 'PENDING_REVIEW', 'Pending Review'
+        VERIFIED = 'VERIFIED', 'Verified'
+        COMPLIANT = 'COMPLIANT', 'Compliant & Approved (Legacy)'
+        REJECTED = 'REJECTED', 'Rejected'
+        EXPIRING_SOON = 'EXPIRING_SOON', 'Expiring Soon'
+        EXPIRED = 'EXPIRED', 'Expired'
+        SUSPENDED = 'SUSPENDED', 'Suspended'
+        NON_COMPLIANT = 'NON_COMPLIANT', 'Non-Compliant / Expired (Legacy)'
 
     provider = models.ForeignKey(
         'accounts.ProviderCompany',

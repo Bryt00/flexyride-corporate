@@ -86,6 +86,9 @@ from payments.views import (
 from compliance.views import (
     compliance_safety_view,
     provider_compliance_view,
+    broker_compliance_dashboard_view,
+    compliance_export_report_view,
+    compliance_download_document_view,
 )
 
 # Feedback app views
@@ -165,6 +168,9 @@ __all__ = [
     'broker_providers_view',
     'broker_customers_view',
     'broker_financials_view',
+    'broker_compliance_dashboard_view',
+    'compliance_export_report_view',
+    'compliance_download_document_view',
     # Provider
     'provider_overview_view',
     'provider_dispatches_view',

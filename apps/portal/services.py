@@ -17,7 +17,7 @@ from quotations.models import ProviderQuoteRequest, ProviderQuote, CustomerQuote
 from notifications.email_service import send_quote_ready_email, send_rfq_invitation_email
 from notifications.models import Notification
 from notifications.webpush import dispatch_notification
-from compliance.models import ComplianceDocument
+from compliance.models import ComplianceDocument, ComplianceAuditLog
 
 
 def _parse_payout_fields(request):
@@ -173,13 +173,15 @@ def handle_broker_post(request):
         vehicle = Vehicle.objects.filter(id=vehicle_id).first() if vehicle_id else None
         driver = Driver.objects.filter(id=driver_id).first() if driver_id else None
 
-        # Automated Compliance Lockout Guard (US-92, US-110)
-        if vehicle and not vehicle.is_compliant():
-            messages.error(
-                request,
-                f"🚨 COMPLIANCE LOCKOUT: Cannot dispatch {vehicle.make} {vehicle.model} ({vehicle.registration_number}) — Roadworthiness or insurance has expired!"
-            )
-            return redirect(redirect_target)
+        # Automated Compliance Lockout Guard (Paystack Compliance Section 6)
+        if vehicle:
+            v_ok, v_reason = vehicle.is_eligible_for_booking()
+            if not v_ok:
+                messages.error(
+                    request,
+                    f"🚨 COMPLIANCE LOCKOUT: Cannot dispatch {vehicle.make} {vehicle.model} ({vehicle.registration_number}) — {v_reason}"
+                )
+                return redirect(redirect_target)
         if driver and not driver.is_compliant():
             messages.error(
                 request,
@@ -457,6 +459,13 @@ def handle_provider_post(request):
     redirect_target = request.META.get('HTTP_REFERER') or 'portal_provider_workspace'
 
     if action == 'submit_quote':
+        # Backend Compliance & Operating Licence Enforcement (Paystack Section 6)
+        if provider_company:
+            prov_ok, prov_msg = provider_company.is_eligible_for_booking()
+            if not prov_ok:
+                messages.error(request, f"🚨 Compliance Block: Cannot submit quote — {prov_msg}")
+                return redirect(redirect_target)
+
         quote_req_id = request.POST.get('quote_request_id')
         offered_cost = request.POST.get('offered_cost', '0')
         proposed_vehicle_id = request.POST.get('proposed_vehicle_id')
@@ -465,6 +474,11 @@ def handle_provider_post(request):
         pqr = ProviderQuoteRequest.objects.filter(id=quote_req_id, provider=provider_company).first()
         if pqr:
             veh = Vehicle.objects.filter(id=proposed_vehicle_id, provider=provider_company).first() if proposed_vehicle_id else None
+            if veh:
+                veh_ok, veh_msg = veh.is_eligible_for_booking()
+                if not veh_ok:
+                    messages.error(request, f"🚨 Proposed vehicle not eligible: {veh_msg}")
+                    return redirect(redirect_target)
             offered_dec = Decimal(offered_cost)
             pq, _ = ProviderQuote.objects.update_or_create(
                 quote_request=pqr,
@@ -532,6 +546,26 @@ def handle_provider_post(request):
         child_seat = bool(request.POST.get('has_child_seat'))
 
         if plate and make and model_name:
+            if Vehicle.objects.filter(registration_number=plate).exists():
+                messages.error(request, f"A vehicle with plate '{plate}' already exists in the system.")
+                return redirect(redirect_target)
+
+            # Check compliance documents submitted via Stepper
+            reg_doc_num = request.POST.get('registration_doc_number', '').strip().upper()
+            reg_doc_file = request.FILES.get('registration_doc_file')
+            rw_doc_num = request.POST.get('roadworthiness_doc_number', '').strip().upper()
+            rw_expiry = request.POST.get('roadworthiness_expiry_date')
+            rw_file = request.FILES.get('roadworthiness_file')
+            ins_doc_num = request.POST.get('insurance_doc_number', '').strip().upper()
+            ins_expiry = request.POST.get('insurance_expiry_date')
+            ins_file = request.FILES.get('insurance_file')
+
+            initial_compliance = (
+                Vehicle.ComplianceStatus.PENDING_REVIEW 
+                if (reg_doc_file or rw_file or reg_doc_num or rw_doc_num)
+                else Vehicle.ComplianceStatus.PENDING_SUBMISSION
+            )
+
             veh = Vehicle.objects.create(
                 provider=provider_company,
                 registration_number=plate,
@@ -547,8 +581,9 @@ def handle_provider_post(request):
                 has_accessibility=accessibility,
                 has_child_seat=child_seat,
                 status=Vehicle.Status.AVAILABLE,
-                compliance_status=Vehicle.ComplianceStatus.COMPLIANT
+                compliance_status=initial_compliance
             )
+
             # Handle vehicle photo upload
             photo_file = request.FILES.get('vehicle_photo')
             if photo_file:
@@ -558,7 +593,93 @@ def handle_provider_post(request):
                     is_primary=True,
                     caption=f"{make} {model_name} — primary photo"
                 )
-            messages.success(request, f"Vehicle {plate} ({make} {model_name}) added to fleet!")
+
+            # Process Vehicle Registration Document
+            if reg_doc_file or reg_doc_num:
+                doc_reg = ComplianceDocument.objects.create(
+                    provider=provider_company,
+                    vehicle=veh,
+                    target_type=ComplianceDocument.TargetType.VEHICLE,
+                    document_type=ComplianceDocument.DocumentType.VEHICLE_REGISTRATION,
+                    document_file=reg_doc_file if reg_doc_file else '',
+                    document_number=reg_doc_num or f"VRD-{plate}",
+                    issuing_authority="DVLA Ghana",
+                    status=ComplianceDocument.Status.PENDING_REVIEW
+                )
+                ComplianceAuditLog.log_action(
+                    action=ComplianceAuditLog.Action.UPLOAD,
+                    actor=request.user,
+                    provider=provider_company,
+                    vehicle=veh,
+                    document=doc_reg,
+                    new_status='PENDING_REVIEW',
+                    notes=f"Vehicle registration doc uploaded via stepper for {plate}.",
+                    request=request
+                )
+
+            # Process DVLA Roadworthiness Certificate
+            if rw_file or rw_doc_num:
+                doc_rw = ComplianceDocument.objects.create(
+                    provider=provider_company,
+                    vehicle=veh,
+                    target_type=ComplianceDocument.TargetType.VEHICLE,
+                    document_type=ComplianceDocument.DocumentType.ROADWORTHINESS,
+                    document_file=rw_file if rw_file else '',
+                    document_number=rw_doc_num or f"RW-{plate}",
+                    expiry_date=rw_expiry if rw_expiry else None,
+                    issuing_authority="DVLA Ghana",
+                    status=ComplianceDocument.Status.PENDING_REVIEW
+                )
+                ComplianceAuditLog.log_action(
+                    action=ComplianceAuditLog.Action.UPLOAD,
+                    actor=request.user,
+                    provider=provider_company,
+                    vehicle=veh,
+                    document=doc_rw,
+                    new_status='PENDING_REVIEW',
+                    notes=f"DVLA Roadworthiness certificate uploaded via stepper for {plate} (Expires {rw_expiry or 'N/A'}).",
+                    request=request
+                )
+
+            # Process Commercial Passenger Insurance (Optional)
+            if ins_file or ins_doc_num:
+                doc_ins = ComplianceDocument.objects.create(
+                    provider=provider_company,
+                    vehicle=veh,
+                    target_type=ComplianceDocument.TargetType.VEHICLE,
+                    document_type=ComplianceDocument.DocumentType.COMMERCIAL_INSURANCE,
+                    document_file=ins_file if ins_file else '',
+                    document_number=ins_doc_num or f"INS-{plate}",
+                    expiry_date=ins_expiry if ins_expiry else None,
+                    status=ComplianceDocument.Status.PENDING_REVIEW
+                )
+                ComplianceAuditLog.log_action(
+                    action=ComplianceAuditLog.Action.UPLOAD,
+                    actor=request.user,
+                    provider=provider_company,
+                    vehicle=veh,
+                    document=doc_ins,
+                    new_status='PENDING_REVIEW',
+                    notes=f"Commercial Insurance policy uploaded via stepper for {plate}.",
+                    request=request
+                )
+
+            ComplianceAuditLog.log_action(
+                action=ComplianceAuditLog.Action.UPLOAD,
+                actor=request.user,
+                provider=provider_company,
+                vehicle=veh,
+                new_status=str(initial_compliance),
+                notes=f"Commercial vehicle {plate} ({make} {model_name}) enrolled via multi-step stepper.",
+                request=request
+            )
+
+            messages.success(
+                request,
+                f"Vehicle {plate} ({make} {model_name}) enrolled successfully! Compliance documents submitted for review."
+            )
+        else:
+            messages.error(request, "Please provide registration plate number, make, and model.")
         return redirect(redirect_target)
 
     elif action == 'edit_vehicle':
@@ -744,18 +865,43 @@ def handle_provider_post(request):
     elif action == 'upload_compliance':
         doc_type = request.POST.get('document_type', ComplianceDocument.DocumentType.OTHER)
         doc_num = request.POST.get('document_number', '').strip()
+        authority = request.POST.get('issuing_authority', '').strip()
         exp_date = request.POST.get('expiry_date')
         issue_date = request.POST.get('issue_date')
-        ComplianceDocument.objects.create(
+        doc_file = request.FILES.get('document_file')
+        target_type = request.POST.get('target_type', ComplianceDocument.TargetType.PROVIDER)
+        vehicle_id = request.POST.get('vehicle_id')
+        veh = Vehicle.objects.filter(id=vehicle_id, provider=provider_company).first() if vehicle_id else None
+
+        prev_doc_id = request.POST.get('previous_document_id')
+        prev_doc = ComplianceDocument.objects.filter(id=prev_doc_id).first() if prev_doc_id else None
+
+        doc = ComplianceDocument.objects.create(
             provider=provider_company,
-            target_type=ComplianceDocument.TargetType.PROVIDER,
+            vehicle=veh,
+            target_type=target_type,
             document_type=doc_type,
             document_number=doc_num,
+            document_file=doc_file if doc_file else '',
+            issuing_authority=authority or None,
             issue_date=issue_date if issue_date else None,
             expiry_date=exp_date if exp_date else None,
-            status=ComplianceDocument.Status.APPROVED
+            previous_document=prev_doc,
+            status=ComplianceDocument.Status.PENDING_REVIEW
         )
-        messages.success(request, f"Compliance document {doc_num} uploaded and approved!")
+
+        action_type = ComplianceAuditLog.Action.REPLACEMENT if prev_doc else ComplianceAuditLog.Action.UPLOAD
+        ComplianceAuditLog.log_action(
+            action=action_type,
+            actor=request.user,
+            provider=provider_company,
+            vehicle=veh,
+            document=doc,
+            new_status='PENDING_REVIEW',
+            notes=f"Uploaded {doc.get_document_type_display()} #{doc_num} (Pending Review).",
+            request=request
+        )
+        messages.success(request, f"Compliance document {doc_num} submitted successfully. It is now Pending Review by the Compliance Desk.")
         return redirect(redirect_target)
 
     elif action == 'update_admin_profile':

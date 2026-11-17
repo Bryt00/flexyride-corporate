@@ -1,0 +1,653 @@
+{% extends "portal/broker/broker_base.html" %}
+{% load humanize static %}
+
+{% block broker_page_title %}Provider Compliance & Paystack Verification Vault{% endblock %}
+{% block broker_page_subtitle %}DVLA commercial operator licensing, independent vehicle roadworthiness vetting, Paystack subaccounts, and compliance audit trails.{% endblock %}
+
+{% block broker_content %}
+<div class="space-y-6">
+
+    <!-- Top Compliance Overview Metric Cards (Paystack Section 9) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
+        <!-- 1. Total Registered Providers -->
+        <div class="card-elevated rounded-2xl p-4 sm:p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Providers</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400">
+                    <i data-lucide="building-2" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-white mt-2 font-mono">{{ total_providers_count }}</p>
+            <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-1">
+                Registered Transport Partners
+            </span>
+        </div>
+
+        <!-- 2. Fully Verified Providers -->
+        <div class="card-elevated rounded-2xl p-4 sm:p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Fully Verified</span>
+                <div class="w-8 h-8 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-emerald-400 mt-2 font-mono">{{ verified_providers_count }}</p>
+            <span class="text-[10px] text-emerald-400/80 font-medium flex items-center gap-1 mt-1">
+                <i data-lucide="check" class="w-3 h-3"></i> Cleared for Bidding
+            </span>
+        </div>
+
+        <!-- 3. Pending Review -->
+        <div class="card-elevated rounded-2xl p-4 sm:p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Pending Review</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-amber-400 mt-2 font-mono">{{ pending_providers_count }}</p>
+            <span class="text-[10px] text-amber-400/80 font-medium flex items-center gap-1 mt-1">
+                <i data-lucide="alert-circle" class="w-3 h-3"></i> Awaiting Audit
+            </span>
+        </div>
+
+        <!-- 4. Suspended Providers -->
+        <div class="card-elevated rounded-2xl p-4 sm:p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Suspended</span>
+                <div class="w-8 h-8 rounded-xl bg-red-500/15 flex items-center justify-center text-red-400">
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-red-400 mt-2 font-mono">{{ suspended_providers_count }}</p>
+            <span class="text-[10px] text-red-400/80 font-medium flex items-center gap-1 mt-1">
+                <i data-lucide="ban" class="w-3 h-3"></i> Booking Lockout Active
+            </span>
+        </div>
+    </div>
+
+    <!-- Secondary Metrics Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
+        <!-- 5. Expired Documents -->
+        <div class="card-elevated rounded-2xl p-4 sm:p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Expired Docs</span>
+                <div class="w-8 h-8 rounded-xl bg-red-500/15 flex items-center justify-center text-red-400">
+                    <i data-lucide="file-x" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-red-400 mt-2 font-mono">{{ expired_providers_count }}</p>
+            <span class="text-[10px] text-slate-400 font-medium mt-1 block">Past-due Licences/Certs</span>
+        </div>
+
+        <!-- 6. Expiring in 30 Days -->
+        <div class="card-elevated rounded-2xl p-4 sm:p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Expiring &le; 30d</span>
+                <div class="w-8 h-8 rounded-xl bg-amber-400/15 flex items-center justify-center text-amber-400">
+                    <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-amber-400 mt-2 font-mono">{{ expiring_soon_count }}</p>
+            <span class="text-[10px] text-amber-400/80 font-medium mt-1 block">Advance Renewal Alerts</span>
+        </div>
+
+        <!-- 7. Verified vs Non-Compliant Fleet -->
+        <div class="card-elevated rounded-2xl p-4 sm:p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Vehicle Units</span>
+                <div class="w-8 h-8 rounded-xl bg-purple-500/15 flex items-center justify-center text-purple-400">
+                    <i data-lucide="car" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-xl font-black text-white mt-2 font-mono">
+                <span class="text-emerald-400">{{ verified_vehicles_count }}</span> / <span class="text-slate-400">{{ total_vehicles_count }}</span>
+            </p>
+            <span class="text-[10px] text-slate-400 font-medium mt-1 block">
+                {{ non_compliant_vehicles_count }} Non-Compliant Units
+            </span>
+        </div>
+
+        <!-- 8. Incomplete Paystack Setup -->
+        <div class="card-elevated rounded-2xl p-4 sm:p-5 border border-white/5 bg-[#0d1424]">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Paystack Pending</span>
+                <div class="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center text-blue-400">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-blue-400 mt-2 font-mono">{{ incomplete_paystack_count }}</p>
+            <span class="text-[10px] text-slate-400 font-medium mt-1 block">Missing Subaccount Split</span>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs: Providers vs Audit Trail -->
+    <div class="flex items-center gap-2 border-b border-white/10 pb-2">
+        <a href="?tab=providers{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter and status_filter != 'ALL' %}&status={{ status_filter }}{% endif %}"
+           class="px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 {% if active_sub_tab != 'audit' %}bg-[#8CC63F] text-[#0A0F1D] shadow-md shadow-[#8CC63F]/20{% else %}bg-white/5 text-slate-400 hover:text-white{% endif %}">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Providers & Vehicles Compliance</span>
+        </a>
+        <a href="?tab=audit{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 {% if active_sub_tab == 'audit' %}bg-[#8CC63F] text-[#0A0F1D] shadow-md shadow-[#8CC63F]/20{% else %}bg-white/5 text-slate-400 hover:text-white{% endif %}">
+            <i data-lucide="scroll" class="w-4 h-4"></i>
+            <span>Compliance Audit Trail (Logs)</span>
+        </a>
+    </div>
+
+    {% if active_sub_tab != 'audit' %}
+    <!-- Filter Toolbar -->
+    <div class="card-elevated p-4 rounded-2xl border border-white/5 bg-[#0d1424] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Search Form -->
+        <form method="GET" action="{% url 'portal_broker_compliance' %}" class="relative flex-1 sm:max-w-xs">
+            {% if status_filter and status_filter != 'ALL' %}
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            {% endif %}
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" name="q" value="{{ search_query|default:'' }}" 
+                   placeholder="Search provider, plate, licence..." 
+                   class="w-full pl-9 pr-8 py-2 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#8CC63F]/40 focus:border-[#8CC63F]">
+            {% if search_query %}
+            <a href="{% url 'portal_broker_compliance' %}{% if status_filter and status_filter != 'ALL' %}?status={{ status_filter }}{% endif %}" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </a>
+            {% endif %}
+        </form>
+
+        <!-- Status Pill Tabs -->
+        <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 text-xs overflow-x-auto">
+            <a href="{% url 'portal_broker_compliance' %}?status=ALL{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 rounded-lg font-bold transition-all {% if not status_filter or status_filter == 'ALL' %}bg-[#8CC63F] text-[#0A0F1D]{% else %}text-slate-400 hover:text-white{% endif %}">
+                All ({{ total_providers_count }})
+            </a>
+            <a href="{% url 'portal_broker_compliance' %}?status=VERIFIED{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 rounded-lg font-bold transition-all {% if status_filter == 'VERIFIED' %}bg-emerald-500 text-white{% else %}text-slate-400 hover:text-emerald-400{% endif %}">
+                Verified ({{ verified_providers_count }})
+            </a>
+            <a href="{% url 'portal_broker_compliance' %}?status=PENDING_REVIEW{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 rounded-lg font-bold transition-all {% if status_filter == 'PENDING_REVIEW' %}bg-amber-400 text-[#0A0F1D]{% else %}text-slate-400 hover:text-amber-400{% endif %}">
+                Pending Review ({{ pending_providers_count }})
+            </a>
+            <a href="{% url 'portal_broker_compliance' %}?status=EXPIRED{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 rounded-lg font-bold transition-all {% if status_filter == 'EXPIRED' %}bg-red-500 text-white{% else %}text-slate-400 hover:text-red-400{% endif %}">
+                Expired ({{ expired_providers_count }})
+            </a>
+            <a href="{% url 'portal_broker_compliance' %}?status=SUSPENDED{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3 py-1.5 rounded-lg font-bold transition-all {% if status_filter == 'SUSPENDED' %}bg-red-600 text-white{% else %}text-slate-400 hover:text-red-400{% endif %}">
+                Suspended ({{ suspended_providers_count }})
+            </a>
+        </div>
+    </div>
+
+    <!-- Providers List with Expandable Compliance Profiles -->
+    <div class="space-y-4">
+        {% for prov in providers %}
+        <div class="card-elevated rounded-3xl p-6 border border-white/5 bg-[#0d1424] space-y-5 transition-all">
+            <!-- Provider Header Row -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/5">
+                <div class="flex items-start gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 font-black text-lg shrink-0">
+                        {{ prov.company_name|slice:":2"|upper }}
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h3 class="text-base font-black text-white tracking-tight">{{ prov.company_name }}</h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/5 text-slate-300 border border-white/10">
+                                FRC-PROV-{{ prov.id|stringformat:"04d" }}
+                            </span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                                {% if prov.compliance_status == 'VERIFIED' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/40
+                                {% elif prov.compliance_status == 'SUSPENDED' or prov.compliance_status == 'EXPIRED' %}bg-red-500/20 text-red-400 border border-red-500/40
+                                {% else %}bg-amber-400/20 text-amber-400 border border-amber-400/40{% endif %}">
+                                {{ prov.compliance_status }}
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-1">
+                            <span><i data-lucide="user" class="w-3.5 h-3.5 inline mr-1 text-slate-500"></i>{{ prov.contact_person }}</span>
+                            <span><i data-lucide="phone" class="w-3.5 h-3.5 inline mr-1 text-slate-500"></i>{{ prov.phone }}</span>
+                            <span><i data-lucide="mail" class="w-3.5 h-3.5 inline mr-1 text-slate-500"></i>{{ prov.email }}</span>
+                            {% if prov.registration_number %}<span><i data-lucide="hash" class="w-3.5 h-3.5 inline mr-1 text-slate-500"></i>Reg: {{ prov.registration_number }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export & Primary Status Actions -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <a href="{% url 'compliance_export_report' prov.id %}" target="_blank"
+                       class="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 border border-white/10 active:scale-95 shadow-sm">
+                        <i data-lucide="file-down" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Export Evidence PDF</span>
+                    </a>
+                    <a href="{% url 'compliance_export_report' prov.id %}?redact=1" target="_blank"
+                       title="Export PDF with personal phone/email/bank accounts redacted for third-party compliance submission"
+                       class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-bold transition-all flex items-center gap-1 border border-white/10">
+                        <i data-lucide="eye-off" class="w-3.5 h-3.5"></i>
+                        <span>Redacted</span>
+                    </a>
+
+                    {% if prov.status == 'SUSPENDED' %}
+                    <form method="POST" action="{% url 'portal_broker_compliance' %}" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reactivate_provider">
+                        <input type="hidden" name="provider_id" value="{{ prov.id }}">
+                        <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#0A0F1D] text-xs font-black transition-all flex items-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5 stroke-[3]"></i>
+                            <span>Clear Suspension</span>
+                        </button>
+                    </form>
+                    {% else %}
+                    <button type="button" onclick="openSuspendModal('{{ prov.id }}', '{{ prov.company_name|escapejs }}')"
+                            class="px-3.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95">
+                        <i data-lucide="ban" class="w-3.5 h-3.5"></i>
+                        <span>Suspend Provider</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Commercial Operator Licence & Paystack Status Strip -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Commercial Operator Licence (Provider-Level) -->
+                <div class="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-[#8CC63F] flex items-center gap-1.5">
+                            <i data-lucide="award" class="w-3.5 h-3.5"></i> Commercial Vehicle Operator Licence
+                        </span>
+                        {% if prov.operator_license %}
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold
+                            {% if prov.operator_license.is_compliant %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/30
+                            {% elif prov.operator_license.is_expired %}bg-red-500/15 text-red-400 border border-red-500/30
+                            {% else %}bg-amber-400/15 text-amber-400 border border-amber-400/30{% endif %}">
+                            {{ prov.operator_license.get_status_display }}
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
+                            Missing
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if prov.operator_license %}
+                    <div class="flex items-start justify-between gap-3 text-xs">
+                        <div>
+                            <p class="font-mono font-bold text-white">{{ prov.operator_license.document_number|default:"Pending Reference" }}</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Authority: {{ prov.operator_license.issuing_authority|default:"DVLA / NRSA Ghana" }}</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">
+                                Expiry: <strong class="{% if prov.operator_license.is_expired %}text-red-400{% else %}text-slate-300{% endif %}">{{ prov.operator_license.expiry_date|default:"Permanent" }}</strong>
+                                {% if prov.operator_license.days_until_expiry is not None %}
+                                ({{ prov.operator_license.days_until_expiry }} days left)
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col items-end gap-1.5 shrink-0">
+                            {% if prov.operator_license.document_file %}
+                            <a href="{% url 'compliance_download_document' prov.operator_license.id %}" target="_blank"
+                               class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-bold transition-all flex items-center gap-1 border border-white/10">
+                                <i data-lucide="download" class="w-3 h-3"></i> View File
+                            </a>
+                            {% endif %}
+
+                            {% if prov.operator_license.status != 'VERIFIED' %}
+                            <form method="POST" action="{% url 'portal_broker_compliance' %}" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve_document">
+                                <input type="hidden" name="document_id" value="{{ prov.operator_license.id }}">
+                                <button type="submit" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0A0F1D] text-[10px] font-black transition-all flex items-center gap-1 shadow-sm">
+                                    <i data-lucide="check" class="w-3 h-3 stroke-[3]"></i> Verify Licence
+                                </button>
+                            </form>
+                            <button type="button" onclick="openRejectDocModal('{{ prov.operator_license.id }}', '{{ prov.operator_license.document_number|escapejs }}')"
+                                    class="px-2.5 py-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 text-[10px] font-bold transition-all">
+                                Reject
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-xs text-red-400 font-medium">No Commercial Operator Licence on file. Provider is blocked from all dispatches.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Paystack Subaccount & Split Payment -->
+                <div class="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                            <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Paystack Subaccount Verification
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold {% if prov.paystack_ready %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/30{% else %}bg-amber-400/15 text-amber-400 border border-amber-400/30{% endif %}">
+                            {% if prov.paystack_ready %}Verified{% else %}Pending Setup{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="text-xs space-y-1">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Subaccount Code:</span>
+                            <span class="font-mono font-bold text-white">{{ prov.paystack_subaccount_code|default:"ACCT_UNCONFIGURED" }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Settlement Bank / MoMo:</span>
+                            <span class="text-white">{{ prov.settlement_bank_name|default:prov.settlement_bank|default:"Not specified" }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Account Holder:</span>
+                            <span class="font-mono text-slate-300">{{ prov.account_name|default:prov.contact_person }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-white/5">
+                            <span class="text-slate-400">Platform Split Margin:</span>
+                            <span class="font-bold text-[#8CC63F]">{{ prov.percentage_charge|default:"0" }}% Deduction</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linked Fleet Vehicles Compliance Matrix -->
+            <div class="space-y-2 pt-2">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i data-lucide="car" class="w-3.5 h-3.5 text-purple-400"></i> Linked Fleet Vehicles Compliance Matrix ({{ prov.vehicles.count }} Units)
+                    </h4>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-white/5">
+                    <table class="w-full text-left text-xs bg-black/20">
+                        <thead>
+                            <tr class="text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-white/5 bg-white/[0.02]">
+                                <th class="py-2.5 px-3">Vehicle Plate</th>
+                                <th class="py-2.5 px-3">Make / Model</th>
+                                <th class="py-2.5 px-3">Category</th>
+                                <th class="py-2.5 px-3">Registration Doc</th>
+                                <th class="py-2.5 px-3">Roadworthiness Cert</th>
+                                <th class="py-2.5 px-3">Expiry Date</th>
+                                <th class="py-2.5 px-3">Compliance Status</th>
+                                <th class="py-2.5 px-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            {% for v in prov.vehicles.all %}
+                            <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="py-2.5 px-3 font-mono font-bold text-white">{{ v.registration_number }}</td>
+                                <td class="py-2.5 px-3 text-slate-300">{{ v.make }} {{ v.model }}</td>
+                                <td class="py-2.5 px-3">
+                                    <span class="px-2 py-0.5 rounded bg-white/5 text-[10px] font-bold text-slate-400">
+                                        {{ v.get_category_display }}
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-3">
+                                    {% if v.registration_document %}
+                                    <span class="text-emerald-400 font-bold flex items-center gap-1">
+                                        <i data-lucide="check" class="w-3 h-3"></i>
+                                        {{ v.registration_document.document_number|default:"Attached" }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-amber-400 font-medium">Missing</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2.5 px-3">
+                                    {% if v.roadworthiness_document %}
+                                    <span class="font-mono text-white text-[11px] block">{{ v.roadworthiness_document.document_number|default:"Attached" }}</span>
+                                    <span class="text-[10px] {% if v.roadworthiness_document.is_expired %}text-red-400 font-bold{% else %}text-emerald-400{% endif %}">
+                                        {{ v.roadworthiness_document.get_status_display }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-red-400 font-medium">Missing</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2.5 px-3 font-mono text-[11px]">
+                                    {% if v.roadworthiness_document and v.roadworthiness_document.expiry_date %}
+                                    <span class="{% if v.roadworthiness_document.is_expired %}text-red-400 font-bold{% elif v.roadworthiness_document.days_until_expiry <= 30 %}text-amber-400 font-bold{% else %}text-slate-300{% endif %}">
+                                        {{ v.roadworthiness_document.expiry_date|date:"Y-m-d" }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-slate-500">--</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2.5 px-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                                        {% if v.compliance_status == 'VERIFIED' or v.compliance_status == 'COMPLIANT' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                                        {% elif v.compliance_status == 'EXPIRED' or v.compliance_status == 'SUSPENDED' %}bg-red-500/20 text-red-400 border border-red-500/30
+                                        {% else %}bg-amber-400/20 text-amber-400 border border-amber-400/30{% endif %}">
+                                        {{ v.get_compliance_status_display }}
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-3 text-right">
+                                    {% if v.compliance_status == 'SUSPENDED' %}
+                                    <form method="POST" action="{% url 'portal_broker_compliance' %}" class="inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="reactivate_vehicle">
+                                        <input type="hidden" name="vehicle_id" value="{{ v.id }}">
+                                        <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-[10px] font-bold transition-all">
+                                            Reactivate
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <button type="button" onclick="openSuspendVehicleModal('{{ v.id }}', '{{ v.registration_number }}')" class="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 text-[10px] font-bold transition-all">
+                                        Suspend
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="py-4 text-center text-slate-500">
+                                    No fleet vehicles enrolled for this transport provider.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card-elevated rounded-3xl p-12 text-center text-slate-400 border border-white/5 bg-[#0d1424]">
+            <i data-lucide="shield-alert" class="w-12 h-12 mx-auto mb-3 text-slate-600"></i>
+            <p class="font-bold text-white text-base">No transport providers match the selected criteria.</p>
+            <p class="text-xs text-slate-500 mt-1">Try resetting the status filter or search parameters.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Compliance Audit Trail View (Section 10) -->
+    <div class="card-elevated rounded-3xl p-6 border border-white/5 bg-[#0d1424] space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5">
+            <div>
+                <h3 class="text-sm font-black text-white tracking-tight flex items-center gap-2">
+                    <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
+                    Compliance Audit Trail & Administrative Decision Log
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Immutable record of all document uploads, vetting approvals, rejections, and lockouts</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-white/5">
+            <table class="w-full text-left text-xs bg-black/20">
+                <thead>
+                    <tr class="text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-white/5 bg-white/[0.02]">
+                        <th class="py-2.5 px-3">Timestamp (UTC)</th>
+                        <th class="py-2.5 px-3">Action</th>
+                        <th class="py-2.5 px-3">Target Entity</th>
+                        <th class="py-2.5 px-3">Previous &rarr; New Status</th>
+                        <th class="py-2.5 px-3">Actor / Admin</th>
+                        <th class="py-2.5 px-3">Audit Notes & Reason</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5 font-mono text-[11px]">
+                    {% for l in audit_logs %}
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="py-2.5 px-3 text-slate-400">{{ l.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="py-2.5 px-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold font-sans uppercase
+                                {% if l.action == 'APPROVAL' or l.action == 'PROVIDER_REACTIVATION' or l.action == 'VEHICLE_REACTIVATION' %}bg-emerald-500/20 text-emerald-400
+                                {% elif l.action == 'REJECTION' or l.action == 'PROVIDER_SUSPENSION' or l.action == 'VEHICLE_SUSPENSION' %}bg-red-500/20 text-red-400
+                                {% elif l.action == 'EXPIRY_DETECTED' %}bg-amber-400/20 text-amber-400
+                                {% else %}bg-blue-500/20 text-blue-400{% endif %}">
+                                {{ l.get_action_display }}
+                            </span>
+                        </td>
+                        <td class="py-2.5 px-3 font-sans font-bold text-white">
+                            {% if l.vehicle %}{{ l.vehicle.registration_number }} ({{ l.vehicle.make }})
+                            {% elif l.provider %}{{ l.provider.company_name }}
+                            {% else %}Platform Resource{% endif %}
+                        </td>
+                        <td class="py-2.5 px-3 text-slate-400">
+                            {{ l.previous_status|default:"--" }} &rarr; <span class="text-white font-bold">{{ l.new_status }}</span>
+                        </td>
+                        <td class="py-2.5 px-3 font-sans text-slate-300">
+                            {{ l.actor.username|default:"System Task" }}
+                        </td>
+                        <td class="py-2.5 px-3 font-sans text-slate-300 max-w-xs truncate">
+                            {{ l.notes|default:"--" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-slate-500 font-sans">
+                            No compliance audit records logged yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Reject Document Modal -->
+<div id="rejectDocModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#121829] border border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5">
+            <h3 class="text-sm font-black text-white flex items-center gap-2">
+                <i data-lucide="x-circle" class="w-4 h-4 text-red-400"></i>
+                Reject Compliance Document
+            </h3>
+            <button type="button" onclick="closeModal('rejectDocModal')" class="text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'portal_broker_compliance' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject_document">
+            <input type="hidden" name="document_id" id="rejectDocId" value="">
+
+            <p class="text-xs text-slate-300">
+                Rejecting document <span id="rejectDocName" class="font-bold text-white font-mono"></span>. Please enter the compliance defect or rejection reason.
+            </p>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Rejection Reason <span class="text-red-400">*</span></label>
+                <textarea name="rejection_reason" rows="3" required placeholder="e.g. Scanned document unreadable / Expired certificate / Missing DVLA official stamp..."
+                          class="w-full px-3 py-2 bg-[#0A0F1D] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-red-500/40"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('rejectDocModal')" class="px-4 py-2 bg-white/5 text-slate-300 rounded-xl text-xs font-bold">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-black shadow-lg shadow-red-600/30">Confirm Rejection</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Suspend Provider Modal -->
+<div id="suspendProviderModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#121829] border border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5">
+            <h3 class="text-sm font-black text-white flex items-center gap-2">
+                <i data-lucide="shield-alert" class="w-4 h-4 text-red-400"></i>
+                Suspend Transport Provider
+            </h3>
+            <button type="button" onclick="closeModal('suspendProviderModal')" class="text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'portal_broker_compliance' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="suspend_provider">
+            <input type="hidden" name="provider_id" id="suspendProviderId" value="">
+
+            <div class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-300">
+                <strong>Lockout Warning:</strong> Suspending <span id="suspendProviderName" class="font-bold text-white"></span> will immediately block all its vehicles from accepting new bookings.
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Suspension Reason <span class="text-red-400">*</span></label>
+                <textarea name="reason" rows="3" required placeholder="e.g. Operating licence not renewed / Failed safety audit / Paystack compliance default..."
+                          class="w-full px-3 py-2 bg-[#0A0F1D] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-red-500/40"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('suspendProviderModal')" class="px-4 py-2 bg-white/5 text-slate-300 rounded-xl text-xs font-bold">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-black shadow-lg shadow-red-600/30">Confirm Suspension</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Suspend Vehicle Modal -->
+<div id="suspendVehicleModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#121829] border border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5">
+            <h3 class="text-sm font-black text-white flex items-center gap-2">
+                <i data-lucide="ban" class="w-4 h-4 text-red-400"></i>
+                Suspend Fleet Vehicle
+            </h3>
+            <button type="button" onclick="closeModal('suspendVehicleModal')" class="text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'portal_broker_compliance' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="suspend_vehicle">
+            <input type="hidden" name="vehicle_id" id="suspendVehicleId" value="">
+
+            <p class="text-xs text-slate-300">
+                Suspending vehicle <span id="suspendVehiclePlate" class="font-bold font-mono text-white"></span> will block this unit from being assigned to any future bookings.
+            </p>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Suspension Reason <span class="text-red-400">*</span></label>
+                <textarea name="reason" rows="2" required placeholder="e.g. Expired roadworthiness / Failed physical inspection..."
+                          class="w-full px-3 py-2 bg-[#0A0F1D] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-red-500/40"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('suspendVehicleModal')" class="px-4 py-2 bg-white/5 text-slate-300 rounded-xl text-xs font-bold">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-black shadow-lg shadow-red-600/30">Suspend Unit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openRejectDocModal(docId, docName) {
+        const idInput = document.getElementById('rejectDocId');
+        const nameSpan = document.getElementById('rejectDocName');
+        if (idInput) idInput.value = docId;
+        if (nameSpan) nameSpan.textContent = docName;
+        openModal('rejectDocModal');
+    }
+
+    function openSuspendModal(providerId, providerName) {
+        const idInput = document.getElementById('suspendProviderId');
+        const nameSpan = document.getElementById('suspendProviderName');
+        if (idInput) idInput.value = providerId;
+        if (nameSpan) nameSpan.textContent = providerName;
+        openModal('suspendProviderModal');
+    }
+
+    function openSuspendVehicleModal(vehicleId, plate) {
+        const idInput = document.getElementById('suspendVehicleId');
+        const plateSpan = document.getElementById('suspendVehiclePlate');
+        if (idInput) idInput.value = vehicleId;
+        if (plateSpan) plateSpan.textContent = plate;
+        openModal('suspendVehicleModal');
+    }
+</script>
+{% endblock %}
+
